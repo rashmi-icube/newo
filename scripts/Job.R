@@ -13,7 +13,7 @@ mysqlusername='hpatel'
 mysqlpasswod="hitesh16"
 
 mysqldbname='owen_master'
-
+#mysqldbname='owen'
 #mysqlhost="192.168.1.13"
 mysqlhost="localhost"
 
@@ -999,7 +999,7 @@ JobTeamMetric=function(CompanyId){
     cube_id=cube_master$cube_id[k]
     emp_id_cube=employee$emp_id[employee$cube_id==cube_id]
     
-    if(length(emp_id_cube)<=variable$value[variable$variable_name=="MinTeamSize"]){
+    if(length(emp_id_cube)<variable$value[variable$variable_name=="MinTeamSize"]){
       display_flag=0
     }else{
       display_flag=1
@@ -1413,7 +1413,7 @@ JobDimensionMetric=function(CompanyId){
     cube_id=cube_master[cube_master[,dimension_name]==dimension_val_name,"cube_id"]
     emp_id_dim=employee$emp_id[employee$cube_id %in% cube_id]
     
-    if(length(emp_id_dim)<=variable$value[variable$variable_name=="MinTeamSize"]){
+    if(length(emp_id_dim)<variable$value[variable$variable_name=="MinTeamSize"]){
       display_flag=0
     }else{
       display_flag=1
