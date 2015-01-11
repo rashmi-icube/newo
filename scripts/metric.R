@@ -57,6 +57,14 @@ TeamMetric=function(Function,Position,Zone){
   
   #nodes of current Team
   vertexlist=cypher(graph, querynode) 
+  # To return -1 if team size is small
+  if (nrow(vertexlist)<variable$value[variable$variable_name=="MinTeamSize"]){
+    currtime=format(Sys.time(), "%Y-%m-%d %H:%M:%S")
+    op=data.frame(metric_id=c(6,7,8,9,10),score=c(-1,-1,-1,-1,-1),calc_time=currtime)
+    dbDisconnect(mydb)
+    return(op)
+  }
+  
   
   # Query to get all edge with weigth and relation
   queryedge1 = "match (a:Employee),(b:Employee) 
@@ -100,6 +108,10 @@ TeamMetric=function(Function,Position,Zone){
   
   #claculate Skewness
   skew=skewness(indegree)
+  
+  if(is.nan(skew)){
+    skew=3
+  }
   
   #limit to +3 to -3 
   if(skew>3){
@@ -346,6 +358,10 @@ TeamMetric=function(Function,Position,Zone){
   
   # summation of product divide by summation of indegree
   sentimentScore=round(sum(indegree$product)/sum(indegree$indegree),0)
+  
+  if(is.nan(sentimentScore)){
+    sentimentScore=0
+  }
   
   # add to op
   op=rbind(op,data.frame(metric_id=10,score=sentimentScore))
