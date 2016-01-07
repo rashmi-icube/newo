@@ -92,13 +92,8 @@ public class Initiative {
 
 	}
 	/**
-	 * Creation of the actual initiative happens here using the following parameters
+	 * Creation of the actual initiative happens here
 	 * 
-	 * @param initiativeName - A string denoting the name of the initiative
-	 * @param intiativeType - A string denoting the type of the initiative
-	 * @param initiativeStartDate - A string denoting the start date of the initiative
-	 * @param initiativeEndDate - A string denoting the end date of the initiative
-	 * @param initiativeComment - A string which describes the initiative
 	 * @return - Initiative id of the newly created initiative
 	 */
 	 public int createInitiativeNode() {
