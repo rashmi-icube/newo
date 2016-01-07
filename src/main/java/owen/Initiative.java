@@ -53,9 +53,9 @@ public class Initiative {
 		try (Transaction tx = DatabaseConnectionHelper.graphDb.beginTx()) {
 
 			
-			String initiativeId = initiative.createInitiativeNode();
+			int initiativeId = initiative.createInitiativeNode();
 			System.out.println("Created initiative with ID : " + initiativeId);
-			if (!initiativeId.isEmpty()) {
+			if (initiativeId > 0) {
 
 				Map<String, Object> params = new HashMap<String, Object>();
 				params.put("zoneList", zoneList);
@@ -101,7 +101,7 @@ public class Initiative {
 	 * @param initiativeComment - A string which describes the initiative
 	 * @return - Initiative id of the newly created initiative
 	 */
-	 public String createInitiativeNode() {
+	 public int createInitiativeNode() {
 		String initiativeId = "";
 		try (Transaction tx = DatabaseConnectionHelper.graphDb.beginTx()) {
 			SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
@@ -126,7 +126,7 @@ public class Initiative {
 
 			e.printStackTrace();
 		}
-		return initiativeId;
+		return Integer.parseInt(initiativeId);
 	}
 
 	/**
