@@ -134,11 +134,11 @@ public class Initiative {
 		try (Transaction tx = DatabaseConnectionHelper.graphDb.beginTx()) {
 
 			String funcQuery = "", posQuery = "", zoneQuery = "";
-			String funcParam = params.get("funcList").toString();
-			if (funcParam.equalsIgnoreCase("all")) {
+			ArrayList<String> funcParam = (ArrayList<String>)params.get("funcList");
+			if (funcParam.contains("all")) {
 				funcQuery = "Match (i:Init),(f:Function) WHERE i.Id = {initiativeId} Create f-[:part_of]->i ";
 			} else {
-				funcQuery = "Match (i:Init),(f:Function) where i.Id = {initiativeId} and f.FunctionId in {funcList} Create f-[:part_of]->i ";
+				funcQuery = "Match (i:Init),(f:Function) where i.Id = {initiativeId} and f.Id in {funcList} Create f-[:part_of]->i ";
 			}
 
 			posQuery = "Match (i:Init),(p:Position) where i.Id = {initiativeId} and p.Id in {posList} Create p-[:part_of]->i";
