@@ -5,6 +5,10 @@ import org.neo4j.graphdb.Transaction;
 
 import owen.helper.DatabaseConnectionHelper;
 
+/**
+ *retrieves the list of initiatives
+ *
+ */
 public class RetreiveInitiative {
 	public static void main(String[] args) {
 
