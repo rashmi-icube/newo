@@ -1,5 +1,9 @@
 package owen.helper;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 
@@ -11,7 +15,8 @@ public class InitiativeReadHelper {
 	public static void main(String[] args) {
 		try (Transaction tx = DatabaseConnectionHelper.graphDb.beginTx()) {
 			String filter = "Function";
-			getMasterFilterList(filter);
+			InitiativeReadHelper irh = new InitiativeReadHelper();
+			irh.getMasterFilterList(filter);
 			tx.success();
 		}
 
@@ -19,26 +24,23 @@ public class InitiativeReadHelper {
 	}
 
 	/**
-	 * 
-	 * @param filter
-	 * @return
-	 */
-	/**
 	 * Retrieves all the objects which belong to a particular filter item
-	 * @param filter - A string which denotes a filter item
-	*/
-	
-	static void getMasterFilterList(String filter) {
+	 * 
+	 * @param filterName - Name of the filter that needs to be populated [Function,
+	 *            Zone, Position]
+	 */
+
+	public List<Map<Integer, String>> getMasterFilterList(String filterName) {
+		List<Map<Integer, String>> filterMapList = new ArrayList<>();
 		try (Transaction tx = DatabaseConnectionHelper.graphDb.beginTx()) {
-			String Str = "match (n:<<filter>>) return n.Name as Name,n.Id as Id";
-			String Str1 = new String(Str);
-			Str1 = Str1.replace("<<filter>>", filter);
-			Result res = DatabaseConnectionHelper.graphDb.execute(Str1);
+			String query = "match (n:<<filterName>>) return n.Name as Name,n.Id as Id";
+			query = query.replace("<<filter>>", filterName);
+			Result res = DatabaseConnectionHelper.graphDb.execute(query);
 			while (res.hasNext()) {
 				System.out.println(res.resultAsString());
 			}
 			tx.success();
-			
+			return filterMapList;
 		}
 	}
 
