@@ -11,7 +11,7 @@ import org.neo4j.graphdb.factory.GraphDatabaseFactory;
  */
 public class DatabaseConnectionHelper {
 
-	final static String DB_PATH = "C:\\Users\\tmehta\\Downloads\\neo4j-enterprise-2.3.1\\data\\ICICIdb";
+	final static String DB_PATH = "/Users/apple/Downloads/neo4j-enterprise-2.3.1/data/ICICIdb";
 	public static GraphDatabaseService graphDb;
 
 	// Create a new connection with the database

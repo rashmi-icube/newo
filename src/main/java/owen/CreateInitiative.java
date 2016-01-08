@@ -49,7 +49,7 @@ public class CreateInitiative {
 		empIdList.add("5029350");
 		empIdList.add("508344");
 		
-		initiative.setInitiativeProperties("Initiative4", "Change Process", "01/01/2015", "01/05/2015", "xyz", funcList, zoneList, posList, empIdList);
+		initiative.setInitiativeProperties("Initiative2", "Change Process", "01/01/2015", "01/05/2015", "xyz", funcList, zoneList, posList, empIdList);
 		try (Transaction tx = DatabaseConnectionHelper.graphDb.beginTx()) {
 
 			
