@@ -38,8 +38,8 @@ public class InitiativeReadHelper {
 			Result res = DatabaseConnectionHelper.graphDb.execute(query);
 			while (res.hasNext()) {
 				Map<String, String> filterRowMap = new HashMap<String, String>();
-				Map<String, Object> a = res.next();
-				filterRowMap.put(a.get("Id").toString(), a.get("Name").toString());
+				Map<String, Object> resultMap = res.next();
+				filterRowMap.put(resultMap.get("Id").toString(), resultMap.get("Name").toString());
 				filterMapList.add(filterRowMap);
 			}
 			tx.success();
