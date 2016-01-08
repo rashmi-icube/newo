@@ -2,7 +2,6 @@ package owen.helper;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -39,9 +38,8 @@ public class InitiativeReadHelper {
 			Result res = DatabaseConnectionHelper.graphDb.execute(query);
 			while (res.hasNext()) {
 				Map<String, String> filterRowMap = new HashMap<String, String>();
-				Iterator idIterator = res.columnAs("Id");
-				Iterator nameIterator = res.columnAs("Name");
-				filterRowMap.put(idIterator.next().toString(), nameIterator.next().toString() );
+				Map<String, Object> a = res.next();
+				filterRowMap.put(a.get("Id").toString(), a.get("Name").toString());
 				filterMapList.add(filterRowMap);
 			}
 			tx.success();
