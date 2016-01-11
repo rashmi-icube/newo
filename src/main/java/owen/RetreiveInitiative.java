@@ -1,9 +1,6 @@
 package owen;
 
-import java.sql.ResultSetMetaData;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -18,8 +15,8 @@ import owen.helper.DatabaseConnectionHelper;
  */
 public class RetreiveInitiative {
 	public static void main(String[] args) {
-
-		try (Transaction tx = DatabaseConnectionHelper.graphDb.beginTx()) {
+		DatabaseConnectionHelper dch = new DatabaseConnectionHelper();
+		try (Transaction tx = dch.graphDb.beginTx()) {
 			RetreiveInitiative ri = new RetreiveInitiative();
 			ri.getInitiativeList();
 			tx.success();
@@ -27,11 +24,11 @@ public class RetreiveInitiative {
 	}
 
 	public List<Map<Integer, String>> getInitiativeList() {
-
-		try (Transaction tx = DatabaseConnectionHelper.graphDb.beginTx()) {
+		DatabaseConnectionHelper dch = new DatabaseConnectionHelper();
+		try (Transaction tx = dch.graphDb.beginTx()) {
 			List<Map<Integer, String>> initiativeList = new ArrayList<Map<Integer, String>>();
 			String query = "match (i:Init) return i.Name as Name,i.Id as Id";
-			Result res = DatabaseConnectionHelper.graphDb.execute(query);
+			Result res = dch.graphDb.execute(query);
 	        while (res.hasNext()) {
 	        	List<String> columnNames = res.columns();
 	        	for(String c : columnNames){

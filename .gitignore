@@ -1,2 +1,15 @@
-//ignore all class files
 *.class
+*.0
+*.id
+*.db
+*.names
+*.strings
+*.keys
+*.index
+*.arrays
+*.labels
+*.b
+*.a
+*.log
+*.gen
+*.cfs

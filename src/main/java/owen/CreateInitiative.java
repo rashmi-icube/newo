@@ -49,8 +49,9 @@ public class CreateInitiative {
 		empIdList.add("5029350");
 		empIdList.add("508344");
 		
-		initiative.setInitiativeProperties("Initiative2", "Change Process", "01/01/2015", "01/05/2015", "xyz", funcList, zoneList, posList, empIdList);
-		try (Transaction tx = DatabaseConnectionHelper.graphDb.beginTx()) {
+		initiative.setInitiativeProperties("Initiative21", "Change Process", "01/01/2015", "01/05/2015", "xyz", funcList, zoneList, posList, empIdList);
+		DatabaseConnectionHelper dch = new DatabaseConnectionHelper();
+		try (Transaction tx = dch.graphDb.beginTx()) {
 
 			
 			int initiativeId = initiative.createInitiativeNode();
@@ -75,7 +76,7 @@ public class CreateInitiative {
 
 			tx.success();
 		}
-		DatabaseConnectionHelper.shutDown();
+		dch.shutDown();
 	}
 
 	public void setInitiativeProperties(String initiativeName, String initiativeType, String initiativeStartDate, String initiativeEndDate,
@@ -97,8 +98,9 @@ public class CreateInitiative {
 	 * @return - Initiative id of the newly created initiative
 	 */
 	 public int createInitiativeNode() {
+		 DatabaseConnectionHelper dch = new DatabaseConnectionHelper();
 		String initiativeId = "";
-		try (Transaction tx = DatabaseConnectionHelper.graphDb.beginTx()) {
+		try (Transaction tx = dch.graphDb.beginTx()) {
 			SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 			Date startDate = sdf.parse(initiativeStartDate);
 			Date endDate = sdf.parse(initiativeEndDate);
@@ -109,7 +111,7 @@ public class CreateInitiative {
 			createInitQuery = createInitQuery.replace("<<StartDate>>", startDate.toString());
 			createInitQuery = createInitQuery.replace("<<EndDate>>", endDate.toString());
 			createInitQuery = createInitQuery.replace("<<Comment>>", initiativeComment);
-			Result res = DatabaseConnectionHelper.graphDb.execute(createInitQuery);
+			Result res = dch.graphDb.execute(createInitQuery);
 			Iterator it = res.columnAs("Id");
 			while (it.hasNext()){
 				initiativeId = it.next().toString();
@@ -130,8 +132,8 @@ public class CreateInitiative {
 	 * @param params - Map of the objects that are part of the initiative taken as input from the user
 	 */
 	public void createConnectionsPartOf(Map<String, Object> params) {
-
-		try (Transaction tx = DatabaseConnectionHelper.graphDb.beginTx()) {
+		DatabaseConnectionHelper dch = new DatabaseConnectionHelper();
+		try (Transaction tx = dch.graphDb.beginTx()) {
 
 			String funcQuery = "", posQuery = "", zoneQuery = "";
 			ArrayList<String> funcParam = (ArrayList<String>)params.get("funcList");
@@ -143,9 +145,9 @@ public class CreateInitiative {
 
 			posQuery = "Match (i:Init),(p:Position) where i.Id = {initiativeId} and p.Id in {posList} Create p-[:part_of]->i";
 			zoneQuery = "Match (i:Init),(z:Zone) where i.Id = {initiativeId} and z.Id in {zoneList} create z-[:part_of]->i";
-			DatabaseConnectionHelper.graphDb.execute(funcQuery, params);
-			DatabaseConnectionHelper.graphDb.execute(posQuery, params);
-			DatabaseConnectionHelper.graphDb.execute(zoneQuery, params);
+			dch.graphDb.execute(funcQuery, params);
+			dch.graphDb.execute(posQuery, params);
+			dch.graphDb.execute(zoneQuery, params);
 			tx.success();
 		}
 
@@ -157,11 +159,11 @@ public class CreateInitiative {
 	 * @param params - Map of the employee id's who would be the owner of the initiative taken as input from the user
 	 */
 	public void createConnectionsOwnerOf(Map<String, Object> params) {
-
-		try (Transaction tx = DatabaseConnectionHelper.graphDb.beginTx()) {
+		DatabaseConnectionHelper dch = new DatabaseConnectionHelper();
+		try (Transaction tx = dch.graphDb.beginTx()) {
 
 			String Str = "Match (i:Init),(e:Employee) where i.Id = {initiativeId} and e.EmpID in {empIdList} Create e-[:owner_of]->i";
-			DatabaseConnectionHelper.graphDb.execute(Str, params);
+			dch.graphDb.execute(Str, params);
 			tx.success();
 		}
 

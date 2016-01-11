@@ -13,15 +13,18 @@ import org.neo4j.graphdb.Transaction;
  *
  */
 public class InitiativeReadHelper {
+	
+	
 	public static void main(String[] args) {
-		try (Transaction tx = DatabaseConnectionHelper.graphDb.beginTx()) {
+		DatabaseConnectionHelper dch = new DatabaseConnectionHelper();
+		try (Transaction tx = dch.graphDb.beginTx()) {
 			String filter = "Function";
 			InitiativeReadHelper irh = new InitiativeReadHelper();
 			irh.getMasterFilterList(filter);
 			tx.success();
 		}
 
-		DatabaseConnectionHelper.shutDown();
+		dch.shutDown();
 	}
 
 	/**
@@ -31,11 +34,12 @@ public class InitiativeReadHelper {
 	 */
 
 	public List<Map<String, String>> getMasterFilterList(String filterName) {
+		DatabaseConnectionHelper dch = new DatabaseConnectionHelper();
 		List<Map<String, String>> filterMapList = new ArrayList<>();
-		try (Transaction tx = DatabaseConnectionHelper.graphDb.beginTx()) {
+		try (Transaction tx = dch.graphDb.beginTx()) {
 			String query = "match (n:<<filterName>>) return n.Name as Name,n.Id as Id";
 			query = query.replace("<<filterName>>", filterName);
-			Result res = DatabaseConnectionHelper.graphDb.execute(query);
+			Result res = dch.graphDb.execute(query);
 			while (res.hasNext()) {
 				Map<String, String> filterRowMap = new HashMap<String, String>();
 				Map<String, Object> resultMap = res.next();
