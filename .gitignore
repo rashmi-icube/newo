@@ -13,3 +13,4 @@
 *.log
 *.gen
 *.cfs
+config.properties
