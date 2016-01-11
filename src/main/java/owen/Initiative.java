@@ -3,6 +3,8 @@ package owen;
 import java.util.ArrayList;
 
 public class Initiative {
+
+	private int initiativeId;
 	private String initiativeName = "";
 	private String initiativeType = "";
 	private String initiativeStartDate = "";
@@ -85,6 +87,12 @@ public class Initiative {
 		this.empIdList = empIdList;
 	}
 
-	
+	public int getInitiativeId() {
+		return initiativeId;
+	}
+
+	public void setInitiativeId(int initiativeId) {
+		this.initiativeId = initiativeId;
+	}
 
 }
