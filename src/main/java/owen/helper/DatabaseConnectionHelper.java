@@ -13,7 +13,7 @@ import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 public class DatabaseConnectionHelper {
 
 	//final static String DB_PATH = getDatabaseConnectionDetails();
-	final static String DB_PATH = "C:\\Users\\fermion10\\Documents\\Neo4j\\graph.db";
+	private static final String  DB_PATH = "C:\\Users\\tmehta\\Downloads\\neo4j-enterprise-2.3.1\\data\\ICICIdb";
 	
 	public GraphDatabaseService graphDb;
 
@@ -43,6 +43,7 @@ public class DatabaseConnectionHelper {
 
 	public DatabaseConnectionHelper() {
 		graphDb = new GraphDatabaseFactory().newEmbeddedDatabase(new File(DB_PATH));
+		//graphDb = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(DB_PATH).loadPropertiesFromFile("resources/neo4j.properties").newGraphDatabase();
 		registerShutdownHook(graphDb);
 	}
 
@@ -62,7 +63,7 @@ public class DatabaseConnectionHelper {
 	 * 
 	 * @param graphDb - A database factory object
 	 */
-	public void registerShutdownHook(final GraphDatabaseService graphDb) {
+	public void registerShutdownHook(final GraphDatabaseService graphDb){
 
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override

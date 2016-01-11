@@ -1,58 +1,68 @@
 package owen;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.neo4j.cypherdsl.grammar.Set;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 
 import owen.helper.DatabaseConnectionHelper;
 
+
 /**
- * retrieves the list of initiatives
- *
+ * Retrieves the list of Initiatives
  */
 public class RetreiveInitiative {
 	public static void main(String[] args) {
 		DatabaseConnectionHelper dch = new DatabaseConnectionHelper();
 		try (Transaction tx = dch.graphDb.beginTx()) {
 			RetreiveInitiative ri = new RetreiveInitiative();
-			ri.getInitiativeList();
+			List<Map<String, String>> initiativeList = ri.getInitiativeList();
+			Map<String, Object> params = new HashMap<String, Object>();
+			params.put("initiativeList", initiativeList);
+			RetreiveInitiative i = new RetreiveInitiative();
+			List<Map<String, String>> initiativeDetailsList = i.getInitiativeDetails(initiativeList);
 			tx.success();
 		}
+		dch.shutDown();
 	}
 
-	public List<Map<Integer, String>> getInitiativeList() {
+	public List<Map<String, String>> getInitiativeList() 
+	{
 		DatabaseConnectionHelper dch = new DatabaseConnectionHelper();
+		List<Map<String, String>> initiativeList = new ArrayList<>();
 		try (Transaction tx = dch.graphDb.beginTx()) {
-			List<Map<Integer, String>> initiativeList = new ArrayList<Map<Integer, String>>();
-			String query = "match (i:Init) return i.Name as Name,i.Id as Id";
-			Result res = dch.graphDb.execute(query);
-	        while (res.hasNext()) {
-	        	List<String> columnNames = res.columns();
-	        	for(String c : columnNames){
-	        		String id = res.columnAs(c).toString();
-	        	}
-	        }
-			
-			/*Iterator it = res.columnAs("Id");
-			while (it.hasNext()) {
-				Map<Integer, String> initiative = new HashMap<Integer, String>();
-				int initiativeId = Integer.parseInt(it.next().toString());
-				
-				initiativeList.add(initiative);
-			}*/
-
+			String initiativeListQuery = "match (i:Init) return i.Name as Name,i.Id as Id";
+			Result res = dch.graphDb.execute(initiativeListQuery);
+			while (res.hasNext()) {
+				Map<String, String> initiativeMap = new HashMap<String, String>();
+				Map<String, Object> resultMap = res.next();
+				initiativeMap.put(resultMap.get("Id").toString(), resultMap.get("Name").toString());
+				initiativeList.add(initiativeMap);
+			}
 			tx.success();
 			return initiativeList;
 		}
-
 	}
-
-	public Initiative getInitiativeDetails(int initiativeId) {
-		Initiative i = new Initiative();
-		String query = "match (i:Init)<-[r:part_of]-(a) WHERE i.Id = initiativeId return a.Name,labels(a)";
-		return i;
+	
+	public List<Map<String, String>> getInitiativeDetails(List<Map<String, String>> params) {
+		DatabaseConnectionHelper dch = new DatabaseConnectionHelper();
+		List<Map<String, String>> initiativeDetailList = new ArrayList<>();
+		try (Transaction tx = dch.graphDb.beginTx()) {
+		String initiativeDetailsQuery = "match (i:Init)<-[r:part_of]-(a) WHERE i.Id in {Id} return a.Name,labels(a)";
+		Result res = dch.graphDb.execute(initiativeDetailsQuery);
+		while (res.hasNext()) {
+			Map<String, String> initiativeDetailMap = new HashMap<String, String>();
+			Map<String, Object> resultMap = res.next();
+			initiativeDetailMap.put(resultMap.get("Id").toString(), resultMap.get("Name").toString());
+			initiativeDetailList.add(initiativeDetailMap);
+		}
+		tx.success();
+		return initiativeDetailList;
+	}
 	}
 }
