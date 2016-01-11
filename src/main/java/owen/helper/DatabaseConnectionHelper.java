@@ -1,23 +1,25 @@
 package owen.helper;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Properties;
 
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 
 /**
- * Creates connection with the database 
- * Opens the connection 
- * Close the connection
+ * Manages database connections
  */
+
 public class DatabaseConnectionHelper {
 
-	//final static String DB_PATH = getDatabaseConnectionDetails();
-	private static final String  DB_PATH = "C:\\Users\\tmehta\\Downloads\\neo4j-enterprise-2.3.1\\data\\ICICIdb";
-	
+	private final static String DB_PATH = getDatabaseConnectionDetails();
+
 	public GraphDatabaseService graphDb;
 
-	/*private static String getDatabaseConnectionDetails() {
+	private static String getDatabaseConnectionDetails() {
 		String dbPath = "";
 
 		File configFile = new File("resources/config.properties");
@@ -37,17 +39,13 @@ public class DatabaseConnectionHelper {
 			// I/O error
 		}
 		return dbPath;
-	}*/
-
-	// Create a new connection with the database
-
-	public DatabaseConnectionHelper() {
-		graphDb = new GraphDatabaseFactory().newEmbeddedDatabase(new File(DB_PATH));
-		//graphDb = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(DB_PATH).loadPropertiesFromFile("resources/neo4j.properties").newGraphDatabase();
-		registerShutdownHook(graphDb);
 	}
 
-	// Close the connection
+	public DatabaseConnectionHelper() {
+		graphDb = new GraphDatabaseFactory().newEmbeddedDatabase(new File(
+				DB_PATH));
+		registerShutdownHook(graphDb);
+	}
 
 	public void shutDown() {
 		System.out.println();
@@ -63,7 +61,7 @@ public class DatabaseConnectionHelper {
 	 * 
 	 * @param graphDb - A database factory object
 	 */
-	public void registerShutdownHook(final GraphDatabaseService graphDb){
+	public void registerShutdownHook(final GraphDatabaseService graphDb) {
 
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override

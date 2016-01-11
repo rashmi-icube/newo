@@ -49,7 +49,7 @@ public class CreateInitiative {
 		empIdList.add("5029350");
 		empIdList.add("508344");
 		
-		initiative.setInitiativeProperties("Initiative22", "Change Process", "01/01/2015", "01/05/2015", "xyz", funcList, zoneList, posList, empIdList);
+		initiative.setInitiativeProperties("Initiative24", "Change Process", "01/01/2015", "01/05/2015", "xyz", funcList, zoneList, posList, empIdList);
 		
 		try (Transaction tx = dch.graphDb.beginTx()) {
 
@@ -98,7 +98,6 @@ public class CreateInitiative {
 	 * @return - Initiative id of the newly created initiative
 	 */
 	 public int createInitiativeNode() {
-		// DatabaseConnectionHelper dch = new DatabaseConnectionHelper();
 		String initiativeId = "";
 		try (Transaction tx = dch.graphDb.beginTx()) {
 			SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
@@ -132,7 +131,6 @@ public class CreateInitiative {
 	 * @param params - Map of the objects that are part of the initiative taken as input from the user
 	 */
 	public void createConnectionsPartOf(Map<String, Object> params) {
-		//DatabaseConnectionHelper dch = new DatabaseConnectionHelper();
 		try (Transaction tx = dch.graphDb.beginTx()) {
 
 			String funcQuery = "", posQuery = "", zoneQuery = "";
@@ -159,7 +157,6 @@ public class CreateInitiative {
 	 * @param params - Map of the employee id's who would be the owner of the initiative taken as input from the user
 	 */
 	public void createConnectionsOwnerOf(Map<String, Object> params) {
-		//DatabaseConnectionHelper dch = new DatabaseConnectionHelper();
 		try (Transaction tx = dch.graphDb.beginTx()) {
 
 			String Str = "Match (i:Init),(e:Employee) where i.Id = {initiativeId} and e.EmpID in {empIdList} Create e-[:owner_of]->i";
