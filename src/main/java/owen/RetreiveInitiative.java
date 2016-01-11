@@ -17,15 +17,21 @@ import owen.helper.DatabaseConnectionHelper;
  * Retrieves the list of Initiatives
  */
 public class RetreiveInitiative {
+	static DatabaseConnectionHelper dch = new DatabaseConnectionHelper();
 	public static void main(String[] args) {
-		DatabaseConnectionHelper dch = new DatabaseConnectionHelper();
 		try (Transaction tx = dch.graphDb.beginTx()) {
 			RetreiveInitiative ri = new RetreiveInitiative();
 			List<Map<String, String>> initiativeList = ri.getInitiativeList();
+			for (Map<String, Object> map : list) {
+			    for (Map.Entry<String, Object> entry : map.entrySet()) {
+			        String key = entry.getKey();
+			        Object value = entry.getValue();
+			    }
+			}
 			Map<String, Object> params = new HashMap<String, Object>();
 			params.put("initiativeList", initiativeList);
 			RetreiveInitiative i = new RetreiveInitiative();
-			List<Map<String, String>> initiativeDetailsList = i.getInitiativeDetails(initiativeList);
+			//List<Map<String, String>> initiativeDetailsList = i.getInitiativeDetails(initiativeList);
 			tx.success();
 		}
 		dch.shutDown();
@@ -33,7 +39,6 @@ public class RetreiveInitiative {
 
 	public List<Map<String, String>> getInitiativeList() 
 	{
-		DatabaseConnectionHelper dch = new DatabaseConnectionHelper();
 		List<Map<String, String>> initiativeList = new ArrayList<>();
 		try (Transaction tx = dch.graphDb.beginTx()) {
 			String initiativeListQuery = "match (i:Init) return i.Name as Name,i.Id as Id";
@@ -49,8 +54,7 @@ public class RetreiveInitiative {
 		}
 	}
 	
-	public List<Map<String, String>> getInitiativeDetails(List<Map<String, String>> params) {
-		DatabaseConnectionHelper dch = new DatabaseConnectionHelper();
+	/*public List<Map<String, String>> getInitiativeDetails(List<Map<String, String>> params) {
 		List<Map<String, String>> initiativeDetailList = new ArrayList<>();
 		try (Transaction tx = dch.graphDb.beginTx()) {
 		String initiativeDetailsQuery = "match (i:Init)<-[r:part_of]-(a) WHERE i.Id in {Id} return a.Name,labels(a)";
@@ -64,5 +68,5 @@ public class RetreiveInitiative {
 		tx.success();
 		return initiativeDetailList;
 	}
-	}
+	}*/
 }
