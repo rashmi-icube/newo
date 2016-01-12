@@ -28,6 +28,10 @@ public class RetreiveInitiative {
 		dch.shutDown();
 	}
 
+	/**
+	 * Retrieves the list of Initiatives along with all its attributes and connections
+	 * @return - A list of Initiatives
+	 */
 	public List<Initiative> getInitiativeList() {
 		Map<Integer, Initiative> initiativeIdMap = new HashMap<Integer, Initiative>();
 		try (Transaction tx = dch.graphDb.beginTx()) {
@@ -38,7 +42,6 @@ public class RetreiveInitiative {
 			Result res = dch.graphDb.execute(initiativeListQuery);
 			while (res.hasNext()) {
 				Map<String, Object> resultMap = res.next();
-
 				int initiativeId = Integer.valueOf(resultMap.get("Id").toString());
 				if (initiativeIdMap.containsKey(initiativeId)) {
 					Initiative i = initiativeIdMap.get(initiativeId);
@@ -61,6 +64,10 @@ public class RetreiveInitiative {
 		}
 	}
 
+	/**
+	 * @param resultMap - A map containing the Initiative attributes and connections
+	 * @param i - An Initiative object
+	 */
 	private void setInitiativeValues(Map<String, Object> resultMap, Initiative i) {
 		i.setInitiativeId(Integer.valueOf(resultMap.get("Id").toString()));
 		i.setInitiativeName((String) resultMap.get("Name"));
@@ -72,6 +79,10 @@ public class RetreiveInitiative {
 		setPartOfConnections(resultMap, i);
 	}
 
+	/**
+	 * @param resultMap - A map containing the Initiative attributes and connections
+	 * @param i - An Initiative object
+	 */
 	private void setPartOfConnections(Map<String, Object> resultMap, Initiative i) {
 		if (resultMap.get("Filters").toString().contains("Position")) {
 			i.setPosList(getListFromResult(resultMap, "PartOf"));
@@ -82,6 +93,11 @@ public class RetreiveInitiative {
 		}
 	}
 
+	/**
+	 * @param resultMap - A map containing the Initiative attributes and connections
+	 * @param columnName - Name of the column to iterate through from the resultMap 
+	 * @return - Returns a list of strings from the resultMap
+	 */
 	private ArrayList<String> getListFromResult(Map<String, Object> resultMap, String columnName) {
 		SeqWrapper sw = (SeqWrapper) resultMap.get(columnName);
 		ArrayList<String> result = new ArrayList<String>();
