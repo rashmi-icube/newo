@@ -14,3 +14,9 @@
 *.gen
 *.cfs
 config.properties
+
+*.prefs
+
+*.prefs
+
+*.prefs

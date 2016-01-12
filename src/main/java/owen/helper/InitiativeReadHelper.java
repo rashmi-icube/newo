@@ -14,9 +14,9 @@ import org.neo4j.graphdb.Transaction;
  */
 public class InitiativeReadHelper {
 	
+	static DatabaseConnectionHelper dch = new DatabaseConnectionHelper();
 	
 	public static void main(String[] args) {
-		DatabaseConnectionHelper dch = new DatabaseConnectionHelper();
 		try (Transaction tx = dch.graphDb.beginTx()) {
 			String filter = "Function";
 			InitiativeReadHelper irh = new InitiativeReadHelper();
@@ -34,8 +34,7 @@ public class InitiativeReadHelper {
 	 */
 
 	public List<Map<String, String>> getMasterFilterList(String filterName) {
-		DatabaseConnectionHelper dch = new DatabaseConnectionHelper();
-		List<Map<String, String>> filterMapList = new ArrayList<>();
+		List<Map<String, String>> filterMapList = new ArrayList<Map<String, String>>();
 		try (Transaction tx = dch.graphDb.beginTx()) {
 			String query = "match (n:<<filterName>>) return n.Name as Name,n.Id as Id";
 			query = query.replace("<<filterName>>", filterName);

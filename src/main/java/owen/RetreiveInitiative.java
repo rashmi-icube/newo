@@ -53,7 +53,7 @@ public class RetreiveInitiative {
 			}
 			tx.success();
 
-			List<Initiative> initiativeList = new ArrayList<>();
+			List<Initiative> initiativeList = new ArrayList<Initiative>();
 			for (int initiativeId : initiativeIdMap.keySet()) {
 				initiativeList.add(initiativeIdMap.get(initiativeId));
 			}
@@ -84,7 +84,7 @@ public class RetreiveInitiative {
 
 	private ArrayList<String> getListFromResult(Map<String, Object> resultMap, String columnName) {
 		SeqWrapper sw = (SeqWrapper) resultMap.get(columnName);
-		ArrayList<String> result = new ArrayList<>();
+		ArrayList<String> result = new ArrayList<String>();
 		Iterator iter = sw.iterator();
 		while (iter.hasNext()) {
 			result.add((String) iter.next());
