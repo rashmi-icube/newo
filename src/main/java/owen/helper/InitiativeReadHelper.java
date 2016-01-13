@@ -26,7 +26,7 @@ public class InitiativeReadHelper {
 
 		dch.shutDown();
 	}
-
+	
 	/**
 	 * Retrieves all the objects which belong to a particular filter item
 	 * 
@@ -34,18 +34,23 @@ public class InitiativeReadHelper {
 	 */
 
 	public List<Map<String, String>> getMasterFilterList(String filterName) {
+		org.apache.log4j.Logger.getLogger(InitiativeReadHelper.class).debug("filterName : " + filterName);
 		List<Map<String, String>> filterMapList = new ArrayList<Map<String, String>>();
 		try (Transaction tx = dch.graphDb.beginTx()) {
+			org.apache.log4j.Logger.getLogger(InitiativeReadHelper.class).debug("getMasterFilterList method started");
 			String query = "match (n:<<filterName>>) return n.Name as Name,n.Id as Id";
 			query = query.replace("<<filterName>>", filterName);
+			org.apache.log4j.Logger.getLogger(InitiativeReadHelper.class).debug("query : " + query);
 			Result res = dch.graphDb.execute(query);
 			while (res.hasNext()) {
 				Map<String, String> filterRowMap = new HashMap<String, String>();
 				Map<String, Object> resultMap = res.next();
 				filterRowMap.put(resultMap.get("Id").toString(), resultMap.get("Name").toString());
+				org.apache.log4j.Logger.getLogger(InitiativeReadHelper.class).debug("filterRowMap : " + filterRowMap.toString());
 				filterMapList.add(filterRowMap);
 			}
 			tx.success();
+			org.apache.log4j.Logger.getLogger(InitiativeReadHelper.class).debug("filterMapList : " + filterMapList.toString());
 			return filterMapList;
 		}
 	}

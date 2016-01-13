@@ -81,6 +81,7 @@ public class CreateInitiative {
 
 	public void setInitiativeProperties(String initiativeName, String initiativeType, String initiativeStartDate, String initiativeEndDate,
 			String initiativeComment, ArrayList<String> funcList, ArrayList<String> zoneList, ArrayList<String> posList, ArrayList<String> empIdList) {
+		org.apache.log4j.Logger.getLogger(CreateInitiative.class).debug("Setting initiative properties");
 		this.initiativeName = initiativeName;
 		this.initiativeType = initiativeType;
 		this.initiativeStartDate = initiativeStartDate;
@@ -100,6 +101,7 @@ public class CreateInitiative {
 	 public int createInitiativeNode() {
 		String initiativeId = "";
 		try (Transaction tx = dch.graphDb.beginTx()) {
+			org.apache.log4j.Logger.getLogger(CreateInitiative.class).debug("Creating the initiative");
 			SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 			Date startDate = sdf.parse(initiativeStartDate);
 			Date endDate = sdf.parse(initiativeEndDate);
@@ -110,6 +112,7 @@ public class CreateInitiative {
 			createInitQuery = createInitQuery.replace("<<StartDate>>", startDate.toString());
 			createInitQuery = createInitQuery.replace("<<EndDate>>", endDate.toString());
 			createInitQuery = createInitQuery.replace("<<Comment>>", initiativeComment);
+			org.apache.log4j.Logger.getLogger(CreateInitiative.class).debug("Create initiative query : " + createInitQuery);
 			Result res = dch.graphDb.execute(createInitQuery);
 			Iterator it = res.columnAs("Id");
 			while (it.hasNext()){
@@ -122,6 +125,7 @@ public class CreateInitiative {
 
 			e.printStackTrace();
 		}
+		org.apache.log4j.Logger.getLogger(CreateInitiative.class).debug("Initiative ID : " + initiativeId);
 		return Integer.parseInt(initiativeId);
 	}
 
@@ -132,7 +136,7 @@ public class CreateInitiative {
 	 */
 	public void createConnectionsPartOf(Map<String, Object> params) {
 		try (Transaction tx = dch.graphDb.beginTx()) {
-
+			org.apache.log4j.Logger.getLogger(CreateInitiative.class).debug("Create Initiative Connections " + params.get("initiativeId"));
 			String funcQuery = "", posQuery = "", zoneQuery = "";
 			ArrayList<String> funcParam = (ArrayList<String>)params.get("funcList");
 			if (funcParam.contains("all")) {
@@ -143,8 +147,11 @@ public class CreateInitiative {
 
 			posQuery = "Match (i:Init),(p:Position) where i.Id = {initiativeId} and p.Id in {posList} Create p-[:part_of]->i";
 			zoneQuery = "Match (i:Init),(z:Zone) where i.Id = {initiativeId} and z.Id in {zoneList} create z-[:part_of]->i";
+			org.apache.log4j.Logger.getLogger(CreateInitiative.class).debug("Function query : " + funcQuery);
 			dch.graphDb.execute(funcQuery, params);
+			org.apache.log4j.Logger.getLogger(CreateInitiative.class).debug("Position query : " + posQuery);
 			dch.graphDb.execute(posQuery, params);
+			org.apache.log4j.Logger.getLogger(CreateInitiative.class).debug("Zone query : " + zoneQuery);
 			dch.graphDb.execute(zoneQuery, params);
 			tx.success();
 		}
@@ -158,9 +165,9 @@ public class CreateInitiative {
 	 */
 	public void createConnectionsOwnerOf(Map<String, Object> params) {
 		try (Transaction tx = dch.graphDb.beginTx()) {
-
-			String Str = "Match (i:Init),(e:Employee) where i.Id = {initiativeId} and e.EmpID in {empIdList} Create e-[:owner_of]->i";
-			dch.graphDb.execute(Str, params);
+			org.apache.log4j.Logger.getLogger(CreateInitiative.class).debug("Creating connections for initiative : " + params.get("initiativeId"));
+			String query = "Match (i:Init),(e:Employee) where i.Id = {initiativeId} and e.EmpID in {empIdList} Create e-[:owner_of]->i";
+			dch.graphDb.execute(query, params);
 			tx.success();
 		}
 

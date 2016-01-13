@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Properties;
 
+import org.apache.log4j.PropertyConfigurator;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 
@@ -14,6 +15,10 @@ import org.neo4j.graphdb.factory.GraphDatabaseFactory;
  */
 
 public class DatabaseConnectionHelper {
+	static {
+		PropertyConfigurator.configure("resources/log4j.properties");
+	}	
+	
 
 	private final static String DB_PATH = getDatabaseConnectionDetails();
 
@@ -31,12 +36,12 @@ public class DatabaseConnectionHelper {
 
 			dbPath = props.getProperty("db_path");
 
-			System.out.println("DB Path : " + dbPath);
+			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("DB Path : " + dbPath);
 			reader.close();
 		} catch (FileNotFoundException ex) {
-			// file does not exist
+			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("Database path file doesn't exist");
 		} catch (IOException ex) {
-			// I/O error
+			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("IOException in Database");
 		}
 		return dbPath;
 	}
@@ -50,6 +55,7 @@ public class DatabaseConnectionHelper {
 	public void shutDown() {
 		System.out.println();
 		System.out.println("Shutting down database ...");
+		org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Shutting down database ...");
 
 		graphDb.shutdown();
 
@@ -59,7 +65,8 @@ public class DatabaseConnectionHelper {
 	 * Registers a shutdown hook for the Neo4j instance so that it shuts down
 	 * nicely when the VM exits (even if you "Ctrl-C" the running application).
 	 * 
-	 * @param graphDb - A database factory object
+	 * @param graphDb
+	 *            - A database factory object
 	 */
 	public void registerShutdownHook(final GraphDatabaseService graphDb) {
 
