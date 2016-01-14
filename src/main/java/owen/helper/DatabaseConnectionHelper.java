@@ -6,7 +6,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Properties;
 
-import org.apache.log4j.PropertyConfigurator;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 
@@ -14,20 +13,19 @@ import org.neo4j.graphdb.factory.GraphDatabaseFactory;
  * Manages database connections
  */
 
-public class DatabaseConnectionHelper {
-	static {
-		PropertyConfigurator.configure("resources/log4j.properties");
-	}	
+public class DatabaseConnectionHelper {	
 	
-
-	private final static String DB_PATH = getDatabaseConnectionDetails();
-
+	//private final static String DB_PATH = getDatabaseConnectionDetails();
+	private final static String DB_PATH = "C:\\Users\\fermion10\\Documents\\Neo4j\\graph.db";
 	public GraphDatabaseService graphDb;
 
 	private static String getDatabaseConnectionDetails() {
-		String dbPath = "";
 
+		//String url = DatabaseConnectionHelper.class.getResource("resources/config.properties").toString();
+
+		String dbPath = "";
 		File configFile = new File("resources/config.properties");
+
 
 		try {
 			FileReader reader = new FileReader(configFile);
