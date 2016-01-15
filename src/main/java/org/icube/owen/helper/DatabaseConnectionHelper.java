@@ -1,4 +1,4 @@
-package owen.helper;
+package org.icube.owen.helper;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -9,31 +9,22 @@ import java.util.Properties;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 
-/**
- * Manages database connections
- */
-
 public class DatabaseConnectionHelper {	
 	
-	//private final static String DB_PATH = getDatabaseConnectionDetails();
-	private final static String DB_PATH = "C:\\Users\\fermion10\\Documents\\Neo4j\\graph.db";
+	private final static String DB_PATH = getDatabaseConnectionDetails();
+	//private final static String DB_PATH = "C:\\Users\\fermion10\\Documents\\Neo4j\\graph.db";
 	public GraphDatabaseService graphDb;
 
 	private static String getDatabaseConnectionDetails() {
 
-		//String url = DatabaseConnectionHelper.class.getResource("resources/config.properties").toString();
-
 		String dbPath = "";
 		File configFile = new File("resources/config.properties");
-
 
 		try {
 			FileReader reader = new FileReader(configFile);
 			Properties props = new Properties();
 			props.load(reader);
-
 			dbPath = props.getProperty("db_path");
-
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("DB Path : " + dbPath);
 			reader.close();
 		} catch (FileNotFoundException ex) {

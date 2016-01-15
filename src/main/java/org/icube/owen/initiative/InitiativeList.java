@@ -1,4 +1,4 @@
-package owen;
+package org.icube.owen.initiative;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -6,21 +6,23 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.icube.owen.ObjectFactory;
+import org.icube.owen.TheBorg;
+import org.icube.owen.helper.DatabaseConnectionHelper;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 
-import owen.helper.DatabaseConnectionHelper;
 import scala.collection.convert.Wrappers.SeqWrapper;
 
 /**
  * Retrieves the list of Initiatives
  */
-public class RetreiveInitiative {
-	static DatabaseConnectionHelper dch = new DatabaseConnectionHelper();
+public class InitiativeList extends TheBorg{
 
 	public static void main(String[] args) {
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		try (Transaction tx = dch.graphDb.beginTx()) {
-			RetreiveInitiative ri = new RetreiveInitiative();
+			InitiativeList ri = new InitiativeList();
 			List<Initiative> initiativeList = ri.getInitiativeList();
 			System.out.println(initiativeList.toString());
 			tx.success();
@@ -33,7 +35,8 @@ public class RetreiveInitiative {
 	 * @return - A list of Initiatives
 	 */
 	public List<Initiative> getInitiativeList() {
-		org.apache.log4j.Logger.getLogger(RetreiveInitiative.class).debug("Get initiative list");
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Get initiative list");
 		Map<Integer, Initiative> initiativeIdMap = new HashMap<Integer, Initiative>();
 		try (Transaction tx = dch.graphDb.beginTx()) {
 			String initiativeListQuery = "match (o:Employee)-[:owner_of]->(i:Init)<-[r:part_of]-(a)"
@@ -41,7 +44,7 @@ public class RetreiveInitiative {
 					+ "i.EndDate as EndDate,collect(distinct(a.Name))as PartOf, labels(a) as Filters,"
 					+ "collect(distinct (o.Name)) as OwnersOf,i.Comment as Comments,i.Type as Type";
 			Result res = dch.graphDb.execute(initiativeListQuery);
-			org.apache.log4j.Logger.getLogger(RetreiveInitiative.class).debug("Executed query for retrieving initiative list");
+			org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Executed query for retrieving initiative list");
 			while (res.hasNext()) {
 				Map<String, Object> resultMap = res.next();
 				int initiativeId = Integer.valueOf(resultMap.get("Id").toString());
@@ -62,7 +65,7 @@ public class RetreiveInitiative {
 			for (int initiativeId : initiativeIdMap.keySet()) {
 				initiativeList.add(initiativeIdMap.get(initiativeId));
 			}
-			org.apache.log4j.Logger.getLogger(RetreiveInitiative.class).debug("List of initiatives : " +initiativeList.toString());
+			org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("List of initiatives : " +initiativeList.toString());
 			return initiativeList;
 		}
 	}
@@ -72,7 +75,7 @@ public class RetreiveInitiative {
 	 * @param i - An Initiative object
 	 */
 	private void setInitiativeValues(Map<String, Object> resultMap, Initiative i) {
-		org.apache.log4j.Logger.getLogger(RetreiveInitiative.class).debug("Setting initiative values");
+		org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Setting initiative values");
 		i.setInitiativeId(Integer.valueOf(resultMap.get("Id").toString()));
 		i.setInitiativeName((String) resultMap.get("Name"));
 		i.setInitiativeStartDate((String) resultMap.get("StartDate"));
@@ -88,7 +91,7 @@ public class RetreiveInitiative {
 	 * @param i - An Initiative object
 	 */
 	private void setPartOfConnections(Map<String, Object> resultMap, Initiative i) {
-		org.apache.log4j.Logger.getLogger(RetreiveInitiative.class).debug("Setting part of connections");
+		org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Setting part of connections");
 		if (resultMap.get("Filters").toString().contains("Position")) {
 			i.setPosList(getListFromResult(resultMap, "PartOf"));
 		} else if (resultMap.get("Filters").toString().contains("Zone")) {
@@ -104,7 +107,7 @@ public class RetreiveInitiative {
 	 * @return - Returns a list of strings from the resultMap
 	 */
 	private ArrayList<String> getListFromResult(Map<String, Object> resultMap, String columnName) {
-		org.apache.log4j.Logger.getLogger(RetreiveInitiative.class).debug("Converting result to a list");
+		org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Converting result to a list");
 		SeqWrapper sw = (SeqWrapper) resultMap.get(columnName);
 		ArrayList<String> result = new ArrayList<String>();
 		Iterator iter = sw.iterator();
