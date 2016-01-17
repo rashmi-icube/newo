@@ -50,7 +50,7 @@ public class EmployeeList extends TheBorg{
 
 			String query = "match (z:Zone)<-[:from_zone]-(a:Employee)-[:has_functionality]->(f:Function),(z:Zone)<-[:from_zone]-(b:Employee)-[:has_functionality]"
 					+ "->(f:Function),a-[:is_positioned]->(p:Position)<-[:is_positioned]-b"
-					+ ((!zoneQuery.isEmpty() || !funcQuery.isEmpty() || !posQuery.isEmpty())? "where" : "" )
+					+ ((!zoneQuery.isEmpty() || !funcQuery.isEmpty() || !posQuery.isEmpty())? " where " : "" )
 					+ (zoneQuery.isEmpty() ? "" : (zoneQuery + ((!funcQuery.isEmpty() || !posQuery.isEmpty() ? " and " : ""))))
 					+ (funcQuery.isEmpty() ? "" : funcQuery+ (!posQuery.isEmpty() ? " and " : ""))
 					+ (posQuery.isEmpty() ? "" : (posQuery))

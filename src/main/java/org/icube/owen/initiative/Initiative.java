@@ -59,7 +59,7 @@ public class Initiative extends TheBorg{
 			empIdList.add(e.getEmployeeId());
 		}
 		
-		initiative.setInitiativeProperties("Initiative38", "Change Process", "01/01/2015", "01/05/2015", "xyz", funcList, zoneList, posList, empIdList);
+		initiative.setInitiativeProperties("MyInitiative", "Change Process", "01/01/2015", "01/05/2015", "xyz", funcList, zoneList, posList, empIdList);
 		
 		try (Transaction tx = dch.graphDb.beginTx()) {
 
