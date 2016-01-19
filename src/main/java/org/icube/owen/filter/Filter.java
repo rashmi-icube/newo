@@ -1,6 +1,5 @@
 package org.icube.owen.filter;
 
-import java.util.List;
 import java.util.Map;
 
 import org.icube.owen.TheBorg;
@@ -8,8 +7,8 @@ import org.icube.owen.TheBorg;
 public class Filter extends TheBorg {
 	private String filterName;
 	private int filterId;
-	private List<Map<String, String>> filterValues;
-	
+	private Map<String, String> filterValues;
+
 	public String getFilterName() {
 		return filterName;
 	}
@@ -18,13 +17,20 @@ public class Filter extends TheBorg {
 		this.filterName = filterName;
 	}
 
-	public List<Map<String, String>> getFilterValues() {
+	public Map<String, String> getFilterValues() {
 		return filterValues;
 	}
 
-	public void setFilterValues(List<Map<String, String>> filterValuesMapList) {
-		this.filterValues = filterValuesMapList;
+	public void setFilterValues(Map<String, String> filterValuesMap) {
+		this.filterValues = filterValuesMap;
 	}
-	
-	
+
+	public int getFilterId() {
+		return filterId;
+	}
+
+	public void setFilterId(int filterId) {
+		this.filterId = filterId;
+	}
+
 }

@@ -7,102 +7,155 @@ import java.util.Map;
 
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
+import org.icube.owen.filter.Filter;
 import org.icube.owen.helper.DatabaseConnectionHelper;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 
-public class EmployeeList extends TheBorg{
-	
-	
-	
+public class EmployeeList extends TheBorg {
+
 	/**
-	 * Returns the employee smart list based on the function, zone and position selected
-	 * @param params Map of function, zone, positions
+	 * Returns the employee smart list based on the filter objects provided
+	 * 
+	 * @param params
+	 * list of filter objects
 	 * @return list of employee objects
 	 */
-	public List<Employee> getEmployeeList(Map<String, Object> params) {
+	public List<Employee> getEmployeeSmartList(List<Filter> filterList) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		List<Employee> employeeList = new ArrayList<Employee>();
+		List<Employee> employeeSmartList = new ArrayList<Employee>();
 		try (Transaction tx = dch.graphDb.beginTx()) {
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("getEmployeeSmartList method started");
-			
+
+			Map<String, Object> params = new HashMap<>();
+
+			for (int i = 0; i < filterList.size(); i++) {
+				Filter f = filterList.get(i);
+				params.put(f.getFilterName(), getFilterValueList(f.getFilterValues()));
+			}
 			String funcQuery = "", posQuery = "", zoneQuery = "";
-			ArrayList<String> funcParam = (ArrayList<String>)params.get("funcList");
-			ArrayList<String> zoneParam = (ArrayList<String>)params.get("zoneList");
-			ArrayList<String> posParam = (ArrayList<String>)params.get("posList");
-			if (funcParam.contains("all")) {
+			ArrayList<String> funcParam = (ArrayList<String>) params.get("Function");
+			ArrayList<String> zoneParam = (ArrayList<String>) params.get("Zone");
+			ArrayList<String> posParam = (ArrayList<String>) params.get("Position");
+
+			if (funcParam.contains("all") || funcParam.contains("All")) {
 				funcQuery = "";
 			} else {
-				funcQuery = "f.Id in {funcList}";
+				funcQuery = "f.Id in {Function}";
 			}
-			
-			if(zoneParam.contains("all")){
+
+			if (zoneParam.contains("all") || zoneParam.contains("All")) {
 				zoneQuery = "";
-			}else{
-				zoneQuery = "z.Id in {zoneList}";
+			} else {
+				zoneQuery = "z.Id in {Zone}";
 			}
-			
-			if(posParam.contains("all")){
+
+			if (posParam.contains("all") || posParam.contains("All")) {
 				posQuery = "";
 			} else {
-				posQuery = "p.Id in {posList}";	
+				posQuery = "p.Id in " + "{Position}";
 			}
 
 			String query = "match (z:Zone)<-[:from_zone]-(a:Employee)-[:has_functionality]->(f:Function),(z:Zone)<-[:from_zone]-(b:Employee)-[:has_functionality]"
 					+ "->(f:Function),a-[:is_positioned]->(p:Position)<-[:is_positioned]-b"
-					+ ((!zoneQuery.isEmpty() || !funcQuery.isEmpty() || !posQuery.isEmpty())? " where " : "" )
+					+ ((!zoneQuery.isEmpty() || !funcQuery.isEmpty() || !posQuery.isEmpty()) ? " where " : "")
 					+ (zoneQuery.isEmpty() ? "" : (zoneQuery + ((!funcQuery.isEmpty() || !posQuery.isEmpty() ? " and " : ""))))
-					+ (funcQuery.isEmpty() ? "" : funcQuery+ (!posQuery.isEmpty() ? " and " : ""))
+					+ (funcQuery.isEmpty() ? "" : funcQuery + (!posQuery.isEmpty() ? " and " : ""))
 					+ (posQuery.isEmpty() ? "" : (posQuery))
 					+ " with a,b,count(a)"
-					+ "as TotalPeople optional match a<-[r:support]-b return a.EmpID as EmpId,a.Name as Name ,count(r) as Score";
+					+ "as TotalPeople optional match a<-[r:support]-b return id(a) as neoId, a.EmpID as employeeId, a.Name as firstName, count(r) as Score";
 
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("query : " + query);
+			Result res = dch.graphDb.execute(query, params);
+			while (res.hasNext()) {
+				Map<String, Object> resultMap = res.next();
+				Employee e = setEmployeeDetails(resultMap, true);
+				employeeSmartList.add(e);
+			}
+			tx.success();
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("employeeList : " + employeeSmartList.toString());
+		} catch (Exception e) {
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).error("Exception while getting the employeeSmartList", e);
 			
+		}
+		return employeeSmartList;
+
+	}
+
+	/**
+	 * Get a list of all employee objects
+	 * 
+	 * @return employeeList
+	 */
+	public List<Employee> getEmployeeMasterList() {
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		List<Employee> employeeList = new ArrayList<>();
+		try (Transaction tx = dch.graphDb.beginTx()) {
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("getEmployeeMasterList method started");
+			String query = "match (a:Employee) return id(a) as neoId, a.EmpID as employeeId , a.Name as firstName";
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("query : " + query);
 			Result res = dch.graphDb.execute(query);
 			while (res.hasNext()) {
 				Map<String, Object> resultMap = res.next();
-				String empId = resultMap.get("EmpId").toString();
-				Employee e = new Employee();
-				/*e.setInternalId(resultMap.get("neoId").toString());
-				e.setEmployeeId(empId);
-				e.setFirstName(resultMap.get("firstName").toString());
-				e.setLastName("");
-				e.setReportingManagerId(resultMap.get("reportingManagerId").toString());
-				e.setScore((Long)resultMap.get("Score"));*/
-				
-				e.setEmployeeId(empId);
-				e.setFirstName(resultMap.get("Name").toString());
-				e.setScore((Long) resultMap.get("Score"));
-				org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("Employee  : " + e.getEmployeeId() + "-" + e.getFirstName() + "-" + e.getScore());
+				Employee e = setEmployeeDetails(resultMap, false);
 				employeeList.add(e);
 			}
 			tx.success();
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("employeeList : " + employeeList.toString());
-			return employeeList;
+
+		} catch (Exception e) {
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).error("Exception while getting the employee master list", e);
+			
 		}
-	}
-	
-	
-	public List<Map<String, String>> getEmployeeMasterList() {
-		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		List<Map<String, String>> employeeMapList = new ArrayList<Map<String, String>>();
-		try (Transaction tx = dch.graphDb.beginTx()) {
-			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("getEmployeeMasterList method started");
-			String query = "match (a:Employee) return a.EmpID,a.Name";
-			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("query : " + query);
-			Result res = dch.graphDb.execute(query);
-			while (res.hasNext()) {
-				Map<String, String> employeeMap = new HashMap<String, String>();
-				Map<String, Object> resultMap = res.next();
-				employeeMap.put(resultMap.get("EmpID").toString(), resultMap.get("Name").toString());
-				org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("employeeMap : " + employeeMap.toString());
-				employeeMapList.add(employeeMap);
-			}
-			tx.success();
-			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("filterMapList : " + employeeMapList.toString());
-			return employeeMapList;
-		}
+
+		return employeeList;
+
 	}
 
+	/**
+	 * Set the employee details based on the result from the cypher query
+	 * 
+	 * @param resultMap
+	 * actual result from cypher
+	 * @param setScore
+	 * if the score should be set for the employee or not
+	 * @return employee object
+	 */
+	protected Employee setEmployeeDetails(Map<String, Object> resultMap, boolean setScore) {
+		Employee e = new Employee();
+		// TODO replace the employee setters once db change is made
+		/*e.setInternalId(resultMap.get("neoId").toString());
+		e.setEmployeeId(empId);
+		e.setFirstName(resultMap.get("firstName").toString());
+		e.setLastName("");
+		e.setReportingManagerId(resultMap.get("reportingManagerId").toString());
+		if(setScore){
+			e.setScore((Long) resultMap.get("Score"));
+		}*/
+
+		e.setInternalId(resultMap.get("neoId").toString());
+		e.setEmployeeId(resultMap.get("employeeId").toString());
+		e.setFirstName(resultMap.get("firstName").toString());
+		if (setScore) {
+			e.setScore((Long) resultMap.get("Score"));
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug(
+					"Employee  : " + e.getInternalId() + "-" + e.getEmployeeId() + "-" + e.getFirstName() + "-" + e.getScore());
+		} else {
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug(
+					"Employee  : " + e.getInternalId() + "-" + e.getEmployeeId() + "-" + e.getFirstName());
+		}
+		return e;
+	}
+
+	/**
+	 * Returns a list of string filter values from a map of filter values
+	 * 
+	 * @param filterValues
+	 * @return string list of filter values
+	 */
+	private List<String> getFilterValueList(Map<String, String> filterValues) {
+		List<String> filterValueStringList = new ArrayList<>();
+		filterValueStringList.addAll(filterValues.values());
+		return filterValueStringList;
+	}
 }

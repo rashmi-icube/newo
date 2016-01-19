@@ -7,171 +7,128 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
 import org.icube.owen.employee.Employee;
-import org.icube.owen.employee.EmployeeList;
+import org.icube.owen.filter.Filter;
 import org.icube.owen.helper.DatabaseConnectionHelper;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 
-public class Initiative extends TheBorg{
+public class Initiative extends TheBorg {
 
 	private int initiativeId;
 	private String initiativeName = "";
 	private String initiativeType = "";
-	private String initiativeStartDate = "";
-	private String initiativeEndDate = "";
+	private Date initiativeStartDate;
+	private Date initiativeEndDate;
 	private String initiativeComment = "";
-	private ArrayList<String> funcList;
-	private ArrayList<String> zoneList;
-	private ArrayList<String> posList;
-	private ArrayList<String> empIdList;
-	
-	public static void main(String arg[]){
-		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+	private List<Filter> filterList;
+	private List<Employee> ownerOfList;
 
-		Initiative initiative = new Initiative();
-		ArrayList<String> funcList = new ArrayList<String>();
-		ArrayList<String> zoneList = new ArrayList<String>();
-		ArrayList<String> posList = new ArrayList<String>();
-		//zoneList.add("Z1");
-		//zoneList.add("Z2");
-		zoneList.add("all");
-		//posList.add("P1");
-		//posList.add("P2");
-		posList.add("all");
-		//funcList.add("F1");
-		//funcList.add("F2");
-		funcList.add("all");
-		
-		Map<String, Object> params = new HashMap<String, Object>();
-		params.put("zoneList", zoneList);
-		params.put("funcList", funcList);
-		params.put("posList", posList);
-		
-		EmployeeList el = new EmployeeList();
-		List<Employee> employeeList = el.getEmployeeList(params);
-		ArrayList<String> empIdList = new ArrayList<>();
-		for(Employee e : employeeList){
-			empIdList.add(e.getEmployeeId());
-		}
-		
-		initiative.setInitiativeProperties("MyInitiative", "Change Process", "01/01/2015", "01/05/2015", "xyz", funcList, zoneList, posList, empIdList);
-		
-		try (Transaction tx = dch.graphDb.beginTx()) {
-
-			
-			int initiativeId = initiative.create();
-			System.out.println("Created initiative with ID : " + initiativeId);
-			if (initiativeId > 0) {
-				params.put("initiativeId", initiativeId);
-				if(initiative.setPartOf(params)){
-					org.apache.log4j.Logger.getLogger(Initiative.class).debug("Success in setting part of initiative");
-				} 
-
-				params.clear();
-				params.put("initiativeId", initiativeId);
-				params.put("empIdList", empIdList);
-				if(initiative.setOwner(params)){
-					org.apache.log4j.Logger.getLogger(Initiative.class).debug("Success in setting owner for initiative");
-				}	
-			}
-			
-			initiative.get(5);
-
-			tx.success();
-		}
-		dch.shutDown();
-	
-	}
-	
-	public void setInitiativeProperties(String initiativeName, String initiativeType, String initiativeStartDate, String initiativeEndDate,
-			String initiativeComment, ArrayList<String> funcList, ArrayList<String> zoneList, ArrayList<String> posList, ArrayList<String> empIdList) {
+	/**
+	 * Sets the initiative properties based on the values given in the parameters
+	 * 
+	 * @param initiativeName
+	 * @param initiativeType
+	 * @param initiativeStartDate
+	 * @param initiativeEndDate
+	 * @param initiativeComment
+	 * @param filterList
+	 * @param ownerOfList
+	 */
+	public void setInitiativeProperties(String initiativeName, String initiativeType, Date initiativeStartDate, Date initiativeEndDate,
+			String initiativeComment, List<Filter> filterList, List<Employee> ownerOfList) {
 		org.apache.log4j.Logger.getLogger(Initiative.class).debug("Setting initiative properties");
 		this.initiativeName = initiativeName;
 		this.initiativeType = initiativeType;
 		this.initiativeStartDate = initiativeStartDate;
 		this.initiativeEndDate = initiativeEndDate;
 		this.initiativeComment = initiativeComment;
-		this.funcList = funcList;
-		this.zoneList = zoneList;
-		this.posList = posList;
-		this.empIdList = empIdList;
-
+		this.filterList = filterList;
+		this.ownerOfList = ownerOfList;
 	}
-	
+
 	/**
 	 * Creation of the actual initiative happens here
 	 * 
-	 * @return - Initiative id of the newly created initiative
+	 * @return - initiativeId of the newly created initiative
 	 */
-	 public int create() {
+	public int create() {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		String initiativeId = "";
 		try (Transaction tx = dch.graphDb.beginTx()) {
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Creating the initiative");
-			SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-			Date startDate = sdf.parse(initiativeStartDate);
-			Date endDate = sdf.parse(initiativeEndDate);
-			String createInitQuery = "match (i:Init)  with CASE count(i) WHEN 0  THEN 1 ELSE max(i.Id)+1 END as uid " +
-					"CREATE (i:Init {Id:uid,Name:'<<InitName>>',Type:'<<InitType>>',StartDate:'<<StartDate>>',EndDate:'<<EndDate>>',Comment:'<<Comment>>'}) return i.Id as Id";
+
+			String createInitQuery = "match (i:Init)  with CASE count(i) WHEN 0  THEN 1 ELSE max(i.Id)+1 END as uid "
+					+ "CREATE (i:Init {Id:uid,Name:'<<InitName>>',Type:'<<InitType>>',StartDate:'<<StartDate>>',EndDate:'<<EndDate>>',Comment:'<<Comment>>'}) return i.Id as Id";
 			createInitQuery = createInitQuery.replace("<<InitName>>", initiativeName);
 			createInitQuery = createInitQuery.replace("<<InitType>>", initiativeType);
-			createInitQuery = createInitQuery.replace("<<StartDate>>", startDate.toString());
-			createInitQuery = createInitQuery.replace("<<EndDate>>", endDate.toString());
+			createInitQuery = createInitQuery.replace("<<StartDate>>", initiativeStartDate.toString());
+			createInitQuery = createInitQuery.replace("<<EndDate>>", initiativeEndDate.toString());
 			createInitQuery = createInitQuery.replace("<<Comment>>", initiativeComment);
+
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Create initiative query : " + createInitQuery);
 			Result res = dch.graphDb.execute(createInitQuery);
-			Iterator it = res.columnAs("Id");
-			while (it.hasNext()){
+			Iterator<String> it = res.columnAs("Id");
+			while (it.hasNext()) {
 				initiativeId = it.next().toString();
 			}
 
 			tx.success();
 
-		} catch (ParseException e) {
-
-			e.printStackTrace();
+		} catch (Exception e) {
+			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception in Create initiative query", e);
+			
 		}
 		org.apache.log4j.Logger.getLogger(Initiative.class).debug("Initiative ID : " + initiativeId);
+
 		return Integer.parseInt(initiativeId);
 	}
 
 	/**
 	 * Creates the connections with the objects that are part of the initiative
 	 * 
-	 * @param params - Map of the objects that are part of the initiative taken as input from the user
+	 * @param params
+	 * - Map of the objects that are part of the initiative taken as input from the user
 	 */
-	public boolean setPartOf(Map<String, Object> params) {
+	@SuppressWarnings("unchecked")
+	public boolean setPartOf(int initiativeId, List<Filter> filterList) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		try (Transaction tx = dch.graphDb.beginTx()) {
-			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Create Initiative Connections " + params.get("initiativeId"));
+			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Create Initiative Connections for initiativeId " + initiativeId);
+			Map<String, Object> params = new HashMap<>();
+			params.put("initiativeId", initiativeId);
+			for (int i = 0; i < filterList.size(); i++) {
+				Filter f = filterList.get(i);
+				params.put(f.getFilterName(), getFilterValueList(f.getFilterValues()));
+			}
 			String funcQuery = "", posQuery = "", zoneQuery = "";
-			ArrayList<String> funcParam = (ArrayList<String>)params.get("funcList");
-			ArrayList<String> zoneParam = (ArrayList<String>)params.get("zoneList");
-			ArrayList<String> posParam = (ArrayList<String>)params.get("posList");
-			if (funcParam.contains("all")) {
+			ArrayList<String> funcParam = (ArrayList<String>) params.get("Function");
+			ArrayList<String> zoneParam = (ArrayList<String>) params.get("Zone");
+			ArrayList<String> posParam = (ArrayList<String>) params.get("Position");
+			if (funcParam.contains("all") || funcParam.contains("All")) {
 				funcQuery = "Match (i:Init),(f:Function) WHERE i.Id = {initiativeId} Create f-[:part_of]->i ";
 			} else {
-				funcQuery = "Match (i:Init),(f:Function) where i.Id = {initiativeId} and f.Id in {funcList} Create f-[:part_of]->i ";
+				funcQuery = "Match (i:Init),(f:Function) where i.Id = {initiativeId} and f.Id in {Function} Create f-[:part_of]->i ";
 			}
-			
-			if(zoneParam.contains("all")){
+
+			if (zoneParam.contains("all") || zoneParam.contains("All")) {
 				zoneQuery = "Match (i:Init),(z:Zone) where i.Id = {initiativeId} create z-[:part_of]->i";
-			}else{
-				zoneQuery = "Match (i:Init),(z:Zone) where i.Id = {initiativeId} and z.Id in {zoneList} create z-[:part_of]->i";
-				
+			} else {
+				zoneQuery = "Match (i:Init),(z:Zone) where i.Id = {initiativeId} and z.Id in {Zone} create z-[:part_of]->i";
+
 			}
-			
-			if(posParam.contains("all")){
+
+			if (posParam.contains("all") || posParam.contains("All")) {
 				posQuery = "Match (i:Init),(p:Position) where i.Id = {initiativeId} Create p-[:part_of]->i";
 			} else {
-				posQuery = "Match (i:Init),(p:Position) where i.Id = {initiativeId} and p.Id in {posList} Create p-[:part_of]->i";	
+				posQuery = "Match (i:Init),(p:Position) where i.Id = {initiativeId} and p.Id in {Position} Create p-[:part_of]->i";
 			}
-			
+
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Function query : " + funcQuery);
 			dch.graphDb.execute(funcQuery, params);
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Position query : " + posQuery);
@@ -180,32 +137,56 @@ public class Initiative extends TheBorg{
 			dch.graphDb.execute(zoneQuery, params);
 			tx.success();
 			return true;
-		} catch (Exception e){
+		} catch (Exception e) {
+			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception while setting part of for initiative ID" + initiativeId, e);
 			return false;
 		}
 
 	}
 
 	/**
+	 * Get list of string filterValues from a map of filterValues
+	 * 
+	 * @param filterValues
+	 * @return
+	 */
+	private List<String> getFilterValueList(Map<String, String> filterValues) {
+		List<String> filterValueStringList = new ArrayList<>();
+		filterValueStringList.addAll(filterValues.values());
+		return filterValueStringList;
+	}
+
+	/**
 	 * Creates the connections with the employees who are owners of the initiative
 	 * 
-	 * @param params - Map of the employee id's who would be the owner of the initiative taken as input from the user
+	 * @param params
+	 * - Map of the employee id's who would be the owner of the initiative taken as input from the user
 	 */
-	public boolean setOwner(Map<String, Object> params) {
+	public boolean setOwner(int initiativeId, List<Employee> employeeList) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		try (Transaction tx = dch.graphDb.beginTx()) {
+			ArrayList<String> empIdList = new ArrayList<>();
+			for (Employee e : employeeList) {
+				empIdList.add(e.getEmployeeId());
+			}
+
+			Map<String, Object> params = new HashMap<>();
+			params.put("initiativeId", initiativeId);
+			params.put("empIdList", empIdList);
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Creating connections for initiative : " + params.get("initiativeId"));
 			String query = "Match (i:Init),(e:Employee) where i.Id = {initiativeId} and e.EmpID in {empIdList} Create e-[:owner_of]->i";
 			dch.graphDb.execute(query, params);
 			tx.success();
 			return true;
-		} catch (Exception e){
+		} catch (Exception e) {
+			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception while creating owner for initiative : " + initiativeId, e);
 			return false;
 		}
 	}
-	
-	public static Initiative get(int initiativeId)
-	{
+
+	public static Initiative get(int initiativeId) {
+		org.apache.log4j.Logger.getLogger(Initiative.class).debug("Retrieving the initiative with initiative ID " + initiativeId);
+
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Initiative i = new Initiative();
 		i.setInitiativeId(initiativeId);
@@ -213,39 +194,54 @@ public class Initiative extends TheBorg{
 		params.put("initiativeId", initiativeId);
 		try (Transaction tx = dch.graphDb.beginTx()) {
 			/* return initiative details*/
-
 			String query = "match (i:Init) where i.Id = {initiativeId} "
 					+ "return i.Id as id,i.Name as name,i.Type as type,i.StartDate as startDate,i.EndDate as endDate,i.Comment as comment";
 			Result res = dch.graphDb.execute(query, params);
-			while(res.hasNext()){
+			while (res.hasNext()) {
 				Map<String, Object> result = res.next();
 				i.setInitiativeName(result.get("name").toString());
 				i.setInitiativeType(result.get("type").toString());
-				i.setInitiativeStartDate(result.get("startDate").toString());
-				i.setInitiativeEndDate(result.get("endDate").toString());
+				SimpleDateFormat parserSDF = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzzz yyyy", Locale.ENGLISH);
+				i.setInitiativeStartDate(parserSDF.parse((String) result.get("startDate")));
+				i.setInitiativeEndDate(parserSDF.parse((String) result.get("endDate")));
 				i.setInitiativeComment(result.get("comment").toString());
 			}
-			
+
 			/* return initiative part_of*/
-			query= "match (i:Init)<-[r:part_of]-(a) where i.Id = {initiativeId} return a.Id,a.Name,labels(a)";
+			query = "match (i:Init)<-[r:part_of]-(a) where i.Id = {initiativeId} return a.Id,a.Name,labels(a)";
 			res = dch.graphDb.execute(query, params);
+
 			/* return initiative owner*/
 			query = "match (i:Init)<-[r:owns]-(a:Employee) where i.Id = {initiativeId} return a.EmpId,a.Name";
 			res = dch.graphDb.execute(query, params);
+		} catch (ParseException e) {
+			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception while retrieving the initiative with ID" + initiativeId, e);
+			
 		}
-				
-		
+
 		return i;
 	}
-	
-	public boolean delete()
-	{
+
+	/**
+	 * Returns the master list of all initiative types
+	 * 
+	 * @return initiativeTypeMap
+	 */
+	public Map<Integer, String> getInitiativeTypeMap() {
+		Map<Integer, String> initiativeTypeMap = new HashMap<>();
+		initiativeTypeMap.put(1, "Change Process");
+		initiativeTypeMap.put(2, "Technical Performance");
+		initiativeTypeMap.put(3, "Monitoring");
+		return initiativeTypeMap;
+	}
+
+	public boolean delete() {
 		return true; // true if it is deleted properly, false otherwise
 	}
-	
-	public boolean update()
-	{
-		return true; // saves / updated the current initiative to DB -return true if successful. This WILL NOT create a new initiative
+
+	public boolean update() {
+		return true; // saves / updated the current initiative to DB -return true if successful.
+						// This WILL NOT create a new initiative
 	}
 
 	public String getInitiativeName() {
@@ -264,19 +260,19 @@ public class Initiative extends TheBorg{
 		this.initiativeType = initiativeType;
 	}
 
-	public String getInitiativeStartDate() {
+	public Date getInitiativeStartDate() {
 		return initiativeStartDate;
 	}
 
-	public void setInitiativeStartDate(String initiativeStartDate) {
+	public void setInitiativeStartDate(Date initiativeStartDate) {
 		this.initiativeStartDate = initiativeStartDate;
 	}
 
-	public String getInitiativeEndDate() {
+	public Date getInitiativeEndDate() {
 		return initiativeEndDate;
 	}
 
-	public void setInitiativeEndDate(String initiativeEndDate) {
+	public void setInitiativeEndDate(Date initiativeEndDate) {
 		this.initiativeEndDate = initiativeEndDate;
 	}
 
@@ -288,38 +284,6 @@ public class Initiative extends TheBorg{
 		this.initiativeComment = initiativeComment;
 	}
 
-	public ArrayList<String> getFuncList() {
-		return funcList;
-	}
-
-	public void setFuncList(ArrayList<String> funcList) {
-		this.funcList = funcList;
-	}
-
-	public ArrayList<String> getZoneList() {
-		return zoneList;
-	}
-
-	public void setZoneList(ArrayList<String> zoneList) {
-		this.zoneList = zoneList;
-	}
-
-	public ArrayList<String> getPosList() {
-		return posList;
-	}
-
-	public void setPosList(ArrayList<String> posList) {
-		this.posList = posList;
-	}
-
-	public ArrayList<String> getEmpIdList() {
-		return empIdList;
-	}
-
-	public void setEmpIdList(ArrayList<String> empIdList) {
-		this.empIdList = empIdList;
-	}
-
 	public int getInitiativeId() {
 		return initiativeId;
 	}
@@ -328,4 +292,19 @@ public class Initiative extends TheBorg{
 		this.initiativeId = initiativeId;
 	}
 
+	public List<Filter> getFilterList() {
+		return filterList;
+	}
+
+	public void setFilterList(List<Filter> filterList) {
+		this.filterList = filterList;
+	}
+
+	public List<Employee> getOwnerOf() {
+		return ownerOfList;
+	}
+
+	public void setOwnerOf(List<Employee> employeeList) {
+		this.ownerOfList = employeeList;
+	}
 }
