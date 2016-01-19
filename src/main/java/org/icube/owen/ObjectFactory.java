@@ -5,9 +5,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.icube.owen.employee.Employee;
 import org.icube.owen.employee.EmployeeList;
@@ -21,6 +19,7 @@ public class ObjectFactory {
 
 	/**
 	 * Get the instance of class given in the parameter
+	 * 
 	 * @param className
 	 * @return class instance
 	 */
@@ -34,14 +33,13 @@ public class ObjectFactory {
 		}
 		Constructor<?> cons;
 		try {
-			cons =c.getConstructor(c.getClass());
+			cons = c.getConstructors()[0];
 			TheBorg object = (TheBorg) cons.newInstance();
 			return object;
-		} catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException
-				| InvocationTargetException e) {
+		} catch (SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 			org.apache.log4j.Logger.getLogger(ObjectFactory.class).error("Exception while calling the constructor for class : " + className, e);
 			return null;
-		} 
+		}
 	}
 
 	// TODO make this function private
@@ -55,68 +53,30 @@ public class ObjectFactory {
 	}
 
 	public static void main(String[] args) {
-		
+
 		Initiative initiative = (Initiative) ObjectFactory.getInstance("org.icube.owen.initiative.Initiative");
 		System.out.println("Initiative type map : " + initiative.getInitiativeTypeMap());
-		
-		/*String filter = "Function";
-		FilterList fl = new FilterList();
-		fl.getFilterValues(filter);
-	
 
-		
+		FilterList fl = (FilterList) ObjectFactory.getInstance("org.icube.owen.filter.FilterList");
+		List<Filter> filterMasterList = fl.getFilterValues();
+		System.out.println("All filter values : " + filterMasterList);
+		Filter functionFilter = fl.getFilterValues("Function");
+		System.out.println("All filter values : " + functionFilter);
 
-		List<Filter> filterList = new ArrayList<>();
+		EmployeeList el = (EmployeeList) ObjectFactory.getInstance("org.icube.owen.employee.EmployeeList");
+		System.out.println("Employee smart list : " + el.getEmployeeSmartList(filterMasterList));
 
-		// function dummy values
-		Filter f = new Filter();
-		Map<String, String> filterValueMap = new HashMap<>();
-		f.setFilterName("Function");
-		filterValueMap.put("1", "F1");
-		// filterValueMap.put("2", "F2");
-		f.setFilterValues(filterValueMap);
-		filterList.add(f);
+		List<Employee> ownerOfList = new ArrayList<>();
+		Employee e = (Employee) ObjectFactory.getInstance("org.icube.owen.employee.Employee");
+		ownerOfList.add(e.get("5031840"));
+		ownerOfList.add(e.get("549192"));
+		ownerOfList.add(e.get("507212"));
 
-		// zone dummy values
-		Filter f1 = new Filter();
-		filterValueMap = new HashMap<>();
-		f1.setFilterName("Zone");
-		filterValueMap.put("1", "All");
-		f1.setFilterValues(filterValueMap);
-		filterList.add(f1);
+		initiative.setInitiativeProperties("YourInitiative", "Change Process", Date.from(Instant.now()), Date.from(Instant.now()),
+				"You are owners of the initiative", filterMasterList, ownerOfList);
+		initiative.create();
 
-		// position dummy values
-		Filter f2 = new Filter();
-		filterValueMap = new HashMap<>();
-		f2.setFilterName("Position");
-		filterValueMap.put("1", "All");
-		f2.setFilterValues(filterValueMap);
-		filterList.add(f2);
-
-		EmployeeList el = new EmployeeList();
-		List<Employee> employeeList = el.getEmployeeSmartList(filterList);
-
-		initiative.setInitiativeProperties("OurInitiative", "Change Process", Date.from(Instant.now()), Date.from(Instant.now()), "xyz", filterList,
-				employeeList);
-
-		int initiativeId = initiative.create();
-		System.out.println("Created initiative with ID : " + initiativeId);
-		if (initiativeId > 0) {
-			if (initiative.setPartOf(initiativeId, filterList)) {
-				org.apache.log4j.Logger.getLogger(Initiative.class).debug("Success in setting part of initiative");
-			}
-			if (initiative.setOwner(initiativeId, employeeList)) {
-				org.apache.log4j.Logger.getLogger(Initiative.class).debug("Success in setting owner for initiative");
-			}
-		}
-
-		get(5);
-
-
-		InitiativeList ri = new InitiativeList();
-		List<Initiative> initiativeList = ri.getInitiativeList();
-		System.out.println(initiativeList.toString());*/
-	
-
+		InitiativeList il = (InitiativeList) ObjectFactory.getInstance("org.icube.owen.initiative.InitiativeList");
+		System.out.println(il.getInitiativeList());
 	}
 }

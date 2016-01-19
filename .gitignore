@@ -18,3 +18,5 @@ config.properties
 *.prefs
 
 /target/
+
+*.properties

@@ -74,7 +74,6 @@ public class FilterList extends TheBorg {
 				Map<String, String> filterValuesMap = new HashMap<String, String>();
 				while (res.hasNext()) {
 					Map<String, Object> resultMap = res.next();
-					filterValuesMap.clear();
 					filterValuesMap.put(resultMap.get("Id").toString(), resultMap.get("Name").toString());
 					org.apache.log4j.Logger.getLogger(FilterList.class).debug("filterValuesMap : " + filterValuesMap.toString());
 

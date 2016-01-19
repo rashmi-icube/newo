@@ -59,7 +59,7 @@ public class Initiative extends TheBorg {
 	 */
 	public int create() {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		String initiativeId = "";
+		String initiativeIdStr = "";
 		try (Transaction tx = dch.graphDb.beginTx()) {
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Creating the initiative");
 
@@ -73,9 +73,23 @@ public class Initiative extends TheBorg {
 
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Create initiative query : " + createInitQuery);
 			Result res = dch.graphDb.execute(createInitQuery);
-			Iterator<String> it = res.columnAs("Id");
+			Iterator it = res.columnAs("Id");
 			while (it.hasNext()) {
-				initiativeId = it.next().toString();
+				initiativeIdStr = it.next().toString();
+			}
+			
+			int initiativeId = Integer.parseInt(initiativeIdStr);
+			
+			if(setPartOf(initiativeId, this.filterList)){
+				org.apache.log4j.Logger.getLogger(Initiative.class).debug("Success in setting part of initiative");
+			} else {
+				org.apache.log4j.Logger.getLogger(Initiative.class).error("Unsuccessful in setting part of initiative");
+			}
+			
+			if(setOwner(initiativeId, this.ownerOfList)){
+				org.apache.log4j.Logger.getLogger(Initiative.class).debug("Success in setting owner for initiative");
+			} else {
+				org.apache.log4j.Logger.getLogger(Initiative.class).error("Unsuccessful in setting owner for initiative");
 			}
 
 			tx.success();
@@ -84,9 +98,9 @@ public class Initiative extends TheBorg {
 			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception in Create initiative query", e);
 			
 		}
-		org.apache.log4j.Logger.getLogger(Initiative.class).debug("Initiative ID : " + initiativeId);
+		org.apache.log4j.Logger.getLogger(Initiative.class).debug("Initiative ID : " + initiativeIdStr);
 
-		return Integer.parseInt(initiativeId);
+		return initiativeId;
 	}
 
 	/**
@@ -96,7 +110,7 @@ public class Initiative extends TheBorg {
 	 * - Map of the objects that are part of the initiative taken as input from the user
 	 */
 	@SuppressWarnings("unchecked")
-	public boolean setPartOf(int initiativeId, List<Filter> filterList) {
+	private boolean setPartOf(int initiativeId, List<Filter> filterList) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		try (Transaction tx = dch.graphDb.beginTx()) {
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Create Initiative Connections for initiativeId " + initiativeId);
@@ -152,7 +166,7 @@ public class Initiative extends TheBorg {
 	 */
 	private List<String> getFilterValueList(Map<String, String> filterValues) {
 		List<String> filterValueStringList = new ArrayList<>();
-		filterValueStringList.addAll(filterValues.values());
+		filterValueStringList.addAll(filterValues.keySet());
 		return filterValueStringList;
 	}
 
@@ -162,7 +176,7 @@ public class Initiative extends TheBorg {
 	 * @param params
 	 * - Map of the employee id's who would be the owner of the initiative taken as input from the user
 	 */
-	public boolean setOwner(int initiativeId, List<Employee> employeeList) {
+	private boolean setOwner(int initiativeId, List<Employee> employeeList) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		try (Transaction tx = dch.graphDb.beginTx()) {
 			ArrayList<String> empIdList = new ArrayList<>();

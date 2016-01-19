@@ -31,7 +31,7 @@ public class EmployeeList extends TheBorg {
 
 			for (int i = 0; i < filterList.size(); i++) {
 				Filter f = filterList.get(i);
-				params.put(f.getFilterName(), getFilterValueList(f.getFilterValues()));
+				params.put(f.getFilterName(), getFilterKeyList(f.getFilterValues()));
 			}
 			String funcQuery = "", posQuery = "", zoneQuery = "";
 			ArrayList<String> funcParam = (ArrayList<String>) params.get("Function");
@@ -148,14 +148,14 @@ public class EmployeeList extends TheBorg {
 	}
 
 	/**
-	 * Returns a list of string filter values from a map of filter values
+	 * Returns a list of string filter ids from a map of filters
 	 * 
-	 * @param filterValues
-	 * @return string list of filter values
+	 * @param filterMap
+	 * @return string list of filter keys
 	 */
-	private List<String> getFilterValueList(Map<String, String> filterValues) {
-		List<String> filterValueStringList = new ArrayList<>();
-		filterValueStringList.addAll(filterValues.values());
-		return filterValueStringList;
+	private List<String> getFilterKeyList(Map<String, String> filterMap) {
+		List<String> filterKeysStringList = new ArrayList<>();
+		filterKeysStringList.addAll(filterMap.keySet());
+		return filterKeysStringList;
 	}
 }

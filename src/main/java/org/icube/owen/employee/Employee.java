@@ -1,5 +1,6 @@
 package org.icube.owen.employee;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.icube.owen.ObjectFactory;
@@ -84,9 +85,11 @@ public class Employee extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Employee e = new Employee();
 		try (Transaction tx = dch.graphDb.beginTx()) {
-			String query = "match (a:Employee {EmpID:employeeId}) return id(a) as neoId, a.EmpID as employeeId , a.Name as firstName";
+			Map<String, Object> params = new HashMap<>();
+			params.put("employeeId", employeeId);
+			String query = "match (a:Employee) where a.EmpID = {employeeId} return id(a) as neoId, a.EmpID as employeeId , a.Name as firstName";
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("query : " + query);
-			Result res = dch.graphDb.execute(query);
+			Result res = dch.graphDb.execute(query, params);
 			while (res.hasNext()) {
 				Map<String, Object> resultMap = res.next();
 				// TODO replace the employee setters once db change is made
