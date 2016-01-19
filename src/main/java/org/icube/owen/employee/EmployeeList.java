@@ -76,7 +76,7 @@ public class EmployeeList extends TheBorg {
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("employeeList : " + employeeSmartList.toString());
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).error("Exception while getting the employeeSmartList", e);
-			
+
 		}
 		return employeeSmartList;
 
@@ -105,7 +105,7 @@ public class EmployeeList extends TheBorg {
 
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).error("Exception while getting the employee master list", e);
-			
+
 		}
 
 		return employeeList;

@@ -61,7 +61,7 @@ public class ObjectFactory {
 		List<Filter> filterMasterList = fl.getFilterValues();
 		System.out.println("All filter values : " + filterMasterList);
 		Filter functionFilter = fl.getFilterValues("Function");
-		System.out.println("All filter values : " + functionFilter);
+		System.out.println("Function filter values : " + functionFilter);
 
 		EmployeeList el = (EmployeeList) ObjectFactory.getInstance("org.icube.owen.employee.EmployeeList");
 		System.out.println("Employee smart list : " + el.getEmployeeSmartList(filterMasterList));
@@ -78,5 +78,7 @@ public class ObjectFactory {
 
 		InitiativeList il = (InitiativeList) ObjectFactory.getInstance("org.icube.owen.initiative.InitiativeList");
 		System.out.println(il.getInitiativeList());
+		
+		System.out.println(initiative.get(1));
 	}
 }

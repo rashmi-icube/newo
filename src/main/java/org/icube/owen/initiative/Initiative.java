@@ -77,16 +77,16 @@ public class Initiative extends TheBorg {
 			while (it.hasNext()) {
 				initiativeIdStr = it.next().toString();
 			}
-			
+
 			int initiativeId = Integer.parseInt(initiativeIdStr);
-			
-			if(setPartOf(initiativeId, this.filterList)){
+
+			if (setPartOf(initiativeId, this.filterList)) {
 				org.apache.log4j.Logger.getLogger(Initiative.class).debug("Success in setting part of initiative");
 			} else {
 				org.apache.log4j.Logger.getLogger(Initiative.class).error("Unsuccessful in setting part of initiative");
 			}
-			
-			if(setOwner(initiativeId, this.ownerOfList)){
+
+			if (setOwner(initiativeId, this.ownerOfList)) {
 				org.apache.log4j.Logger.getLogger(Initiative.class).debug("Success in setting owner for initiative");
 			} else {
 				org.apache.log4j.Logger.getLogger(Initiative.class).error("Unsuccessful in setting owner for initiative");
@@ -96,7 +96,7 @@ public class Initiative extends TheBorg {
 
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception in Create initiative query", e);
-			
+
 		}
 		org.apache.log4j.Logger.getLogger(Initiative.class).debug("Initiative ID : " + initiativeIdStr);
 
@@ -198,7 +198,14 @@ public class Initiative extends TheBorg {
 		}
 	}
 
-	public static Initiative get(int initiativeId) {
+	/**
+	 * Retrieves the single initiative based on the initiativeId given
+	 * 
+	 * @param initiativeId
+	 * @return initiative object
+	 */
+	public Initiative get(int initiativeId) {
+		InitiativeHelper ih = new InitiativeHelper();
 		org.apache.log4j.Logger.getLogger(Initiative.class).debug("Retrieving the initiative with initiative ID " + initiativeId);
 
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
@@ -207,30 +214,26 @@ public class Initiative extends TheBorg {
 		Map<String, Object> params = new HashMap<>();
 		params.put("initiativeId", initiativeId);
 		try (Transaction tx = dch.graphDb.beginTx()) {
-			/* return initiative details*/
-			String query = "match (i:Init) where i.Id = {initiativeId} "
-					+ "return i.Id as id,i.Name as name,i.Type as type,i.StartDate as startDate,i.EndDate as endDate,i.Comment as comment";
+			String query = "match (o:Employee)-[:owner_of]->(i:Init)<-[r:part_of]-(a)"
+					+ " where i.Id = {initiativeId}  return i.Name as Name,i.StartDate as StartDate,"
+					+ "i.EndDate as EndDate,collect(distinct(a.Id))as PartOfID,collect(distinct(a.Name))as PartOfName, labels(a) as Filters,"
+					+ "collect(distinct (o.EmpID)) as OwnersOf,i.Comment as Comments,i.Type as Type";
 			Result res = dch.graphDb.execute(query, params);
 			while (res.hasNext()) {
 				Map<String, Object> result = res.next();
-				i.setInitiativeName(result.get("name").toString());
-				i.setInitiativeType(result.get("type").toString());
+				i.setInitiativeName(result.get("Name").toString());
+				i.setInitiativeType(result.get("Type").toString());
 				SimpleDateFormat parserSDF = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzzz yyyy", Locale.ENGLISH);
-				i.setInitiativeStartDate(parserSDF.parse((String) result.get("startDate")));
-				i.setInitiativeEndDate(parserSDF.parse((String) result.get("endDate")));
-				i.setInitiativeComment(result.get("comment").toString());
+				i.setInitiativeStartDate(parserSDF.parse((String) result.get("StartDate")));
+				i.setInitiativeEndDate(parserSDF.parse((String) result.get("EndDate")));
+				i.setInitiativeComment(result.get("Comments").toString());
+				i.setFilterList(ih.setPartOfConnections(result, i));
+				i.setOwnerOf(ih.getOwnerOfList(result));
 			}
 
-			/* return initiative part_of*/
-			query = "match (i:Init)<-[r:part_of]-(a) where i.Id = {initiativeId} return a.Id,a.Name,labels(a)";
-			res = dch.graphDb.execute(query, params);
-
-			/* return initiative owner*/
-			query = "match (i:Init)<-[r:owns]-(a:Employee) where i.Id = {initiativeId} return a.EmpId,a.Name";
-			res = dch.graphDb.execute(query, params);
 		} catch (ParseException e) {
 			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception while retrieving the initiative with ID" + initiativeId, e);
-			
+
 		}
 
 		return i;

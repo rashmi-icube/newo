@@ -45,7 +45,7 @@ public class FilterList extends TheBorg {
 
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(FilterList.class).error("Exception in  getFilterValues for filter : " + filterName, e);
-			
+
 		}
 		return f;
 	}
@@ -85,7 +85,7 @@ public class FilterList extends TheBorg {
 
 			} catch (Exception e) {
 				org.apache.log4j.Logger.getLogger(FilterList.class).error("Exception in  getFilterValues for filter : " + filterName, e);
-				
+
 			}
 		}
 		return allFiltersList;

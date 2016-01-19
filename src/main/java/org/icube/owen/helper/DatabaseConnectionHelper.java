@@ -11,8 +11,8 @@ import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 
 public class DatabaseConnectionHelper {
 
-	private final static String DB_PATH = getDatabaseConnectionDetails();
-	// private final static String DB_PATH = "C:\\Users\\fermion10\\Documents\\Neo4j\\graph.db";
+	// private final static String DB_PATH = getDatabaseConnectionDetails();
+	private final static String DB_PATH = "C:\\Users\\fermion10\\Documents\\Neo4j\\graph.db";
 	public GraphDatabaseService graphDb;
 
 	private static String getDatabaseConnectionDetails() {
