@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
 import org.icube.owen.helper.DatabaseConnectionHelper;
@@ -12,6 +13,8 @@ import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 
 public class FilterList extends TheBorg {
+
+	static Logger logger = ObjectFactory.getLogger("org.icube.owen.filter.FilterList");
 
 	/**
 	 * Returns a filter object of the given filterName
@@ -22,29 +25,29 @@ public class FilterList extends TheBorg {
 	public Filter getFilterValues(String filterName) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 
-		org.apache.log4j.Logger.getLogger(FilterList.class).debug("filterName : " + filterName);
+		logger.debug("filterName : " + filterName);
 		Filter f = new Filter();
 		f.setFilterName(filterName);
 
 		try (Transaction tx = dch.graphDb.beginTx()) {
-			org.apache.log4j.Logger.getLogger(FilterList.class).debug("getFilterValues method started");
+			logger.debug("getFilterValues method started");
 			String query = "match (n:<<filterName>>) return n.Name as Name,n.Id as Id";
 			query = query.replace("<<filterName>>", filterName);
-			org.apache.log4j.Logger.getLogger(FilterList.class).debug("query : " + query);
+			logger.debug("query : " + query);
 			Result res = dch.graphDb.execute(query);
 			Map<String, String> filterValuesMap = new HashMap<String, String>();
 			while (res.hasNext()) {
 				Map<String, Object> resultMap = res.next();
 				filterValuesMap.clear();
 				filterValuesMap.put(resultMap.get("Id").toString(), resultMap.get("Name").toString());
-				org.apache.log4j.Logger.getLogger(FilterList.class).debug("filterValuesMap : " + filterValuesMap.toString());
+				logger.debug("filterValuesMap : " + filterValuesMap.toString());
 			}
 			f.setFilterValues(filterValuesMap);
 			tx.success();
-			org.apache.log4j.Logger.getLogger(FilterList.class).debug("Filter : " + f.toString());
+			logger.debug("Filter : " + f.toString());
 
 		} catch (Exception e) {
-			org.apache.log4j.Logger.getLogger(FilterList.class).error("Exception in  getFilterValues for filter : " + filterName, e);
+			logger.error("Exception in  getFilterValues for filter : " + filterName, e);
 
 		}
 		return f;
@@ -61,30 +64,30 @@ public class FilterList extends TheBorg {
 		List<Filter> allFiltersList = new ArrayList<>();
 		List<String> filterLabelList = getFilterLabels();
 		for (String filterName : filterLabelList) {
-			org.apache.log4j.Logger.getLogger(FilterList.class).debug("filterName : " + filterName);
+			logger.debug("filterName : " + filterName);
 			Filter f = new Filter();
 			f.setFilterName(filterName);
 
 			try (Transaction tx = dch.graphDb.beginTx()) {
-				org.apache.log4j.Logger.getLogger(FilterList.class).debug("getFilterValues method started");
+				logger.debug("getFilterValues method started");
 				String query = "match (n:<<filterName>>) return n.Name as Name,n.Id as Id";
 				query = query.replace("<<filterName>>", filterName);
-				org.apache.log4j.Logger.getLogger(FilterList.class).debug("query : " + query);
+				logger.debug("query : " + query);
 				Result res = dch.graphDb.execute(query);
 				Map<String, String> filterValuesMap = new HashMap<String, String>();
 				while (res.hasNext()) {
 					Map<String, Object> resultMap = res.next();
 					filterValuesMap.put(resultMap.get("Id").toString(), resultMap.get("Name").toString());
-					org.apache.log4j.Logger.getLogger(FilterList.class).debug("filterValuesMap : " + filterValuesMap.toString());
+					logger.debug("filterValuesMap : " + filterValuesMap.toString());
 
 				}
 				f.setFilterValues(filterValuesMap);
 				tx.success();
-				org.apache.log4j.Logger.getLogger(FilterList.class).debug("Filter : " + f.toString());
+				logger.debug("Filter : " + f.toString());
 				allFiltersList.add(f);
 
 			} catch (Exception e) {
-				org.apache.log4j.Logger.getLogger(FilterList.class).error("Exception in  getFilterValues for filter : " + filterName, e);
+				logger.error("Exception in  getFilterValues for filter : " + filterName, e);
 
 			}
 		}

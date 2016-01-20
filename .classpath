@@ -11,13 +11,13 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="lib/neo4j-2.3.1.jar"/>
+	<!--<classpathentry kind="lib" path="lib/neo4j-2.3.1.jar"/>
 	<classpathentry kind="lib" path="lib/neo4j-io-2.3.1.jar"/>
 	<classpathentry kind="lib" path="lib/neo4j-io-3.0.0-M02.jar"/>
 	<classpathentry kind="lib" path="lib/neo4j-jdbc-2.0.1-SNAPSHOT-jar-with-dependencies.jar"/>
 	<classpathentry kind="lib" path="lib/neo4j-kernel-2.3.1.jar"/>
 	<classpathentry kind="lib" path="lib/neo4j-unsafe-2.3.1.jar"/>
-	<classpathentry kind="lib" path="lib/log4j-1.2.17.jar"/>
+	<classpathentry kind="lib" path="lib/log4j-1.2.17.jar"/> -->
 	
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8">
 		<attributes>
