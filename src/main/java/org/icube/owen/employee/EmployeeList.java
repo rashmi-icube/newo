@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
 import org.icube.owen.filter.Filter;
@@ -14,8 +13,6 @@ import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 
 public class EmployeeList extends TheBorg {
-
-	static Logger logger = ObjectFactory.getLogger("org.icube.owen.employee.EmployeeList");
 
 	/**
 	 * Returns the employee smart list based on the filter objects provided
@@ -28,7 +25,7 @@ public class EmployeeList extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Employee> employeeSmartList = new ArrayList<Employee>();
 		try (Transaction tx = dch.graphDb.beginTx()) {
-			logger.debug("getEmployeeSmartList method started");
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("getEmployeeSmartList method started");
 
 			Map<String, Object> params = new HashMap<>();
 
@@ -68,7 +65,7 @@ public class EmployeeList extends TheBorg {
 					+ " with a,b,count(a)"
 					+ "as TotalPeople optional match a<-[r:support]-b return id(a) as neoId, a.EmpID as employeeId, a.Name as firstName, count(r) as Score";
 
-			logger.debug("query : " + query);
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("query : " + query);
 			Result res = dch.graphDb.execute(query, params);
 			while (res.hasNext()) {
 				Map<String, Object> resultMap = res.next();
@@ -76,9 +73,9 @@ public class EmployeeList extends TheBorg {
 				employeeSmartList.add(e);
 			}
 			tx.success();
-			logger.debug("employeeList : " + employeeSmartList.toString());
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("employeeList : " + employeeSmartList.toString());
 		} catch (Exception e) {
-			logger.error("Exception while getting the employeeSmartList", e);
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).error("Exception while getting the employeeSmartList", e);
 
 		}
 		return employeeSmartList;
@@ -94,9 +91,9 @@ public class EmployeeList extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Employee> employeeList = new ArrayList<>();
 		try (Transaction tx = dch.graphDb.beginTx()) {
-			logger.debug("getEmployeeMasterList method started");
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("getEmployeeMasterList method started");
 			String query = "match (a:Employee) return id(a) as neoId, a.EmpID as employeeId , a.Name as firstName";
-			logger.debug("query : " + query);
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("query : " + query);
 			Result res = dch.graphDb.execute(query);
 			while (res.hasNext()) {
 				Map<String, Object> resultMap = res.next();
@@ -104,10 +101,10 @@ public class EmployeeList extends TheBorg {
 				employeeList.add(e);
 			}
 			tx.success();
-			logger.debug("employeeList : " + employeeList.toString());
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("employeeList : " + employeeList.toString());
 
 		} catch (Exception e) {
-			logger.error("Exception while getting the employee master list", e);
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).error("Exception while getting the employee master list", e);
 
 		}
 
@@ -141,9 +138,11 @@ public class EmployeeList extends TheBorg {
 		e.setFirstName(resultMap.get("firstName").toString());
 		if (setScore) {
 			e.setScore((Long) resultMap.get("Score"));
-			logger.debug("Employee  : " + e.getInternalId() + "-" + e.getEmployeeId() + "-" + e.getFirstName() + "-" + e.getScore());
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug(
+					"Employee  : " + e.getInternalId() + "-" + e.getEmployeeId() + "-" + e.getFirstName() + "-" + e.getScore());
 		} else {
-			logger.debug("Employee  : " + e.getInternalId() + "-" + e.getEmployeeId() + "-" + e.getFirstName());
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug(
+					"Employee  : " + e.getInternalId() + "-" + e.getEmployeeId() + "-" + e.getFirstName());
 		}
 		return e;
 	}

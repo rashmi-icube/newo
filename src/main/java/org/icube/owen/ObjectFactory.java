@@ -17,7 +17,6 @@ import org.icube.owen.initiative.Initiative;
 import org.icube.owen.initiative.InitiativeList;
 
 public class ObjectFactory {
-	static Logger myLogger = getLogger("org.icube.owen.ObjectFactory");
 
 	/**
 	 * Get the instance of class given in the parameter
@@ -30,7 +29,7 @@ public class ObjectFactory {
 		try {
 			c = Class.forName(className);
 		} catch (ClassNotFoundException e1) {
-			myLogger.error("Exception while creating an instance for class : " + className, e1);
+			org.apache.log4j.Logger.getLogger(ObjectFactory.class).error("Exception while creating an instance for class : " + className, e1);
 			return null;
 		}
 		Constructor<?> cons;
@@ -39,7 +38,7 @@ public class ObjectFactory {
 			TheBorg object = (TheBorg) cons.newInstance();
 			return object;
 		} catch (SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-			myLogger.error("Exception while calling the constructor for class : " + className, e);
+			org.apache.log4j.Logger.getLogger(ObjectFactory.class).error("Exception while calling the constructor for class : " + className, e);
 			return null;
 		}
 	}
@@ -53,19 +52,6 @@ public class ObjectFactory {
 			dch = new DatabaseConnectionHelper();
 		}
 		return dch;
-	}
-
-	static public Logger getLogger(String className) {
-		if (logger == null) {
-			try {
-				logger = Logger.getLogger(Class.forName(className));
-			} catch (ClassNotFoundException e) {
-				myLogger.error("Class not found for logger object for class " + className, e);
-
-			}
-
-		}
-		return logger;
 	}
 
 	public static void main(String[] args) {

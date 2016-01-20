@@ -3,7 +3,6 @@ package org.icube.owen.employee;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
 import org.icube.owen.helper.DatabaseConnectionHelper;
@@ -12,7 +11,6 @@ import org.neo4j.graphdb.Transaction;
 
 public class Employee extends TheBorg {
 
-	static Logger logger = ObjectFactory.getLogger("org.icube.owen.employee.Employee");
 	private String internalId; // actual neoId //TODO if the node is deleted from neo4j the neoId too will be reused
 	private String employeeId;
 	private String firstName;
@@ -90,7 +88,7 @@ public class Employee extends TheBorg {
 			Map<String, Object> params = new HashMap<>();
 			params.put("employeeId", employeeId);
 			String query = "match (a:Employee) where a.EmpID = {employeeId} return id(a) as neoId, a.EmpID as employeeId , a.Name as firstName";
-			logger.debug("query : " + query);
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("query : " + query);
 			Result res = dch.graphDb.execute(query, params);
 			while (res.hasNext()) {
 				Map<String, Object> resultMap = res.next();
@@ -112,7 +110,8 @@ public class Employee extends TheBorg {
 				tx.success();
 			}
 		} catch (Exception e1) {
-			logger.error("Exception while retrieving employee object with employeeId : " + employeeId, e1);
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).error("Exception while retrieving employee object with employeeId : " + employeeId,
+					e1);
 
 		}
 		return e;

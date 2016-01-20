@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
 import org.icube.owen.helper.DatabaseConnectionHelper;
@@ -15,8 +14,6 @@ import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 
 public class InitiativeList extends TheBorg {
-
-	static Logger logger = ObjectFactory.getLogger("org.icube.owen.initiative.InitiativeList");
 
 	/**
 	 * Retrieves the list of Initiatives along with all its attributes and connections
@@ -26,7 +23,7 @@ public class InitiativeList extends TheBorg {
 	public List<Initiative> getInitiativeList() {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		InitiativeHelper ih = new InitiativeHelper();
-		logger.debug("Get initiative list");
+		org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Get initiative list");
 		List<Initiative> initiativeList = new ArrayList<Initiative>();
 		Map<Integer, Initiative> initiativeIdMap = new HashMap<Integer, Initiative>();
 		try (Transaction tx = dch.graphDb.beginTx()) {
@@ -35,7 +32,7 @@ public class InitiativeList extends TheBorg {
 					+ "i.EndDate as EndDate,collect(distinct(a.Id))as PartOfID,collect(distinct(a.Name))as PartOfName, labels(a) as Filters,"
 					+ "collect(distinct (o.EmpID)) as OwnersOf,i.Comment as Comments,i.Type as Type";
 			Result res = dch.graphDb.execute(initiativeListQuery);
-			logger.debug("Executed query for retrieving initiative list");
+			org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Executed query for retrieving initiative list");
 			while (res.hasNext()) {
 				Map<String, Object> resultMap = res.next();
 				int initiativeId = Integer.valueOf(resultMap.get("Id").toString());
@@ -55,9 +52,9 @@ public class InitiativeList extends TheBorg {
 			for (int initiativeId : initiativeIdMap.keySet()) {
 				initiativeList.add(initiativeIdMap.get(initiativeId));
 			}
-			logger.debug("List of initiatives : " + initiativeList.toString());
+			org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("List of initiatives : " + initiativeList.toString());
 		} catch (Exception e) {
-			logger.error("Exception while getting the initiative list", e);
+			org.apache.log4j.Logger.getLogger(InitiativeList.class).error("Exception while getting the initiative list", e);
 		}
 		return initiativeList;
 
@@ -71,7 +68,7 @@ public class InitiativeList extends TheBorg {
 	 */
 	private void setInitiativeValues(Map<String, Object> resultMap, Initiative i) {
 		InitiativeHelper ih = new InitiativeHelper();
-		logger.debug("Setting initiative values");
+		org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Setting initiative values");
 		try {
 			i.setInitiativeId(Integer.valueOf(resultMap.get("Id").toString()));
 			i.setInitiativeName((String) resultMap.get("Name"));
@@ -87,7 +84,7 @@ public class InitiativeList extends TheBorg {
 			i.setFilterList(ih.setPartOfConnections(resultMap, i));
 
 		} catch (Exception e) {
-			logger.error("Error in setting initiative values", e);
+			org.apache.log4j.Logger.getLogger(InitiativeList.class).error("Error in setting initiative values", e);
 
 		}
 

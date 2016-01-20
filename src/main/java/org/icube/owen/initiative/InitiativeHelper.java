@@ -6,16 +6,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
-import org.icube.owen.ObjectFactory;
 import org.icube.owen.employee.Employee;
 import org.icube.owen.filter.Filter;
 
 import scala.collection.convert.Wrappers.SeqWrapper;
 
 public class InitiativeHelper {
-
-	static Logger logger = ObjectFactory.getLogger("org.icube.owen.initiative.InitiativeHelper");
 
 	/**
 	 * @param resultMap
@@ -25,7 +21,7 @@ public class InitiativeHelper {
 	 */
 	public List<Filter> setPartOfConnections(Map<String, Object> resultMap, Initiative i) {
 		List<Filter> existingFilterList = (i.getFilterList() == null ? new ArrayList<>() : i.getFilterList());
-		logger.debug("Setting part of connections");
+		org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Setting part of connections");
 
 		Filter f = new Filter();
 		f.setFilterName(resultMap.get("Filters").toString().substring(1, resultMap.get("Filters").toString().length() - 1));
@@ -45,7 +41,7 @@ public class InitiativeHelper {
 	 * @return - Returns a list of strings from the resultMap
 	 */
 	public Map<String, String> getFilterValueMapFromResult(SeqWrapper swId, SeqWrapper swValue) {
-		logger.debug("getFilterValueMapFromResult");
+		org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("getFilterValueMapFromResult");
 		Map<String, String> result = new HashMap<>();
 		Iterator iterId = swId.iterator();
 		Iterator iterValue = swValue.iterator();

@@ -6,14 +6,10 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
-import org.icube.owen.ObjectFactory;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 
 public class DatabaseConnectionHelper {
-
-	static Logger logger = ObjectFactory.getLogger("org.icube.owen.helper.DatabaseConnectionHelper");
 
 	// private final static String DB_PATH = getDatabaseConnectionDetails();
 	// private final static String DB_PATH = "C:\\Users\\fermion10\\Documents\\Neo4j\\graph.db";
@@ -30,12 +26,12 @@ public class DatabaseConnectionHelper {
 			Properties props = new Properties();
 			props.load(reader);
 			dbPath = props.getProperty("db_path");
-			logger.debug("DB Path : " + dbPath);
+			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("DB Path : " + dbPath);
 			reader.close();
 		} catch (FileNotFoundException ex) {
-			logger.error("Database path file doesn't exist", ex);
+			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("Database path file doesn't exist", ex);
 		} catch (IOException ex) {
-			logger.error("IOException in Database", ex);
+			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("IOException in Database", ex);
 		}
 		return dbPath;
 	}
@@ -48,7 +44,7 @@ public class DatabaseConnectionHelper {
 	public void shutDown() {
 		System.out.println();
 		System.out.println("Shutting down database ...");
-		logger.debug("Shutting down database ...");
+		org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Shutting down database ...");
 
 		graphDb.shutdown();
 
