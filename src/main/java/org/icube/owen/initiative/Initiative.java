@@ -246,6 +246,7 @@ public class Initiative extends TheBorg {
 	 * @return initiativeTypeMap
 	 */
 	public Map<Integer, String> getInitiativeTypeMap(String category) {
+		//TODO retrieve from sql db
 		Map<Integer, String> initiativeTypeMap = new HashMap<>();
 		if (category.equalsIgnoreCase("team")) {
 			initiativeTypeMap.put(1, "Performance");
@@ -253,7 +254,7 @@ public class Initiative extends TheBorg {
 			initiativeTypeMap.put(3, "Retention");
 			initiativeTypeMap.put(4, "Innovation");
 			initiativeTypeMap.put(5, "Sentiment");
-		} else {
+		} else if (category.equalsIgnoreCase("individual")) {
 			initiativeTypeMap.put(1, "Expertise");
 			initiativeTypeMap.put(2, "Mentorship");
 			initiativeTypeMap.put(3, "Retention");

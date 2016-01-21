@@ -69,5 +69,13 @@ public class InitiativeHelper {
 		}
 		return employeeList;
 	}
+	
+	public List<Map<String, Object>> getInitiativeCount(){
+		List<Map<String, Object>> initiativeCountList = new ArrayList<>();
+		
+		
+		
+		return initiativeCountList;
+	}
 
 }

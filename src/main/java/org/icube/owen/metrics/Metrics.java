@@ -1,6 +1,8 @@
 package org.icube.owen.metrics;
 
-public class Metrics {
+import org.icube.owen.TheBorg;
+
+public class Metrics extends TheBorg{
 
 	private String name;
 	private String category;

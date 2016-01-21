@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.icube.owen.employee.Employee;
 import org.icube.owen.employee.EmployeeList;
 import org.icube.owen.filter.Filter;
@@ -15,6 +14,7 @@ import org.icube.owen.filter.FilterList;
 import org.icube.owen.helper.DatabaseConnectionHelper;
 import org.icube.owen.initiative.Initiative;
 import org.icube.owen.initiative.InitiativeList;
+import org.icube.owen.metrics.MetricsList;
 
 public class ObjectFactory {
 
@@ -45,7 +45,6 @@ public class ObjectFactory {
 
 	// TODO make this function private
 	static DatabaseConnectionHelper dch;
-	static Logger logger;
 
 	static public DatabaseConnectionHelper getDBHelper() {
 		if (dch == null) {
@@ -82,5 +81,8 @@ public class ObjectFactory {
 		System.out.println(il.getInitiativeList());
 
 		System.out.println(initiative.get(1));
+		
+		MetricsList ml = (MetricsList) ObjectFactory.getInstance("org.icube.owen.metrics.MetricsList");
+		System.out.println(ml.getInitiativeMetrics(initiative));
 	}
 }
