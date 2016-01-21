@@ -6,8 +6,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.icube.owen.ObjectFactory;
 import org.icube.owen.employee.Employee;
 import org.icube.owen.filter.Filter;
+import org.icube.owen.helper.DatabaseConnectionHelper;
+import org.neo4j.graphdb.Result;
+import org.neo4j.graphdb.Transaction;
 
 import scala.collection.convert.Wrappers.SeqWrapper;
 
@@ -70,12 +74,26 @@ public class InitiativeHelper {
 		return employeeList;
 	}
 	
-	public List<Map<String, Object>> getInitiativeCount(){
-		List<Map<String, Object>> initiativeCountList = new ArrayList<>();
-		
-		
-		
-		return initiativeCountList;
+	/**
+	 * Retrieves the initiative count for the view initiatives page
+	 * @return map of details required for the graphical representation
+	 *
+	 */
+	public List<Map<String, Object>> getInitiativeCount() {
+		List<Map<String, Object>> initiativeCountMapList = new ArrayList<>();
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		try (Transaction tx = dch.graphDb.beginTx()) {
+			String query = "match (i:Init) where i.Status='Active' or i.Status='Complete' return i.Category as category,"
+					+ "i.Type as initiativeType,i.Status as status,count(i) as totalInitiatives";
+			Result res = dch.graphDb.execute(query);
+			while (res.hasNext()) {
+				Map<String, Object> resultMap = res.next();
+				initiativeCountMapList.add(resultMap);
+			}
+		} catch (Exception e) {
+			org.apache.log4j.Logger.getLogger(InitiativeHelper.class).error("Exception while getting the initiative list", e);
+		}
+		return initiativeCountMapList;
 	}
 
 }

@@ -2,6 +2,7 @@ package org.icube.owen.initiative;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -23,7 +24,8 @@ public class Initiative extends TheBorg {
 	private int initiativeId;
 	private String initiativeName = "";
 	private String initiativeType = "";
-	private String category = "";
+	private String initiativeCategory = "";
+	private String initiativeStatus = "";
 	private Date initiativeStartDate;
 	private Date initiativeEndDate;
 	private String initiativeComment = "";
@@ -41,11 +43,13 @@ public class Initiative extends TheBorg {
 	 * @param filterList
 	 * @param ownerOfList
 	 */
-	public void setInitiativeProperties(String initiativeName, String initiativeType, Date initiativeStartDate, Date initiativeEndDate,
-			String initiativeComment, List<Filter> filterList, List<Employee> ownerOfList) {
+	public void setInitiativeProperties(String initiativeName, String initiativeType, String initiativeCategory, String initiativeStatus,
+			Date initiativeStartDate, Date initiativeEndDate, String initiativeComment, List<Filter> filterList, List<Employee> ownerOfList) {
 		org.apache.log4j.Logger.getLogger(Initiative.class).debug("Setting initiative properties");
 		this.initiativeName = initiativeName;
 		this.initiativeType = initiativeType;
+		this.initiativeCategory = initiativeCategory;
+		this.initiativeStatus = initiativeStatus;
 		this.initiativeStartDate = initiativeStartDate;
 		this.initiativeEndDate = initiativeEndDate;
 		this.initiativeComment = initiativeComment;
@@ -65,12 +69,9 @@ public class Initiative extends TheBorg {
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Creating the initiative");
 
 			String createInitQuery = "match (i:Init)  with CASE count(i) WHEN 0  THEN 1 ELSE max(i.Id)+1 END as uid "
-					+ "CREATE (i:Init {Id:uid,Name:'<<InitName>>',Type:'<<InitType>>',StartDate:'<<StartDate>>',EndDate:'<<EndDate>>',Comment:'<<Comment>>'}) return i.Id as Id";
-			createInitQuery = createInitQuery.replace("<<InitName>>", initiativeName);
-			createInitQuery = createInitQuery.replace("<<InitType>>", initiativeType);
-			createInitQuery = createInitQuery.replace("<<StartDate>>", initiativeStartDate.toString());
-			createInitQuery = createInitQuery.replace("<<EndDate>>", initiativeEndDate.toString());
-			createInitQuery = createInitQuery.replace("<<Comment>>", initiativeComment);
+					+ "CREATE (i:Init {Id:uid,Status:'Active',Name:'" + initiativeName + "',Type:'" + initiativeType + "', Category:'"
+					+ initiativeCategory + "',StartDate:'" + initiativeStartDate.toString() + "',EndDate:'" + initiativeEndDate.toString()
+					+ "',Comment:'" + initiativeComment + "'}) return i.Id as Id";
 
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Create initiative query : " + createInitQuery);
 			Result res = dch.graphDb.execute(createInitQuery);
@@ -218,12 +219,14 @@ public class Initiative extends TheBorg {
 			String query = "match (o:Employee)-[:owner_of]->(i:Init)<-[r:part_of]-(a)"
 					+ " where i.Id = {initiativeId}  return i.Name as Name,i.StartDate as StartDate,"
 					+ "i.EndDate as EndDate,collect(distinct(a.Id))as PartOfID,collect(distinct(a.Name))as PartOfName, labels(a) as Filters,"
-					+ "collect(distinct (o.EmpID)) as OwnersOf,i.Comment as Comments,i.Type as Type";
+					+ "collect(distinct (o.EmpID)) as OwnersOf,i.Comment as Comments,i.Type as Type,i.Category as Category,i.Status as Status";
 			Result res = dch.graphDb.execute(query, params);
 			while (res.hasNext()) {
 				Map<String, Object> result = res.next();
 				i.setInitiativeName(result.get("Name").toString());
 				i.setInitiativeType(result.get("Type").toString());
+				i.setInitiativeStatus(result.get("Status").toString());
+				i.setInitiativeCategory(result.get("Category").toString());
 				SimpleDateFormat parserSDF = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzzz yyyy", Locale.ENGLISH);
 				i.setInitiativeStartDate(parserSDF.parse((String) result.get("StartDate")));
 				i.setInitiativeEndDate(parserSDF.parse((String) result.get("EndDate")));
@@ -231,7 +234,6 @@ public class Initiative extends TheBorg {
 				i.setFilterList(ih.setPartOfConnections(result, i));
 				i.setOwnerOf(ih.getOwnerOfList(result));
 			}
-
 		} catch (ParseException e) {
 			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception while retrieving the initiative with ID" + initiativeId, e);
 
@@ -246,7 +248,7 @@ public class Initiative extends TheBorg {
 	 * @return initiativeTypeMap
 	 */
 	public Map<Integer, String> getInitiativeTypeMap(String category) {
-		//TODO retrieve from sql db
+		// TODO retrieve from sql db
 		Map<Integer, String> initiativeTypeMap = new HashMap<>();
 		if (category.equalsIgnoreCase("team")) {
 			initiativeTypeMap.put(1, "Performance");
@@ -265,13 +267,69 @@ public class Initiative extends TheBorg {
 		return initiativeTypeMap;
 	}
 
-	public boolean delete() {
-		return true; // true if it is deleted properly, false otherwise
+	public boolean delete(int initiativeId) {
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		boolean status = false;
+		Initiative i = get(initiativeId);
+		try (Transaction tx = dch.graphDb.beginTx()) {
+			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Starting delete initiative");
+
+			if (i.getInitiativeStatus().equalsIgnoreCase("Deleted") || i.getInitiativeStatus().equalsIgnoreCase("Complete")) {
+				org.apache.log4j.Logger.getLogger(Initiative.class).debug("The initiativem with ID " + initiativeId + "is already deleted ");
+				status = false;
+			} else {
+				String query = "match(a:Init {Id:" + initiativeId + "}) set a.Status = 'deleted' return a.Status as currentStatus";
+				Result res = dch.graphDb.execute(query);
+				Map<String, Object> result = res.next();
+				i.setInitiativeStatus(result.get("currentStatus").toString());
+				org.apache.log4j.Logger.getLogger(Initiative.class).debug("Deleted initiative with ID " + initiativeId);
+				status = true;
+			}
+			tx.success();
+		} catch (Exception e) {
+			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception in deleting initiative", e);
+
+		}
+		return status;
 	}
 
-	public boolean update() {
-		return true; // saves / updated the current initiative to DB -return true if successful.
-						// This WILL NOT create a new initiative
+	public boolean update(int initiativeId) {
+		// 1.retrieve the initiative with the id entered
+		// 2.check the status of the initiative
+		// 3.if status is "Active", update only end date and ownersOf list
+		// 4.if the status is pending, update only start date, end date and ownersOf list
+		// 5.if status is "Complete" or "deleted" then no updates
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		boolean status = false;
+		Initiative i = get(initiativeId);
+		try (Transaction tx = dch.graphDb.beginTx()) {
+			if (i.getInitiativeStatus().equalsIgnoreCase("Active")) {
+				org.apache.log4j.Logger.getLogger(Initiative.class).debug("Started update of The initiative with ID " + initiativeId);
+				System.out.println(i.getInitiativeEndDate());
+				i.setInitiativeEndDate(Date.from(Instant.now()));
+				String newEndDate = i.getInitiativeEndDate().toString();
+				System.out.println(i.getInitiativeEndDate());
+				System.out.println(newEndDate);
+				String query = "match(a:Init {Id:" + initiativeId + "}) set a.EndDate = 'newEndDate' return a.EndDate as EndDate";
+				Result res = dch.graphDb.execute(query);
+				Map<String, Object> result = res.next();
+				SimpleDateFormat parserSDF = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzzz yyyy", Locale.ENGLISH);
+				i.setInitiativeStartDate(parserSDF.parse((String) result.get("EndDate")));
+				org.apache.log4j.Logger.getLogger(Initiative.class).debug("Updated initiative with ID " + initiativeId);
+
+				status = true;
+			} else if (i.getInitiativeStatus().equalsIgnoreCase("Pending")) {
+				org.apache.log4j.Logger.getLogger(Initiative.class).debug("Started update of The initiative with ID " + initiativeId);
+				status = false;
+			} else {
+				org.apache.log4j.Logger.getLogger(Initiative.class).debug("The initiativem with ID " + initiativeId + "cannot be edited ");
+				status = false;
+			}
+			tx.success();
+		} catch (Exception e) {
+			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception in deleting initiative", e);
+		}
+		return true;
 	}
 
 	public String getInitiativeName() {
@@ -338,11 +396,19 @@ public class Initiative extends TheBorg {
 		this.ownerOfList = employeeList;
 	}
 
-	public String getCategory() {
-		return category;
+	public String getInitiativeCategory() {
+		return initiativeCategory;
 	}
 
-	public void setCategory(String category) {
-		this.category = category;
+	public void setInitiativeCategory(String initiativeCategory) {
+		this.initiativeCategory = initiativeCategory;
+	}
+
+	public String getInitiativeStatus() {
+		return initiativeStatus;
+	}
+
+	public void setInitiativeStatus(String initiativeStatus) {
+		this.initiativeStatus = initiativeStatus;
 	}
 }

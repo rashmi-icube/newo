@@ -73,7 +73,7 @@ public class ObjectFactory {
 		ownerOfList.add(e.get("549192"));
 		ownerOfList.add(e.get("507212"));
 
-		initiative.setInitiativeProperties("YourInitiative", "Change Process", Date.from(Instant.now()), Date.from(Instant.now()),
+		initiative.setInitiativeProperties("YourInitiative", "Change Process", "Team", "Active", Date.from(Instant.now()), Date.from(Instant.now()),
 				"You are owners of the initiative", filterMasterList, ownerOfList);
 		initiative.create();
 
