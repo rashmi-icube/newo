@@ -12,8 +12,8 @@ import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 public class DatabaseConnectionHelper {
 
 	// private final static String DB_PATH = getDatabaseConnectionDetails();
-	// private final static String DB_PATH = "C:\\Users\\fermion10\\Documents\\Neo4j\\graph.db";
-	private final static String DB_PATH = "//Users/apple/Documents/neo4j-enterprise-2.3.1/data/ICICIdb";
+	private final static String DB_PATH = "C:\\Users\\fermion10\\Documents\\Neo4j\\graph.db";
+	//private final static String DB_PATH = "//Users/apple/Documents/neo4j-enterprise-2.3.1/data/ICICIdb";
 	public GraphDatabaseService graphDb;
 
 	private static String getDatabaseConnectionDetails() {

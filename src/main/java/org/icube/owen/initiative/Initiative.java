@@ -23,6 +23,7 @@ public class Initiative extends TheBorg {
 	private int initiativeId;
 	private String initiativeName = "";
 	private String initiativeType = "";
+	private String category = "";
 	private Date initiativeStartDate;
 	private Date initiativeEndDate;
 	private String initiativeComment = "";
@@ -240,15 +241,26 @@ public class Initiative extends TheBorg {
 	}
 
 	/**
-	 * Returns the master list of all initiative types
+	 * Returns the master list of initiative types based on category
 	 * 
 	 * @return initiativeTypeMap
 	 */
-	public Map<Integer, String> getInitiativeTypeMap() {
+	public Map<Integer, String> getInitiativeTypeMap(String category) {
 		Map<Integer, String> initiativeTypeMap = new HashMap<>();
-		initiativeTypeMap.put(1, "Change Process");
-		initiativeTypeMap.put(2, "Technical Performance");
-		initiativeTypeMap.put(3, "Monitoring");
+		if (category.equalsIgnoreCase("team")) {
+			initiativeTypeMap.put(1, "Performance");
+			initiativeTypeMap.put(2, "Social Cohesion");
+			initiativeTypeMap.put(3, "Retention");
+			initiativeTypeMap.put(4, "Innovation");
+			initiativeTypeMap.put(5, "Sentiment");
+		} else {
+			initiativeTypeMap.put(1, "Expertise");
+			initiativeTypeMap.put(2, "Mentorship");
+			initiativeTypeMap.put(3, "Retention");
+			initiativeTypeMap.put(4, "Influence");
+			initiativeTypeMap.put(5, "Sentiment");
+		}
+
 		return initiativeTypeMap;
 	}
 
@@ -323,5 +335,13 @@ public class Initiative extends TheBorg {
 
 	public void setOwnerOf(List<Employee> employeeList) {
 		this.ownerOfList = employeeList;
+	}
+
+	public String getCategory() {
+		return category;
+	}
+
+	public void setCategory(String category) {
+		this.category = category;
 	}
 }

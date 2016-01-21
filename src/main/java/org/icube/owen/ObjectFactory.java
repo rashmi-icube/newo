@@ -57,12 +57,12 @@ public class ObjectFactory {
 	public static void main(String[] args) {
 
 		Initiative initiative = (Initiative) ObjectFactory.getInstance("org.icube.owen.initiative.Initiative");
-		System.out.println("Initiative type map : " + initiative.getInitiativeTypeMap());
+		System.out.println("Initiative type map : " + initiative.getInitiativeTypeMap("team"));
 
 		FilterList fl = (FilterList) ObjectFactory.getInstance("org.icube.owen.filter.FilterList");
 		List<Filter> filterMasterList = fl.getFilterValues();
 		System.out.println("All filter values : " + filterMasterList);
-		Filter functionFilter = fl.getFilterValues("Function");
+		Filter functionFilter = fl.getFilterValues("Position");
 		System.out.println("Function filter values : " + functionFilter);
 
 		EmployeeList el = (EmployeeList) ObjectFactory.getInstance("org.icube.owen.employee.EmployeeList");
