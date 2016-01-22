@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.icube.owen.ObjectFactory;
+import org.icube.owen.TheBorg;
 import org.icube.owen.employee.Employee;
 import org.icube.owen.filter.Filter;
 import org.icube.owen.helper.DatabaseConnectionHelper;
@@ -15,7 +16,7 @@ import org.neo4j.graphdb.Transaction;
 
 import scala.collection.convert.Wrappers.SeqWrapper;
 
-public class InitiativeHelper {
+public class InitiativeHelper extends TheBorg{
 
 	/**
 	 * @param resultMap

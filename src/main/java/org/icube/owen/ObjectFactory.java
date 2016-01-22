@@ -13,6 +13,7 @@ import org.icube.owen.filter.Filter;
 import org.icube.owen.filter.FilterList;
 import org.icube.owen.helper.DatabaseConnectionHelper;
 import org.icube.owen.initiative.Initiative;
+import org.icube.owen.initiative.InitiativeHelper;
 import org.icube.owen.initiative.InitiativeList;
 import org.icube.owen.metrics.MetricsList;
 
@@ -73,7 +74,43 @@ public class ObjectFactory {
 		ownerOfList.add(e.get("549192"));
 		ownerOfList.add(e.get("507212"));
 
-		initiative.setInitiativeProperties("YourInitiative", "Change Process", "Team", "Active", Date.from(Instant.now()), Date.from(Instant.now()),
+		initiative.setInitiativeProperties("1Individual", "Performance", "Individual", "Active", Date.from(Instant.now()), Date.from(Instant.now()),
+				"You are owners of the initiative", filterMasterList, ownerOfList);
+		initiative.create();
+
+		initiative.setInitiativeProperties("2Individual", "Social Cohesion", "Individual", "Active", Date.from(Instant.now()), Date.from(Instant
+				.now()), "You are owners of the initiative", filterMasterList, ownerOfList);
+		initiative.create();
+
+		initiative.setInitiativeProperties("3Individual", "Retention", "Individual", "Active", Date.from(Instant.now()), Date.from(Instant.now()),
+				"You are owners of the initiative", filterMasterList, ownerOfList);
+		initiative.create();
+
+		initiative.setInitiativeProperties("4Individual", "Innovation", "Individual", "Active", Date.from(Instant.now()), Date.from(Instant.now()),
+				"You are owners of the initiative", filterMasterList, ownerOfList);
+		initiative.create();
+
+		initiative.setInitiativeProperties("5Individual", "Sentiment", "Individual", "Active", Date.from(Instant.now()), Date.from(Instant.now()),
+				"You are owners of the initiative", filterMasterList, ownerOfList);
+		initiative.create();
+
+		initiative.setInitiativeProperties("1Team", "Performance", "Team", "Active", Date.from(Instant.now()), Date.from(Instant.now()),
+				"You are owners of the initiative", filterMasterList, ownerOfList);
+		initiative.create();
+
+		initiative.setInitiativeProperties("2Team", "Social Cohesion", "Team", "Active", Date.from(Instant.now()), Date.from(Instant.now()),
+				"You are owners of the initiative", filterMasterList, ownerOfList);
+		initiative.create();
+
+		initiative.setInitiativeProperties("3Team", "Retention", "Team", "Active", Date.from(Instant.now()), Date.from(Instant.now()),
+				"You are owners of the initiative", filterMasterList, ownerOfList);
+		initiative.create();
+
+		initiative.setInitiativeProperties("4Team", "Innovation", "Team", "Active", Date.from(Instant.now()), Date.from(Instant.now()),
+				"You are owners of the initiative", filterMasterList, ownerOfList);
+		initiative.create();
+
+		initiative.setInitiativeProperties("5Team", "Sentiment", "Team", "Active", Date.from(Instant.now()), Date.from(Instant.now()),
 				"You are owners of the initiative", filterMasterList, ownerOfList);
 		initiative.create();
 
@@ -81,8 +118,12 @@ public class ObjectFactory {
 		System.out.println(il.getInitiativeList());
 
 		System.out.println(initiative.get(1));
-		
+
 		MetricsList ml = (MetricsList) ObjectFactory.getInstance("org.icube.owen.metrics.MetricsList");
-		System.out.println(ml.getInitiativeMetrics(initiative));
+		System.out.println(ml.getInitiativeMetrics(initiative.get(1)));
+
+		InitiativeHelper ih = (InitiativeHelper) ObjectFactory.getInstance("org.icube.owen.initiative.InitiativeHelper");
+		System.out.println(ih.getInitiativeCount());
+
 	}
 }
