@@ -276,21 +276,13 @@ public class Initiative extends TheBorg {
 	public boolean delete(int initiativeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		boolean status = false;
-		Initiative i = get(initiativeId);
-		try (Transaction tx = dch.graphDb.beginTx()) {
-			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Starting delete initiative");
 
-			if (i.getInitiativeStatus().equalsIgnoreCase("Deleted")) {
-				org.apache.log4j.Logger.getLogger(Initiative.class).debug("The initiativem with ID " + initiativeId + " is already deleted ");
-				status = false;
-			} else {
-				String query = "match(a:Init {Id:" + initiativeId + "}) set a.Status = 'deleted' return a.Status as currentStatus";
-				Result res = dch.graphDb.execute(query);
-				Map<String, Object> result = res.next();
-				i.setInitiativeStatus(result.get("currentStatus").toString());
-				org.apache.log4j.Logger.getLogger(Initiative.class).debug("Deleted initiative with ID " + initiativeId);
-				status = true;
-			}
+		try (Transaction tx = dch.graphDb.beginTx()) {
+			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Starting to delete the initiative ID " + initiativeId);
+			String query = "match(a:Init {Id:" + initiativeId + "}) set a.Status = 'deleted' return a.Status as currentStatus";
+			Result res = dch.graphDb.execute(query);
+			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Deleted initiative with ID " + initiativeId);
+			status = true;
 			tx.success();
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception in deleting initiative", e);
@@ -313,6 +305,7 @@ public class Initiative extends TheBorg {
 			List<Employee> updatedOwnerOfList = updatedInitiative.getOwnerOf();
 			String ownersOfQuery = "match(i:Init {Id:" + initiativeId + "})<-[r:owner_of]-(e:Employee) delete r";
 			Result ownersOfRes = dch.graphDb.execute(ownersOfQuery);
+			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Ownersof list deleted from initiative " + updatedInitiative.initiativeId);
 			updatedInitiative.setOwner(initiativeId, updatedOwnerOfList);
 			String query = "match(a:Init {Id:" + initiativeId + "}) set a.Name = '" + updatedInitiative.initiativeName + "',a.Status = '"
 					+ updatedInitiative.initiativeStatus + "'," + "a.Type = '" + updatedInitiative.initiativeType + "',a.Category = '"
@@ -325,7 +318,7 @@ public class Initiative extends TheBorg {
 			tx.success();
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Updated initiative with ID " + initiativeId);
 		} catch (Exception e) {
-			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception in updating initiative", e);
+			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception in updating initiative " + initiativeId, e);
 		}
 		return status;
 	}
