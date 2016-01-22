@@ -274,8 +274,8 @@ public class Initiative extends TheBorg {
 		try (Transaction tx = dch.graphDb.beginTx()) {
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Starting delete initiative");
 
-			if (i.getInitiativeStatus().equalsIgnoreCase("Deleted") || i.getInitiativeStatus().equalsIgnoreCase("Complete")) {
-				org.apache.log4j.Logger.getLogger(Initiative.class).debug("The initiativem with ID " + initiativeId + "is already deleted ");
+			if (i.getInitiativeStatus().equalsIgnoreCase("Deleted")) {
+				org.apache.log4j.Logger.getLogger(Initiative.class).debug("The initiativem with ID " + initiativeId + " is already deleted ");
 				status = false;
 			} else {
 				String query = "match(a:Init {Id:" + initiativeId + "}) set a.Status = 'deleted' return a.Status as currentStatus";
