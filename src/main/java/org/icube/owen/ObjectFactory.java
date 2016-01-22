@@ -121,7 +121,7 @@ public class ObjectFactory {
 		System.out.println(initiative.get(1));
 
 		MetricsList ml = (MetricsList) ObjectFactory.getInstance("org.icube.owen.metrics.MetricsList");
-		System.out.println(ml.getInitiativeMetrics(initiative));
+		System.out.println(ml.getInitiativeMetrics("team", filterMasterList));
 
 		Initiative updatedinitiative = initiative.get(3);
 		ownerOfList = new ArrayList<>();
@@ -136,8 +136,6 @@ public class ObjectFactory {
 		initiative.updateInitiative(updatedinitiative);
 
 		initiative.delete(2);
-
-		System.out.println(ml.getInitiativeMetrics(initiative.get(1)));
 
 		InitiativeHelper ih = (InitiativeHelper) ObjectFactory.getInstance("org.icube.owen.initiative.InitiativeHelper");
 		System.out.println(ih.getInitiativeCount());

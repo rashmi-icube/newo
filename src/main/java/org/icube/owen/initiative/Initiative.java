@@ -2,7 +2,6 @@ package org.icube.owen.initiative;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -37,6 +36,8 @@ public class Initiative extends TheBorg {
 	 * 
 	 * @param initiativeName
 	 * @param initiativeType
+	 * @param initiativeCategory
+	 * @param initiativeStatus
 	 * @param initiativeStartDate
 	 * @param initiativeEndDate
 	 * @param initiativeComment
@@ -267,6 +268,11 @@ public class Initiative extends TheBorg {
 		return initiativeTypeMap;
 	}
 
+	/**
+	 * Changes the status of the Initiative with the given initiativeId to Deleted
+	 * @param initiativeId
+	 * @return true/false depending on whether the delete is done or not
+	 */
 	public boolean delete(int initiativeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		boolean status = false;
@@ -293,6 +299,11 @@ public class Initiative extends TheBorg {
 		return status;
 	}
 
+	/**
+	 * Updates the given initiative object 
+	 * @param updatedInitiative - The Initiative object to be updated
+	 * @return true/false depending on whether the update is done or not
+	 */
 	public boolean updateInitiative(Initiative updatedInitiative) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		boolean status = false;
