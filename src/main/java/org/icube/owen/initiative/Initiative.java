@@ -293,43 +293,30 @@ public class Initiative extends TheBorg {
 		return status;
 	}
 
-	public boolean update(int initiativeId) {
-		// 1.retrieve the initiative with the id entered
-		// 2.check the status of the initiative
-		// 3.if status is "Active", update only end date and ownersOf list
-		// 4.if the status is pending, update only start date, end date and ownersOf list
-		// 5.if status is "Complete" or "deleted" then no updates
+	public boolean updateInitiative(Initiative updatedInitiative) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		boolean status = false;
-		Initiative i = get(initiativeId);
 		try (Transaction tx = dch.graphDb.beginTx()) {
-			if (i.getInitiativeStatus().equalsIgnoreCase("Active")) {
-				org.apache.log4j.Logger.getLogger(Initiative.class).debug("Started update of The initiative with ID " + initiativeId);
-				System.out.println(i.getInitiativeEndDate());
-				i.setInitiativeEndDate(Date.from(Instant.now()));
-				String newEndDate = i.getInitiativeEndDate().toString();
-				System.out.println(i.getInitiativeEndDate());
-				System.out.println(newEndDate);
-				String query = "match(a:Init {Id:" + initiativeId + "}) set a.EndDate = 'newEndDate' return a.EndDate as EndDate";
-				Result res = dch.graphDb.execute(query);
-				Map<String, Object> result = res.next();
-				SimpleDateFormat parserSDF = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzzz yyyy", Locale.ENGLISH);
-				i.setInitiativeStartDate(parserSDF.parse((String) result.get("EndDate")));
-				org.apache.log4j.Logger.getLogger(Initiative.class).debug("Updated initiative with ID " + initiativeId);
-
-				status = true;
-			} else if (i.getInitiativeStatus().equalsIgnoreCase("Pending")) {
-				org.apache.log4j.Logger.getLogger(Initiative.class).debug("Started update of The initiative with ID " + initiativeId);
-				status = false;
-			} else {
-				org.apache.log4j.Logger.getLogger(Initiative.class).debug("The initiativem with ID " + initiativeId + "cannot be edited ");
-				status = false;
-			}
+			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Started update of The initiative with ID " + updatedInitiative.initiativeId);
+			int initiativeId = updatedInitiative.getInitiativeId();
+			List<Employee> updatedOwnerOfList = updatedInitiative.getOwnerOf();
+			String ownersOfQuery = "match(i:Init {Id:" + initiativeId + "})<-[r:owner_of]-(e:Employee) delete r";
+			Result ownersOfRes = dch.graphDb.execute(ownersOfQuery);
+			updatedInitiative.setOwner(initiativeId, updatedOwnerOfList);
+			String query = "match(a:Init {Id:" + initiativeId + "}) set a.Name = '" + updatedInitiative.initiativeName + "',a.Status = '"
+					+ updatedInitiative.initiativeStatus + "'," + "a.Type = '" + updatedInitiative.initiativeType + "',a.Category = '"
+					+ updatedInitiative.initiativeCategory + "'," + "a.Comment = '" + updatedInitiative.initiativeComment + "',a.EndDate = '"
+					+ updatedInitiative.getInitiativeEndDate().toString() + "'," + "a.StartDate = '"
+					+ updatedInitiative.getInitiativeStartDate().toString() + "' return a.Name as Name, " + "a.Type as Type,a.Category as Category, "
+					+ "a.Status as Status,a.Comment as Comment,a.EndDate as endDate,a.StartDate as StartDate";
+			Result res = dch.graphDb.execute(query);
+			status = true;
 			tx.success();
+			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Updated initiative with ID " + initiativeId);
 		} catch (Exception e) {
-			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception in deleting initiative", e);
+			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception in updating initiative", e);
 		}
-		return true;
+		return status;
 	}
 
 	public String getInitiativeName() {
