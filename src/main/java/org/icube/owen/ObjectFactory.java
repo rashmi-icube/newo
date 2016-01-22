@@ -22,8 +22,8 @@ public class ObjectFactory {
 	/**
 	 * Get the instance of class given in the parameter
 	 * 
-	 * @param className
-	 * @return class instance
+	 * @param className className for which the instance is to be created
+	 * @return instance object for the className given
 	 */
 	static public TheBorg getInstance(String className) {
 		Class<?> c;
@@ -75,43 +75,43 @@ public class ObjectFactory {
 		ownerOfList.add(e.get("549192"));
 		ownerOfList.add(e.get("507212"));
 
-		initiative.setInitiativeProperties("1Individual", "Performance", "Individual", "Active", Date.from(Instant.now()), Date.from(Instant.now()),
+		initiative.setInitiativeProperties("1Individual", "Performance", "Individual", Date.from(Instant.now()), Date.from(Instant.now()),
 				"You are owners of the initiative", filterMasterList, ownerOfList);
 		initiative.create();
 
-		initiative.setInitiativeProperties("2Individual", "Social Cohesion", "Individual", "Active", Date.from(Instant.now()), Date.from(Instant
+		initiative.setInitiativeProperties("2Individual", "Social Cohesion", "Individual", Date.from(Instant.now()), Date.from(Instant
 				.now()), "You are owners of the initiative", filterMasterList, ownerOfList);
 		initiative.create();
 
-		initiative.setInitiativeProperties("3Individual", "Retention", "Individual", "Active", Date.from(Instant.now()), Date.from(Instant.now()),
+		initiative.setInitiativeProperties("3Individual", "Retention", "Individual", Date.from(Instant.now()), Date.from(Instant.now()),
 				"You are owners of the initiative", filterMasterList, ownerOfList);
 		initiative.create();
 
-		initiative.setInitiativeProperties("4Individual", "Innovation", "Individual", "Active", Date.from(Instant.now()), Date.from(Instant.now()),
+		initiative.setInitiativeProperties("4Individual", "Innovation", "Individual", Date.from(Instant.now()), Date.from(Instant.now()),
 				"You are owners of the initiative", filterMasterList, ownerOfList);
 		initiative.create();
 
-		initiative.setInitiativeProperties("5Individual", "Sentiment", "Individual", "Active", Date.from(Instant.now()), Date.from(Instant.now()),
+		initiative.setInitiativeProperties("5Individual", "Sentiment", "Individual", Date.from(Instant.now()), Date.from(Instant.now()),
 				"You are owners of the initiative", filterMasterList, ownerOfList);
 		initiative.create();
 
-		initiative.setInitiativeProperties("1Team", "Performance", "Team", "Active", Date.from(Instant.now()), Date.from(Instant.now()),
+		initiative.setInitiativeProperties("1Team", "Performance", "Team", Date.from(Instant.now()), Date.from(Instant.now()),
 				"You are owners of the initiative", filterMasterList, ownerOfList);
 		initiative.create();
 
-		initiative.setInitiativeProperties("2Team", "Social Cohesion", "Team", "Active", Date.from(Instant.now()), Date.from(Instant.now()),
+		initiative.setInitiativeProperties("2Team", "Social Cohesion", "Team", Date.from(Instant.now()), Date.from(Instant.now()),
 				"You are owners of the initiative", filterMasterList, ownerOfList);
 		initiative.create();
 
-		initiative.setInitiativeProperties("3Team", "Retention", "Team", "Active", Date.from(Instant.now()), Date.from(Instant.now()),
+		initiative.setInitiativeProperties("3Team", "Retention", "Team", Date.from(Instant.now()), Date.from(Instant.now()),
 				"You are owners of the initiative", filterMasterList, ownerOfList);
 		initiative.create();
 
-		initiative.setInitiativeProperties("4Team", "Innovation", "Team", "Active", Date.from(Instant.now()), Date.from(Instant.now()),
+		initiative.setInitiativeProperties("4Team", "Innovation", "Team", Date.from(Instant.now()), Date.from(Instant.now()),
 				"You are owners of the initiative", filterMasterList, ownerOfList);
 		initiative.create();
 
-		initiative.setInitiativeProperties("5Team", "Sentiment", "Team", "Active", Date.from(Instant.now()), Date.from(Instant.now()),
+		initiative.setInitiativeProperties("5Team", "Sentiment", "Team", Date.from(Instant.now()), Date.from(Instant.now()),
 				"You are owners of the initiative", filterMasterList, ownerOfList);
 		initiative.create();
 

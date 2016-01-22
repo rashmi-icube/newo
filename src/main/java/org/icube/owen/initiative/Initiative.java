@@ -2,6 +2,7 @@ package org.icube.owen.initiative;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -33,24 +34,14 @@ public class Initiative extends TheBorg {
 
 	/**
 	 * Sets the initiative properties based on the values given in the parameters
-	 * 
-	 * @param initiativeName
-	 * @param initiativeType
-	 * @param initiativeCategory
-	 * @param initiativeStatus
-	 * @param initiativeStartDate
-	 * @param initiativeEndDate
-	 * @param initiativeComment
-	 * @param filterList
-	 * @param ownerOfList
-	 */
-	public void setInitiativeProperties(String initiativeName, String initiativeType, String initiativeCategory, String initiativeStatus,
-			Date initiativeStartDate, Date initiativeEndDate, String initiativeComment, List<Filter> filterList, List<Employee> ownerOfList) {
+	 
+	 	 */
+	public void setInitiativeProperties(String initiativeName, String initiativeType, String initiativeCategory, Date initiativeStartDate,
+			Date initiativeEndDate, String initiativeComment, List<Filter> filterList, List<Employee> ownerOfList) {
 		org.apache.log4j.Logger.getLogger(Initiative.class).debug("Setting initiative properties");
 		this.initiativeName = initiativeName;
 		this.initiativeType = initiativeType;
 		this.initiativeCategory = initiativeCategory;
-		this.initiativeStatus = initiativeStatus;
 		this.initiativeStartDate = initiativeStartDate;
 		this.initiativeEndDate = initiativeEndDate;
 		this.initiativeComment = initiativeComment;
@@ -70,9 +61,9 @@ public class Initiative extends TheBorg {
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Creating the initiative");
 
 			String createInitQuery = "match (i:Init)  with CASE count(i) WHEN 0  THEN 1 ELSE max(i.Id)+1 END as uid "
-					+ "CREATE (i:Init {Id:uid,Status:'Active',Name:'" + initiativeName + "',Type:'" + initiativeType + "', Category:'"
-					+ initiativeCategory + "',StartDate:'" + initiativeStartDate.toString() + "',EndDate:'" + initiativeEndDate.toString()
-					+ "',Comment:'" + initiativeComment + "'}) return i.Id as Id";
+					+ "CREATE (i:Init {Id:uid,Status:'" + checkInitiativeStatus(initiativeStartDate) + "',Name:'" + initiativeName + "',Type:'"
+					+ initiativeType + "', Category:'" + initiativeCategory + "',StartDate:'" + initiativeStartDate.toString() + "',EndDate:'"
+					+ initiativeEndDate.toString() + "',Comment:'" + initiativeComment + "'}) return i.Id as Id";
 
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Create initiative query : " + createInitQuery);
 			Result res = dch.graphDb.execute(createInitQuery);
@@ -270,7 +261,7 @@ public class Initiative extends TheBorg {
 
 	/**
 	 * Changes the status of the Initiative with the given initiativeId to Deleted
-	 * @param initiativeId
+	 * 
 	 * @return true/false depending on whether the delete is done or not
 	 */
 	public boolean delete(int initiativeId) {
@@ -279,7 +270,7 @@ public class Initiative extends TheBorg {
 
 		try (Transaction tx = dch.graphDb.beginTx()) {
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Starting to delete the initiative ID " + initiativeId);
-			String query = "match(a:Init {Id:" + initiativeId + "}) set a.Status = 'deleted' return a.Status as currentStatus";
+			String query = "match(a:Init {Id:" + initiativeId + "}) set a.Status = 'Deleted' return a.Status as currentStatus";
 			Result res = dch.graphDb.execute(query);
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Deleted initiative with ID " + initiativeId);
 			status = true;
@@ -292,8 +283,10 @@ public class Initiative extends TheBorg {
 	}
 
 	/**
-	 * Updates the given initiative object 
-	 * @param updatedInitiative - The Initiative object to be updated
+	 * Updates the given initiative object
+	 * 
+	 * @param updatedInitiative
+	 * - The Initiative object to be updated
 	 * @return true/false depending on whether the update is done or not
 	 */
 	public boolean updateInitiative(Initiative updatedInitiative) {
@@ -308,7 +301,7 @@ public class Initiative extends TheBorg {
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Ownersof list deleted from initiative " + updatedInitiative.initiativeId);
 			updatedInitiative.setOwner(initiativeId, updatedOwnerOfList);
 			String query = "match(a:Init {Id:" + initiativeId + "}) set a.Name = '" + updatedInitiative.initiativeName + "',a.Status = '"
-					+ updatedInitiative.initiativeStatus + "'," + "a.Type = '" + updatedInitiative.initiativeType + "',a.Category = '"
+					+ checkInitiativeStatus(updatedInitiative.initiativeStartDate) + "'," + "a.Type = '" + updatedInitiative.initiativeType + "',a.Category = '"
 					+ updatedInitiative.initiativeCategory + "'," + "a.Comment = '" + updatedInitiative.initiativeComment + "',a.EndDate = '"
 					+ updatedInitiative.getInitiativeEndDate().toString() + "'," + "a.StartDate = '"
 					+ updatedInitiative.getInitiativeStartDate().toString() + "' return a.Name as Name, " + "a.Type as Type,a.Category as Category, "
@@ -323,6 +316,32 @@ public class Initiative extends TheBorg {
 		return status;
 	}
 
+	private String checkInitiativeStatus(Date initiativeStartDate) {
+		String initiativeStatus = "Active";
+		if (initiativeStartDate.after(Date.from(Instant.now()))) {
+			initiativeStatus = "Pending";
+		}
+		return initiativeStatus;
+	}
+
+	/**
+	 * Sets the status of the initiative to completed based on the initiativeId provided in the parameter
+	 */
+	public boolean complete(int initiativeId) {
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		try (Transaction tx = dch.graphDb.beginTx()) {
+			String query = "match(a:Init {Id:" + initiativeId + "}) set a.Status = 'Completed'";
+			Result res = dch.graphDb.execute(query);
+			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Deleted initiative with ID " + initiativeId);
+			tx.success();
+			return true;
+		} catch (Exception e) {
+			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception in deleting initiative " + initiativeId, e);
+		}
+
+		return false;
+	}
+	
 	public String getInitiativeName() {
 		return initiativeName;
 	}

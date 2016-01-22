@@ -18,11 +18,12 @@ import scala.collection.convert.Wrappers.SeqWrapper;
 
 public class InitiativeHelper extends TheBorg{
 
+	
+
 	/**
-	 * @param resultMap
-	 * - A map containing the Initiative attributes and connections
-	 * @param i
-	 * - An Initiative object
+	 * @param resultMap - A map containing the Initiative attributes and connections
+	 * @param i - An Initiative object
+	 * @return - List of Filter objects
 	 */
 	public List<Filter> setPartOfConnections(Map<String, Object> resultMap, Initiative i) {
 		List<Filter> existingFilterList = (i.getFilterList() == null ? new ArrayList<>() : i.getFilterList());
@@ -39,10 +40,7 @@ public class InitiativeHelper extends TheBorg{
 	}
 
 	/**
-	 * @param resultMap
-	 * - A map containing the Initiative attributes and connections
-	 * @param columnName
-	 * - Name of the column to iterate through from the resultMap
+	 * @param resultMap - A map containing the Initiative attributes and connections
 	 * @return - Returns a list of strings from the resultMap
 	 */
 	public Map<String, String> getFilterValueMapFromResult(SeqWrapper swId, SeqWrapper swValue) {
@@ -60,7 +58,7 @@ public class InitiativeHelper extends TheBorg{
 	/**
 	 * Returns the owners of initiative
 	 * 
-	 * @param resultMap
+	 * @param resultMap - A map containing the Initiative attributes and connections
 	 * @return list of employee object who are owners of the initiative
 	 */
 	public List<Employee> getOwnerOfList(Map<String, Object> resultMap) {
@@ -84,7 +82,7 @@ public class InitiativeHelper extends TheBorg{
 		List<Map<String, Object>> initiativeCountMapList = new ArrayList<>();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		try (Transaction tx = dch.graphDb.beginTx()) {
-			String query = "match (i:Init) where i.Status='Active' or i.Status='Complete' return i.Category as category,"
+			String query = "match (i:Init) where i.Status='Active' or i.Status='Completed' return i.Category as category,"
 					+ "i.Type as initiativeType,i.Status as status,count(i) as totalInitiatives";
 			Result res = dch.graphDb.execute(query);
 			while (res.hasNext()) {

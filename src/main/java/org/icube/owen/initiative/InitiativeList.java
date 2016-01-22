@@ -28,7 +28,7 @@ public class InitiativeList extends TheBorg {
 		Map<Integer, Initiative> initiativeIdMap = new HashMap<Integer, Initiative>();
 		try (Transaction tx = dch.graphDb.beginTx()) {
 			String initiativeListQuery = "match (o:Employee)-[:owner_of]->(i:Init)<-[r:part_of]-(a)"
-					+ " return i.Id as Id,i.Name as Name,i.StartDate as StartDate,"
+					+ " return i.Id as Id,i.Name as Name,i.Status as Status, i.Category as Category, i.StartDate as StartDate,"
 					+ "i.EndDate as EndDate,collect(distinct(a.Id))as PartOfID,collect(distinct(a.Name))as PartOfName, labels(a) as Filters,"
 					+ "collect(distinct (o.EmpID)) as OwnersOf,i.Comment as Comments,i.Type as Type";
 			Result res = dch.graphDb.execute(initiativeListQuery);
@@ -72,6 +72,8 @@ public class InitiativeList extends TheBorg {
 		try {
 			i.setInitiativeId(Integer.valueOf(resultMap.get("Id").toString()));
 			i.setInitiativeName((String) resultMap.get("Name"));
+			i.setInitiativeStatus((String) resultMap.get("Status"));
+			i.setInitiativeCategory((String) resultMap.get("Category"));
 
 			SimpleDateFormat parserSDF = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzzz yyyy", Locale.ENGLISH);
 			i.setInitiativeStartDate(parserSDF.parse((String) resultMap.get("StartDate")));
