@@ -284,9 +284,7 @@ public class Initiative extends TheBorg {
 
 	/**
 	 * Updates the given initiative object
-	 * 
-	 * @param updatedInitiative
-	 * - The Initiative object to be updated
+	 * @param updatedInitiative - The Initiative object to be updated
 	 * @return true/false depending on whether the update is done or not
 	 */
 	public boolean updateInitiative(Initiative updatedInitiative) {
