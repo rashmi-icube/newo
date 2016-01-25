@@ -71,11 +71,11 @@ public class ObjectFactory {
 
 		List<Employee> ownerOfList = new ArrayList<>();
 		Employee e = (Employee) ObjectFactory.getInstance("org.icube.owen.employee.Employee");
-		ownerOfList.add(e.get("5031840"));
-		ownerOfList.add(e.get("549192"));
-		ownerOfList.add(e.get("507212"));
+		ownerOfList.add(e.get("14"));
+		ownerOfList.add(e.get("12"));
+		ownerOfList.add(e.get("22"));
 
-		initiative.setInitiativeProperties("1Individual", "Performance", "Individual", Date.from(Instant.now()), Date.from(Instant.now()),
+		initiative.setInitiativeProperties("MyInitiative", "Performance", "Individual", Date.from(Instant.now()), Date.from(Instant.now()),
 				"You are owners of the initiative", filterMasterList, ownerOfList);
 		initiative.create();
 
@@ -127,9 +127,9 @@ public class ObjectFactory {
 		ownerOfList = new ArrayList<>();
 		e = (Employee) ObjectFactory.getInstance("org.icube.owen.employee.Employee");
 
-		ownerOfList.add(e.get("52312"));
-		ownerOfList.add(e.get("549192"));
-		ownerOfList.add(e.get("507212"));
+		ownerOfList.add(e.get("10"));
+		ownerOfList.add(e.get("12"));
+		ownerOfList.add(e.get("22"));
 		updatedinitiative.setInitiativeEndDate(Date.from(Instant.now()));
 		updatedinitiative.setInitiativeComment("the comment has been updated");
 		updatedinitiative.setOwnerOf(ownerOfList);

@@ -63,7 +63,8 @@ public class EmployeeList extends TheBorg {
 					+ (funcQuery.isEmpty() ? "" : funcQuery + (!posQuery.isEmpty() ? " and " : ""))
 					+ (posQuery.isEmpty() ? "" : (posQuery))
 					+ " with a,b,count(a)"
-					+ "as TotalPeople optional match a<-[r:support]-b return id(a) as neoId, a.EmpID as employeeId, a.Name as firstName, count(r) as Score";
+					+ "as TotalPeople optional match a<-[r:support]-b return a.emp_id as employeeId, a.FirstName as firstName, a.LastName as lastName,"
+					+ "a.Reporting_emp_id as reportingManagerId, a.emp_int_id as companyEmployeeId, count(r) as Score";
 
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("query : " + query);
 			Result res = dch.graphDb.execute(query, params);
@@ -92,7 +93,7 @@ public class EmployeeList extends TheBorg {
 		List<Employee> employeeList = new ArrayList<>();
 		try (Transaction tx = dch.graphDb.beginTx()) {
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("getEmployeeMasterList method started");
-			String query = "match (a:Employee) return id(a) as neoId, a.EmpID as employeeId , a.Name as firstName";
+			String query = "match (a:Employee) return a.emp_id as employeeId, a.FirstName as firstName, a.LastName as lastName";
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("query : " + query);
 			Result res = dch.graphDb.execute(query);
 			while (res.hasNext()) {
@@ -123,26 +124,18 @@ public class EmployeeList extends TheBorg {
 	 */
 	protected Employee setEmployeeDetails(Map<String, Object> resultMap, boolean setScore) {
 		Employee e = new Employee();
-		// TODO replace the employee setters once db change is made
-		/*e.setInternalId(resultMap.get("neoId").toString());
-		e.setEmployeeId(empId);
-		e.setFirstName(resultMap.get("firstName").toString());
-		e.setLastName("");
-		e.setReportingManagerId(resultMap.get("reportingManagerId").toString());
-		if(setScore){
-			e.setScore((Long) resultMap.get("Score"));
-		}*/
-
-		e.setInternalId(resultMap.get("neoId").toString());
 		e.setEmployeeId(resultMap.get("employeeId").toString());
 		e.setFirstName(resultMap.get("firstName").toString());
+		e.setLastName(resultMap.get("lastName").toString());
+		e.setReportingManagerId(resultMap.get("reportingManagerId").toString());
+		e.setCompanyEmployeeId(resultMap.get("companyEmployeeId").toString());
 		if (setScore) {
 			e.setScore((Long) resultMap.get("Score"));
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug(
-					"Employee  : " + e.getInternalId() + "-" + e.getEmployeeId() + "-" + e.getFirstName() + "-" + e.getScore());
+					"Employee  : " + "-" + e.getEmployeeId() + "-" + e.getFirstName() + "-" + e.getScore());
 		} else {
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug(
-					"Employee  : " + e.getInternalId() + "-" + e.getEmployeeId() + "-" + e.getFirstName());
+					"Employee  : " + "-" + e.getEmployeeId() + "-" + e.getFirstName());
 		}
 		return e;
 	}

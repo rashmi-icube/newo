@@ -182,7 +182,7 @@ public class Initiative extends TheBorg {
 			params.put("initiativeId", initiativeId);
 			params.put("empIdList", empIdList);
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Creating connections for initiative : " + params.get("initiativeId"));
-			String query = "Match (i:Init),(e:Employee) where i.Id = {initiativeId} and e.EmpID in {empIdList} Create e-[:owner_of]->i";
+			String query = "Match (i:Init),(e:Employee) where i.Id = {initiativeId} and e.emp_id in {empIdList} Create e-[:owner_of]->i";
 			dch.graphDb.execute(query, params);
 			tx.success();
 			return true;
@@ -296,9 +296,9 @@ public class Initiative extends TheBorg {
 			Result ownersOfRes = dch.graphDb.execute(ownersOfQuery);
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Ownersof list deleted from initiative " + updatedInitiative.initiativeId);
 			updatedInitiative.setOwner(initiativeId, updatedOwnerOfList);
-			String query = "match(a:Init {Id:" + initiativeId + "}) set a.Name = '" + updatedInitiative.initiativeName + "',a.Status = '"
-					+ checkInitiativeStatus(updatedInitiative.initiativeStartDate) + "'," + "a.Type = '" + updatedInitiative.initiativeType + "',a.Category = '"
-					+ updatedInitiative.initiativeCategory + "'," + "a.Comment = '" + updatedInitiative.initiativeComment + "',a.EndDate = '"
+			String query = "match(a:Init {Id:" + initiativeId + "}) set a.Name = '" + updatedInitiative.getInitiativeName().toString() + "',a.Status = '"
+					+ checkInitiativeStatus(updatedInitiative.getInitiativeStartDate()) + "'," + "a.Type = '" + updatedInitiative.getInitiativeType().toString() + "',a.Category = '"
+					+ updatedInitiative.getInitiativeCategory().toString() + "'," + "a.Comment = '" + updatedInitiative.getInitiativeComment().toString() + "',a.EndDate = '"
 					+ updatedInitiative.getInitiativeEndDate().toString() + "'," + "a.StartDate = '"
 					+ updatedInitiative.getInitiativeStartDate().toString() + "' return a.Name as Name, " + "a.Type as Type,a.Category as Category, "
 					+ "a.Status as Status,a.Comment as Comment,a.EndDate as endDate,a.StartDate as StartDate";
@@ -328,11 +328,11 @@ public class Initiative extends TheBorg {
 		try (Transaction tx = dch.graphDb.beginTx()) {
 			String query = "match(a:Init {Id:" + initiativeId + "}) set a.Status = 'Completed'";
 			Result res = dch.graphDb.execute(query);
-			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Deleted initiative with ID " + initiativeId);
+			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Changed the status of initiative with ID " + initiativeId + " to Completed");
 			tx.success();
 			return true;
 		} catch (Exception e) {
-			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception in deleting initiative " + initiativeId, e);
+			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception in changing the status to Completed for initiative " + initiativeId, e);
 		}
 
 		return false;

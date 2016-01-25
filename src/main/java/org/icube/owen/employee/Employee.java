@@ -11,21 +11,13 @@ import org.neo4j.graphdb.Transaction;
 
 public class Employee extends TheBorg {
 
-	private String internalId; // actual neoId //TODO if the node is deleted from neo4j the neoId too will be reused
-	private String employeeId;
+	private String employeeId; // actual neoId //TODO if the node is deleted from neo4j the neoId too will be reused
+	private String companyEmployeeId;
 	private String firstName;
 	private String lastName;
 	private String reportingManagerId;
 	private long score;
 	private boolean active;
-
-	public String getInternalId() {
-		return internalId;
-	}
-
-	public void setInternalId(String internalId) {
-		this.internalId = internalId;
-	}
 
 	public String getEmployeeId() {
 		return employeeId;
@@ -33,6 +25,14 @@ public class Employee extends TheBorg {
 
 	public void setEmployeeId(String employeeId) {
 		this.employeeId = employeeId;
+	}
+
+	public String getCompanyEmployeeId() {
+		return companyEmployeeId;
+	}
+
+	public void setCompanyEmployeeId(String companyEmployeeId) {
+		this.companyEmployeeId = companyEmployeeId;
 	}
 
 	public String getFirstName() {
@@ -87,7 +87,8 @@ public class Employee extends TheBorg {
 		try (Transaction tx = dch.graphDb.beginTx()) {
 			Map<String, Object> params = new HashMap<>();
 			params.put("employeeId", employeeId);
-			String query = "match (a:Employee) where a.EmpID = {employeeId} return id(a) as neoId, a.EmpID as employeeId , a.Name as firstName";
+			String query = "match (a:Employee) where a.emp_id = {employeeId} return a.emp_id as employeeId , a.FirstName as firstName, a.LastName as LastName,"
+					+ "a.Reporting_emp_id as reportingManagerId, a.emp_int_id as companyEmployeeId";
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("query : " + query);
 			Result res = dch.graphDb.execute(query, params);
 			while (res.hasNext()) {
@@ -102,11 +103,13 @@ public class Employee extends TheBorg {
 				 * ).toString());
 				 */
 
-				e.setInternalId(resultMap.get("neoId").toString());
 				e.setEmployeeId(resultMap.get("employeeId").toString());
+				e.setCompanyEmployeeId(resultMap.get("companyEmployeeId").toString());
 				e.setFirstName(resultMap.get("firstName").toString());
+				e.setLastName(resultMap.get("LastName").toString());
+				e.setReportingManagerId(resultMap.get("reportingManagerId").toString());
 				org.apache.log4j.Logger.getLogger(Employee.class).debug(
-						"Employee  : " + e.getInternalId() + "-" + e.getEmployeeId() + "-" + e.getFirstName());
+						"Employee  : " + e.getEmployeeId() + "-" + e.getFirstName() + "-" + e.getLastName());
 				tx.success();
 			}
 		} catch (Exception e1) {
@@ -116,4 +119,6 @@ public class Employee extends TheBorg {
 		}
 		return e;
 	}
+
+	
 }
