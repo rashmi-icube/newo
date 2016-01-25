@@ -80,7 +80,7 @@ public class Initiative extends TheBorg {
 				org.apache.log4j.Logger.getLogger(Initiative.class).error("Unsuccessful in setting part of initiative");
 			}
 
-			if (setOwner(initiativeId, this.ownerOfList)) {
+			if (!this.ownerOfList.isEmpty() && setOwner(initiativeId, this.ownerOfList)) {
 				org.apache.log4j.Logger.getLogger(Initiative.class).debug("Success in setting owner for initiative");
 			} else {
 				org.apache.log4j.Logger.getLogger(Initiative.class).error("Unsuccessful in setting owner for initiative");
@@ -205,14 +205,12 @@ public class Initiative extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Initiative i = new Initiative();
 		i.setInitiativeId(initiativeId);
-		Map<String, Object> params = new HashMap<>();
-		params.put("initiativeId", initiativeId);
 		try (Transaction tx = dch.graphDb.beginTx()) {
-			String query = "match (o:Employee)-[:owner_of]->(i:Init)<-[r:part_of]-(a)"
-					+ " where i.Id = {initiativeId}  return i.Name as Name,i.StartDate as StartDate,"
+			String query = "match (o:Employee)-[:owner_of]->(i:Init)<-[r:part_of]-(a)" + " where i.Id = " + initiativeId
+					+ " return i.Name as Name,i.StartDate as StartDate,"
 					+ "i.EndDate as EndDate,collect(distinct(a.Id))as PartOfID,collect(distinct(a.Name))as PartOfName, labels(a) as Filters,"
 					+ "collect(distinct (o.EmpID)) as OwnersOf,i.Comment as Comments,i.Type as Type,i.Category as Category,i.Status as Status";
-			Result res = dch.graphDb.execute(query, params);
+			Result res = dch.graphDb.execute(query);
 			while (res.hasNext()) {
 				Map<String, Object> result = res.next();
 				i.setInitiativeName(result.get("Name").toString());

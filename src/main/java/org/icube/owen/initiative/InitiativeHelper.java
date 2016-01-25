@@ -63,12 +63,14 @@ public class InitiativeHelper extends TheBorg{
 	 */
 	public List<Employee> getOwnerOfList(Map<String, Object> resultMap) {
 		SeqWrapper sw = (SeqWrapper) resultMap.get("OwnersOf");
-		Iterator iter = sw.iterator();
 		List<Employee> employeeList = new ArrayList<>();
-		while (iter.hasNext()) {
-			String employeeId = (String) iter.next();
-			Employee e = new Employee();
-			employeeList.add(e.get(employeeId));
+		if (!sw.isEmpty()) {
+			Iterator iter = sw.iterator();
+			while (iter.hasNext()) {
+				String employeeId = (String) iter.next();
+				Employee e = new Employee();
+				employeeList.add(e.get(employeeId));
+			}
 		}
 		return employeeList;
 	}

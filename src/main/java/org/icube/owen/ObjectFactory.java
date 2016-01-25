@@ -136,6 +136,9 @@ public class ObjectFactory {
 		initiative.updateInitiative(updatedinitiative);
 
 		initiative.delete(2);
+		
+		initiative = initiative.get(3);
+		initiative.complete(3);
 
 		InitiativeHelper ih = (InitiativeHelper) ObjectFactory.getInstance("org.icube.owen.initiative.InitiativeHelper");
 		System.out.println(ih.getInitiativeCount());
