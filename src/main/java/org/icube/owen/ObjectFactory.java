@@ -145,6 +145,7 @@ public class ObjectFactory {
 		initiative.updateInitiative(updatedinitiative);
 
 		initiative.delete(2);
+		System.out.println(il.getInitiativeList("Deleted"));
 
 		initiative = initiative.get(3);
 		initiative.complete(3);
