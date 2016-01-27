@@ -32,10 +32,11 @@ public class Initiative extends TheBorg {
 	private List<Filter> filterList;
 	private List<Employee> ownerOfList;
 
+	// TODO initiativeScore - metric value of the initiative based on the type + category
+
 	/**
 	 * Sets the initiative properties based on the values given in the parameters
-	 
-	 	 */
+	 */
 	public void setInitiativeProperties(String initiativeName, String initiativeType, String initiativeCategory, Date initiativeStartDate,
 			Date initiativeEndDate, String initiativeComment, List<Filter> filterList, List<Employee> ownerOfList) {
 		org.apache.log4j.Logger.getLogger(Initiative.class).debug("Setting initiative properties");
@@ -296,9 +297,10 @@ public class Initiative extends TheBorg {
 			Result ownersOfRes = dch.graphDb.execute(ownersOfQuery);
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Ownersof list deleted from initiative " + updatedInitiative.initiativeId);
 			updatedInitiative.setOwner(initiativeId, updatedOwnerOfList);
-			String query = "match(a:Init {Id:" + initiativeId + "}) set a.Name = '" + updatedInitiative.getInitiativeName().toString() + "',a.Status = '"
-					+ checkInitiativeStatus(updatedInitiative.getInitiativeStartDate()) + "'," + "a.Type = '" + updatedInitiative.getInitiativeType().toString() + "',a.Category = '"
-					+ updatedInitiative.getInitiativeCategory().toString() + "'," + "a.Comment = '" + updatedInitiative.getInitiativeComment().toString() + "',a.EndDate = '"
+			String query = "match(a:Init {Id:" + initiativeId + "}) set a.Name = '" + updatedInitiative.getInitiativeName().toString()
+					+ "',a.Status = '" + checkInitiativeStatus(updatedInitiative.getInitiativeStartDate()) + "'," + "a.Type = '"
+					+ updatedInitiative.getInitiativeType().toString() + "',a.Category = '" + updatedInitiative.getInitiativeCategory().toString()
+					+ "'," + "a.Comment = '" + updatedInitiative.getInitiativeComment().toString() + "',a.EndDate = '"
 					+ updatedInitiative.getInitiativeEndDate().toString() + "'," + "a.StartDate = '"
 					+ updatedInitiative.getInitiativeStartDate().toString() + "' return a.Name as Name, " + "a.Type as Type,a.Category as Category, "
 					+ "a.Status as Status,a.Comment as Comment,a.EndDate as endDate,a.StartDate as StartDate";
@@ -332,12 +334,13 @@ public class Initiative extends TheBorg {
 			tx.success();
 			return true;
 		} catch (Exception e) {
-			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception in changing the status to Completed for initiative " + initiativeId, e);
+			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception in changing the status to Completed for initiative " + initiativeId,
+					e);
 		}
 
 		return false;
 	}
-	
+
 	public String getInitiativeName() {
 		return initiativeName;
 	}

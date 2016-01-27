@@ -16,13 +16,17 @@ import org.icube.owen.initiative.Initiative;
 import org.icube.owen.initiative.InitiativeHelper;
 import org.icube.owen.initiative.InitiativeList;
 import org.icube.owen.metrics.MetricsList;
+import org.rosuda.REngine.REXPMismatchException;
+import org.rosuda.REngine.REngineException;
+import org.rosuda.REngine.Rserve.RConnection;
 
 public class ObjectFactory {
 
 	/**
 	 * Get the instance of class given in the parameter
 	 * 
-	 * @param className className for which the instance is to be created
+	 * @param className
+	 * className for which the instance is to be created
 	 * @return instance object for the className given
 	 */
 	static public TheBorg getInstance(String className) {
@@ -56,6 +60,8 @@ public class ObjectFactory {
 
 	public static void main(String[] args) {
 
+		testRScript();
+
 		Initiative initiative = (Initiative) ObjectFactory.getInstance("org.icube.owen.initiative.Initiative");
 
 		System.out.println("Initiative type map : " + initiative.getInitiativeTypeMap("team"));
@@ -79,8 +85,8 @@ public class ObjectFactory {
 				"You are owners of the initiative", filterMasterList, ownerOfList);
 		initiative.create();
 
-		initiative.setInitiativeProperties("2Individual", "Social Cohesion", "Individual", Date.from(Instant.now()), Date.from(Instant
-				.now()), "You are owners of the initiative", filterMasterList, ownerOfList);
+		initiative.setInitiativeProperties("2Individual", "Social Cohesion", "Individual", Date.from(Instant.now()), Date.from(Instant.now()),
+				"You are owners of the initiative", filterMasterList, ownerOfList);
 		initiative.create();
 
 		initiative.setInitiativeProperties("3Individual", "Retention", "Individual", Date.from(Instant.now()), Date.from(Instant.now()),
@@ -136,12 +142,33 @@ public class ObjectFactory {
 		initiative.updateInitiative(updatedinitiative);
 
 		initiative.delete(2);
-		
+
 		initiative = initiative.get(3);
 		initiative.complete(3);
 
 		InitiativeHelper ih = (InitiativeHelper) ObjectFactory.getInstance("org.icube.owen.initiative.InitiativeHelper");
 		System.out.println(ih.getInitiativeCount());
+
+	}
+
+	public static void testRScript() {
+
+		try {
+			RConnection c = new RConnection();// make a new local connection on default port (6311)
+			double d[] = c.eval("rnorm(10)").asDoubles();
+			org.rosuda.REngine.REXP x0 = c.eval("R.version.string");
+			System.out.println(x0.asString());
+
+			x0 = c.eval("source('/Users/apple/Documents/workspace/owen/resources/rscript.r')");
+			System.out.println(x0.asInteger());
+
+		} catch (REngineException e) {
+			e.printStackTrace();
+			// manipulation
+		} catch (REXPMismatchException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 
 	}
 }

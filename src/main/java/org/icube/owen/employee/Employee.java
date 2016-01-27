@@ -11,7 +11,7 @@ import org.neo4j.graphdb.Transaction;
 
 public class Employee extends TheBorg {
 
-	private String employeeId; // actual neoId //TODO if the node is deleted from neo4j the neoId too will be reused
+	private String employeeId; 
 	private String companyEmployeeId;
 	private String firstName;
 	private String lastName;
@@ -93,15 +93,6 @@ public class Employee extends TheBorg {
 			Result res = dch.graphDb.execute(query, params);
 			while (res.hasNext()) {
 				Map<String, Object> resultMap = res.next();
-				// TODO replace the employee setters once db change is made
-				/*
-				 * e.setInternalId(resultMap.get("neoId").toString());
-				 * e.setEmployeeId(empId);
-				 * e.setFirstName(resultMap.get("firstName").toString());
-				 * e.setLastName("");
-				 * e.setReportingManagerId(resultMap.get("reportingManagerId"
-				 * ).toString());
-				 */
 
 				e.setEmployeeId(resultMap.get("employeeId").toString());
 				e.setCompanyEmployeeId(resultMap.get("companyEmployeeId").toString());
