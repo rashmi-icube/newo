@@ -16,10 +16,6 @@ import org.icube.owen.initiative.Initiative;
 import org.icube.owen.initiative.InitiativeHelper;
 import org.icube.owen.initiative.InitiativeList;
 import org.icube.owen.metrics.MetricsList;
-import org.rosuda.REngine.REXP;
-import org.rosuda.REngine.REXPMismatchException;
-import org.rosuda.REngine.REngineException;
-import org.rosuda.REngine.Rserve.RConnection;
 
 public class ObjectFactory {
 
@@ -82,43 +78,43 @@ public class ObjectFactory {
 		ownerOfList.add(e.get("12"));
 		ownerOfList.add(e.get("22"));
 
-		initiative.setInitiativeProperties("MyInitiative", "Performance", "Individual", Date.from(Instant.now()), Date.from(Instant.now()),
+		initiative.setInitiativeProperties("1Individual", "1", "0", Date.from(Instant.now()), Date.from(Instant.now()),
 				"You are owners of the initiative", filterMasterList, ownerOfList);
 		initiative.create();
 
-		initiative.setInitiativeProperties("2Individual", "Social Cohesion", "Individual", Date.from(Instant.now()), Date.from(Instant.now()),
+		initiative.setInitiativeProperties("2Individual", "2", "0", Date.from(Instant.now()), Date.from(Instant.now()),
 				"You are owners of the initiative", filterMasterList, ownerOfList);
 		initiative.create();
 
-		initiative.setInitiativeProperties("3Individual", "Retention", "Individual", Date.from(Instant.now()), Date.from(Instant.now()),
+		initiative.setInitiativeProperties("3Individual", "3", "0", Date.from(Instant.now()), Date.from(Instant.now()),
 				"You are owners of the initiative", filterMasterList, ownerOfList);
 		initiative.create();
 
-		initiative.setInitiativeProperties("4Individual", "Innovation", "Individual", Date.from(Instant.now()), Date.from(Instant.now()),
+		initiative.setInitiativeProperties("4Individual", "4", "0", Date.from(Instant.now()), Date.from(Instant.now()),
 				"You are owners of the initiative", filterMasterList, ownerOfList);
 		initiative.create();
 
-		initiative.setInitiativeProperties("5Individual", "Sentiment", "Individual", Date.from(Instant.now()), Date.from(Instant.now()),
+		initiative.setInitiativeProperties("5Individual", "5", "0", Date.from(Instant.now()), Date.from(Instant.now()),
 				"You are owners of the initiative", filterMasterList, ownerOfList);
 		initiative.create();
 
-		initiative.setInitiativeProperties("1Team", "Performance", "Team", Date.from(Instant.now()), Date.from(Instant.now()),
+		initiative.setInitiativeProperties("1Team", "6", "1", Date.from(Instant.now()), Date.from(Instant.now()),
 				"You are owners of the initiative", filterMasterList, ownerOfList);
 		initiative.create();
 
-		initiative.setInitiativeProperties("2Team", "Social Cohesion", "Team", Date.from(Instant.now()), Date.from(Instant.now()),
+		initiative.setInitiativeProperties("2Team", "7", "1", Date.from(Instant.now()), Date.from(Instant.now()),
 				"You are owners of the initiative", filterMasterList, ownerOfList);
 		initiative.create();
 
-		initiative.setInitiativeProperties("3Team", "Retention", "Team", Date.from(Instant.now()), Date.from(Instant.now()),
+		initiative.setInitiativeProperties("3Team", "8", "1", Date.from(Instant.now()), Date.from(Instant.now()),
 				"You are owners of the initiative", filterMasterList, ownerOfList);
 		initiative.create();
 
-		initiative.setInitiativeProperties("4Team", "Innovation", "Team", Date.from(Instant.now()), Date.from(Instant.now()),
+		initiative.setInitiativeProperties("4Team", "9", "1", Date.from(Instant.now()), Date.from(Instant.now()),
 				"You are owners of the initiative", filterMasterList, ownerOfList);
 		initiative.create();
 
-		initiative.setInitiativeProperties("5Team", "Sentiment", "Team", Date.from(Instant.now()), Date.from(Instant.now()),
+		initiative.setInitiativeProperties("5Team", "10", "1", Date.from(Instant.now()), Date.from(Instant.now()),
 				"You are owners of the initiative", filterMasterList, ownerOfList);
 		initiative.create();
 
