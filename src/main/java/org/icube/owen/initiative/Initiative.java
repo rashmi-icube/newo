@@ -77,7 +77,7 @@ public class Initiative extends TheBorg {
 
 			int initiativeId = Integer.parseInt(initiativeIdStr);
 
-			if (this.initiativeCategory.toString().equalsIgnoreCase("0")) {
+			if (this.initiativeCategory.equalsIgnoreCase("0")) {
 				if (setEmployeesPartOf(initiativeId, this.partOfEmployeeList)) {
 					org.apache.log4j.Logger.getLogger(Initiative.class).debug("Success in setting part_of connections for initiative");
 				} else {
