@@ -77,6 +77,8 @@ public class Initiative extends TheBorg {
 
 			int initiativeId = Integer.parseInt(initiativeIdStr);
 
+			// Check if the initiative is of the category Individual
+
 			if (this.initiativeCategory.equalsIgnoreCase("0")) {
 				if (setEmployeesPartOf(initiativeId, this.partOfEmployeeList)) {
 					org.apache.log4j.Logger.getLogger(Initiative.class).debug("Success in setting part_of connections for initiative");
@@ -110,8 +112,7 @@ public class Initiative extends TheBorg {
 	/**
 	 * Creates the connections with the objects that are part of the initiative
 	 * 
-	 * @param params
-	 * - Map of the objects that are part of the initiative taken as input from the user
+	 * @param params - Map of the objects that are part of the initiative taken as input from the user
 	 */
 	@SuppressWarnings("unchecked")
 	private boolean setPartOf(int initiativeId, List<Filter> filterList) {
@@ -124,8 +125,8 @@ public class Initiative extends TheBorg {
 				Filter f = filterList.get(i);
 				params.put(f.getFilterName(), getFilterValueList(f.getFilterValues()));
 			}
-			
-			//TODO make this dynamic based on filter list
+
+			// TODO make this dynamic based on filter list
 			String funcQuery = "", posQuery = "", zoneQuery = "";
 			ArrayList<String> funcParam = (ArrayList<String>) params.get("Function");
 			ArrayList<String> zoneParam = (ArrayList<String>) params.get("Zone");
@@ -163,7 +164,12 @@ public class Initiative extends TheBorg {
 		}
 
 	}
-	
+
+	/**
+	 * Creates the part of connections for initiatives of category Individual
+	 * @param initiativeId - ID of the initiative for which the part of connections are to be created
+	 * @param employeeList - list of employee ID's which are part of the initiative
+	 */
 	private boolean setEmployeesPartOf(int initiativeId, List<Employee> employeeList) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		try (Transaction tx = dch.graphDb.beginTx()) {
@@ -186,7 +192,6 @@ public class Initiative extends TheBorg {
 			return false;
 		}
 	}
-	
 
 	/**
 	 * Get list of string filterValues from a map of filterValues

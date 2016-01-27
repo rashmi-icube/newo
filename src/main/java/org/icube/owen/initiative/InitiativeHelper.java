@@ -40,7 +40,6 @@ public class InitiativeHelper extends TheBorg{
 	}
 
 	/**
-	 * @param resultMap - A map containing the Initiative attributes and connections
 	 * @return - Returns a list of strings from the resultMap
 	 */
 	public Map<String, String> getFilterValueMapFromResult(SeqWrapper swId, SeqWrapper swValue) {

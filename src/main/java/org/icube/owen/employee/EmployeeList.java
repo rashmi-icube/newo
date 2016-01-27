@@ -17,8 +17,7 @@ public class EmployeeList extends TheBorg {
 	/**
 	 * Returns the employee smart list based on the filter objects provided
 	 * 
-	 * @param params
-	 * list of filter objects
+	 * @param filterList - list of filter objects
 	 * @return list of employee objects
 	 */
 	public List<Employee> getEmployeeSmartList(List<Filter> filterList) {
