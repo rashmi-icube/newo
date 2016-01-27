@@ -34,7 +34,7 @@ public class EmployeeList extends TheBorg {
 				params.put(f.getFilterName(), getFilterKeyList(f.getFilterValues()));
 			}
 			
-			//TODO make this dynamic for filter names 
+			//TODO make this dynamic based on filter list 
 			String funcQuery = "", posQuery = "", zoneQuery = "";
 			ArrayList<String> funcParam = (ArrayList<String>) params.get("Function");
 			ArrayList<String> zoneParam = (ArrayList<String>) params.get("Zone");

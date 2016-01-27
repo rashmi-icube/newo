@@ -115,6 +115,8 @@ public class Initiative extends TheBorg {
 				Filter f = filterList.get(i);
 				params.put(f.getFilterName(), getFilterValueList(f.getFilterValues()));
 			}
+			
+			//TODO make this dynamic based on filter list
 			String funcQuery = "", posQuery = "", zoneQuery = "";
 			ArrayList<String> funcParam = (ArrayList<String>) params.get("Function");
 			ArrayList<String> zoneParam = (ArrayList<String>) params.get("Zone");
