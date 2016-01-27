@@ -16,6 +16,7 @@ import org.icube.owen.initiative.Initiative;
 import org.icube.owen.initiative.InitiativeHelper;
 import org.icube.owen.initiative.InitiativeList;
 import org.icube.owen.metrics.MetricsList;
+import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.REngineException;
 import org.rosuda.REngine.Rserve.RConnection;
@@ -60,7 +61,7 @@ public class ObjectFactory {
 
 	public static void main(String[] args) {
 
-		testRScript();
+		//testRScript();
 
 		Initiative initiative = (Initiative) ObjectFactory.getInstance("org.icube.owen.initiative.Initiative");
 
@@ -151,24 +152,25 @@ public class ObjectFactory {
 
 	}
 
-	public static void testRScript() {
-
+	/*public static void testRScript() {
 		try {
-			RConnection c = new RConnection();// make a new local connection on default port (6311)
-			double d[] = c.eval("rnorm(10)").asDoubles();
-			org.rosuda.REngine.REXP x0 = c.eval("R.version.string");
-			System.out.println(x0.asString());
+			RConnection c = new RConnection();
+			// source the Palindrom function
+			c.eval("source(\"/Users/apple/Documents/workspace/owen/resources/rscript.r\")");
 
-			x0 = c.eval("source('/Users/apple/Documents/workspace/owen/resources/rscript.r')");
-			System.out.println(x0.asInteger());
+			// call the function. Return true
+			REXP is_aba_palindrome = c.eval("palindrome('aba')");
+			System.out.println(is_aba_palindrome.asInteger()); // prints 1 => true
+
+			// call the function. return false
+			REXP is_abc_palindrome = c.eval("palindrome('abc')");
+			System.out.println(is_abc_palindrome.asInteger()); // prints 0 => false
 
 		} catch (REngineException e) {
-			e.printStackTrace();
-			// manipulation
+			org.apache.log4j.Logger.getLogger(ObjectFactory.class).error("Exception while trying to run RScript", e);
 		} catch (REXPMismatchException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			org.apache.log4j.Logger.getLogger(ObjectFactory.class).error("Exception while trying to run RScript", e1);
 		}
 
-	}
+	}*/
 }
