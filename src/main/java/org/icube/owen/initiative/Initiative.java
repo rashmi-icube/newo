@@ -31,6 +31,7 @@ public class Initiative extends TheBorg {
 	private String initiativeComment = "";
 	private List<Filter> filterList;
 	private List<Employee> ownerOfList;
+	private List<Employee> partOfEmployeeList;
 
 	// TODO initiativeScore - metric value of the initiative based on the type + category
 
@@ -38,7 +39,7 @@ public class Initiative extends TheBorg {
 	 * Sets the initiative properties based on the values given in the parameters
 	 */
 	public void setInitiativeProperties(String initiativeName, String initiativeType, String initiativeCategory, Date initiativeStartDate,
-			Date initiativeEndDate, String initiativeComment, List<Filter> filterList, List<Employee> ownerOfList) {
+			Date initiativeEndDate, String initiativeComment, List<Filter> filterList, List<Employee> ownerOfList, List<Employee> partOfEmployeeList) {
 		org.apache.log4j.Logger.getLogger(Initiative.class).debug("Setting initiative properties");
 		this.initiativeName = initiativeName;
 		this.initiativeType = initiativeType;
@@ -48,6 +49,7 @@ public class Initiative extends TheBorg {
 		this.initiativeComment = initiativeComment;
 		this.filterList = filterList;
 		this.ownerOfList = ownerOfList;
+		this.partOfEmployeeList = partOfEmployeeList;
 	}
 
 	/**
@@ -75,12 +77,19 @@ public class Initiative extends TheBorg {
 
 			int initiativeId = Integer.parseInt(initiativeIdStr);
 
-			if (setPartOf(initiativeId, this.filterList)) {
-				org.apache.log4j.Logger.getLogger(Initiative.class).debug("Success in setting part of initiative");
+			if (this.initiativeCategory.toString().equalsIgnoreCase("0")) {
+				if (setEmployeesPartOf(initiativeId, this.partOfEmployeeList)) {
+					org.apache.log4j.Logger.getLogger(Initiative.class).debug("Success in setting part_of connections for initiative");
+				} else {
+					org.apache.log4j.Logger.getLogger(Initiative.class).error("Unsuccessful in setting part_of connections for initiative");
+				}
 			} else {
-				org.apache.log4j.Logger.getLogger(Initiative.class).error("Unsuccessful in setting part of initiative");
+				if (setPartOf(initiativeId, this.filterList)) {
+					org.apache.log4j.Logger.getLogger(Initiative.class).debug("Success in setting part of initiative");
+				} else {
+					org.apache.log4j.Logger.getLogger(Initiative.class).error("Unsuccessful in setting part of initiative");
+				}
 			}
-
 			if (!this.ownerOfList.isEmpty() && setOwner(initiativeId, this.ownerOfList)) {
 				org.apache.log4j.Logger.getLogger(Initiative.class).debug("Success in setting owner for initiative");
 			} else {
@@ -154,6 +163,30 @@ public class Initiative extends TheBorg {
 		}
 
 	}
+	
+	private boolean setEmployeesPartOf(int initiativeId, List<Employee> employeeList) {
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		try (Transaction tx = dch.graphDb.beginTx()) {
+			ArrayList<String> empIdList = new ArrayList<>();
+			for (Employee e : employeeList) {
+				empIdList.add(e.getEmployeeId());
+			}
+
+			Map<String, Object> params = new HashMap<>();
+			params.put("initiativeId", initiativeId);
+			params.put("empIdList", empIdList);
+			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Creating part_of connections for initiative : " + params.get("initiativeId"));
+			String query = "Match (i:Init),(e:Employee) where i.Id = {initiativeId} and e.emp_id in {empIdList} Create e-[:part_of]->i";
+			dch.graphDb.execute(query, params);
+			tx.success();
+			return true;
+		} catch (Exception e) {
+			org.apache.log4j.Logger.getLogger(Initiative.class).error(
+					"Exception while creating part_of connections for initiative : " + initiativeId, e);
+			return false;
+		}
+	}
+	
 
 	/**
 	 * Get list of string filterValues from a map of filterValues
