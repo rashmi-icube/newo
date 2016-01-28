@@ -53,12 +53,7 @@ public class Initiative extends TheBorg {
 		org.apache.log4j.Logger.getLogger(Initiative.class).debug("Setting initiative properties");
 		this.initiativeName = initiativeName;
 		this.initiativeType = initiativeType;
-		if (initiativeCategory.equalsIgnoreCase("individual")) {
-			this.initiativeCategory = "0";
-		} else if (initiativeCategory.equalsIgnoreCase("team")) {
-			this.initiativeCategory = "1";
-		}
-
+		this.initiativeCategory = initiativeCategory;
 		this.initiativeStartDate = initiativeStartDate;
 		this.initiativeEndDate = initiativeEndDate;
 		this.initiativeComment = initiativeComment;
@@ -94,13 +89,13 @@ public class Initiative extends TheBorg {
 
 			// Check if the initiative is of the category Individual
 
-			if (this.initiativeCategory.equalsIgnoreCase("0")) {
+			if (this.initiativeCategory.equalsIgnoreCase("Individual")) {
 				if (setEmployeesPartOf(initiativeId, this.partOfEmployeeList)) {
 					org.apache.log4j.Logger.getLogger(Initiative.class).debug("Success in setting part_of connections for initiative");
 				} else {
 					org.apache.log4j.Logger.getLogger(Initiative.class).error("Unsuccessful in setting part_of connections for initiative");
 				}
-			} else {
+			} else if(this.initiativeCategory.equalsIgnoreCase("Team")) {
 				if (setPartOf(initiativeId, this.filterList)) {
 					org.apache.log4j.Logger.getLogger(Initiative.class).debug("Success in setting part of initiative");
 				} else {
@@ -187,7 +182,7 @@ public class Initiative extends TheBorg {
 	private boolean setEmployeesPartOf(int initiativeId, List<Employee> employeeList) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		try (Transaction tx = dch.graphDb.beginTx()) {
-			ArrayList<String> empIdList = new ArrayList<>();
+			ArrayList<Integer> empIdList = new ArrayList<>();
 			for (Employee e : employeeList) {
 				empIdList.add(e.getEmployeeId());
 			}
@@ -212,8 +207,8 @@ public class Initiative extends TheBorg {
 	 * Get list of string filterValues from a map of filterValues
 	 * 
 	 */
-	private List<String> getFilterValueList(Map<String, String> filterValues) {
-		List<String> filterValueStringList = new ArrayList<>();
+	private List<Integer> getFilterValueList(Map<Integer, String> filterValues) {
+		List<Integer> filterValueStringList = new ArrayList<>();
 		filterValueStringList.addAll(filterValues.keySet());
 		return filterValueStringList;
 	}
@@ -227,7 +222,7 @@ public class Initiative extends TheBorg {
 	private boolean setOwner(int initiativeId, List<Employee> employeeList) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		try (Transaction tx = dch.graphDb.beginTx()) {
-			ArrayList<String> empIdList = new ArrayList<>();
+			ArrayList<Integer> empIdList = new ArrayList<>();
 			for (Employee e : employeeList) {
 				empIdList.add(e.getEmployeeId());
 			}
@@ -260,10 +255,11 @@ public class Initiative extends TheBorg {
 		Initiative i = new Initiative();
 		i.setInitiativeId(initiativeId);
 		try (Transaction tx = dch.graphDb.beginTx()) {
-			String query = "match (o:Employee)-[:owner_of]->(i:Init)<-[r:part_of]-(a)" + " where i.Id = " + initiativeId
+			String query = "match (o:Employee)-[:owner_of]->(i:Init{Id:" + initiativeId + "})<-[r:part_of]-(a)"
 					+ " return i.Name as Name,i.StartDate as StartDate,"
 					+ "i.EndDate as EndDate,collect(distinct(a.Id))as PartOfID,collect(distinct(a.Name))as PartOfName, labels(a) as Filters,"
 					+ "collect(distinct (o.EmpID)) as OwnersOf,i.Comment as Comments,i.Type as Type,i.Category as Category,i.Status as Status";
+			org.apache.log4j.Logger.getLogger(Initiative.class).error("Query : " + query);
 			Result res = dch.graphDb.execute(query);
 			while (res.hasNext()) {
 				Map<String, Object> result = res.next();
@@ -344,17 +340,17 @@ public class Initiative extends TheBorg {
 	public boolean updateInitiative(Initiative updatedInitiative) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		boolean status = false;
+		int updatedInitiativeId = updatedInitiative.getInitiativeId();
 		try (Transaction tx = dch.graphDb.beginTx()) {
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Started update of The initiative with ID " + updatedInitiative.initiativeId);
-			int initiativeId = updatedInitiative.getInitiativeId();
 			List<Employee> updatedOwnerOfList = updatedInitiative.getOwnerOf();
-			String ownersOfQuery = "match(i:Init {Id:" + initiativeId + "})<-[r:owner_of]-(e:Employee) delete r";
+			String ownersOfQuery = "match(i:Init {Id:" + updatedInitiativeId + "})<-[r:owner_of]-(e:Employee) delete r";
 			Result ownersOfRes = dch.graphDb.execute(ownersOfQuery);
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Ownersof list deleted from initiative " + updatedInitiative.initiativeId);
-			updatedInitiative.setOwner(initiativeId, updatedOwnerOfList);
-			String query = "match(a:Init {Id:" + initiativeId + "}) set a.Name = '" + updatedInitiative.getInitiativeName().toString()
+			updatedInitiative.setOwner(updatedInitiativeId, updatedOwnerOfList);
+			String query = "match(a:Init {Id:" + updatedInitiativeId + "}) set a.Name = '" + updatedInitiative.getInitiativeName().toString()
 					+ "',a.Status = '" + checkInitiativeStatus(updatedInitiative.getInitiativeStartDate()) + "'," + "a.Type = '"
-					+ updatedInitiative.getInitiativeType().toString() + "',a.Category = '" + updatedInitiative.getInitiativeCategory().toString()
+					+ updatedInitiative.getInitiativeType().toString() + "',a.Category = '" + updatedInitiative.getInitiativeCategory()
 					+ "'," + "a.Comment = '" + updatedInitiative.getInitiativeComment().toString() + "',a.EndDate = '"
 					+ updatedInitiative.getInitiativeEndDate().toString() + "'," + "a.StartDate = '"
 					+ updatedInitiative.getInitiativeStartDate().toString() + "' return a.Name as Name, " + "a.Type as Type,a.Category as Category, "
@@ -362,9 +358,9 @@ public class Initiative extends TheBorg {
 			Result res = dch.graphDb.execute(query);
 			status = true;
 			tx.success();
-			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Updated initiative with ID " + initiativeId);
+			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Updated initiative with ID " + updatedInitiativeId);
 		} catch (Exception e) {
-			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception in updating initiative " + initiativeId, e);
+			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception in updating initiative " + updatedInitiativeId, e);
 		}
 		return status;
 	}

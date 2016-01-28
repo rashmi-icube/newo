@@ -11,7 +11,7 @@ import org.neo4j.graphdb.Transaction;
 
 public class Employee extends TheBorg {
 
-	private String employeeId; 
+	private int employeeId; 
 	private String companyEmployeeId;
 	private String firstName;
 	private String lastName;
@@ -19,11 +19,11 @@ public class Employee extends TheBorg {
 	private long score;
 	private boolean active;
 
-	public String getEmployeeId() {
+	public int getEmployeeId() {
 		return employeeId;
 	}
 
-	public void setEmployeeId(String employeeId) {
+	public void setEmployeeId(int employeeId) {
 		this.employeeId = employeeId;
 	}
 
@@ -81,20 +81,18 @@ public class Employee extends TheBorg {
 	 * @param employeeId - ID of the employee that needs to be retrieved
 	 * @return employee object
 	 */
-	public Employee get(String employeeId) {
+	public Employee get(int employeeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Employee e = new Employee();
 		try (Transaction tx = dch.graphDb.beginTx()) {
-			Map<String, Object> params = new HashMap<>();
-			params.put("employeeId", employeeId);
-			String query = "match (a:Employee) where a.emp_id = {employeeId} return a.emp_id as employeeId , a.FirstName as firstName, a.LastName as LastName,"
+			String query = "match (a:Employee{emp_id:"+employeeId+"}) return a.emp_id as employeeId , a.FirstName as firstName, a.LastName as LastName,"
 					+ "a.Reporting_emp_id as reportingManagerId, a.emp_int_id as companyEmployeeId";
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("query : " + query);
-			Result res = dch.graphDb.execute(query, params);
+			Result res = dch.graphDb.execute(query);
 			while (res.hasNext()) {
 				Map<String, Object> resultMap = res.next();
 
-				e.setEmployeeId(resultMap.get("employeeId").toString());
+				e.setEmployeeId(Integer.valueOf(resultMap.get("employeeId").toString()));
 				e.setCompanyEmployeeId(resultMap.get("companyEmployeeId").toString());
 				e.setFirstName(resultMap.get("firstName").toString());
 				e.setLastName(resultMap.get("LastName").toString());

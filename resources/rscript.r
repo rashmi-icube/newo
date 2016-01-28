@@ -11,7 +11,7 @@ Performance=function(Function,Position,Zone){
   library(igraph)
   library(moments)
   
-  graph = startGraph("http://localhost:7474/db/data/", username="neo4j", password="hitesh16")
+  graph = startGraph("http://localhost:7474/db/data/")
     
   querynode = paste("match (z:Zone)<-[:from_zone]-(a:Employee)-[:has_functionality]->(f:Function),
               a-[:is_positioned]->(p:Position) 

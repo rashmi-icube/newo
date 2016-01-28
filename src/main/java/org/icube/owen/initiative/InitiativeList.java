@@ -14,7 +14,7 @@ import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 
 public class InitiativeList extends TheBorg {
-	
+
 	/**
 	 * Get the list of initiatives based on the status provided in the filter 
 	 * @param initiativeStatus : Can be any one of the following : Active, Pending, Deleted, Completed
@@ -52,16 +52,14 @@ public class InitiativeList extends TheBorg {
 			for (int initiativeId : initiativeIdMap.keySet()) {
 				initiativeList.add(initiativeIdMap.get(initiativeId));
 			}
-			org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("List of initiatives : " + initiativeList.toString());
+			org.apache.log4j.Logger.getLogger(InitiativeList.class).debug(
+					"List of initiatives of type " + initiativeStatus + ": " + initiativeList.toString());
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(InitiativeList.class).error("Exception while getting the initiative list", e);
 		}
 		return initiativeList;
 
 	}
-	
-	
-	
 
 	/**
 	 * Retrieves the list of Initiatives along with all its attributes and connections

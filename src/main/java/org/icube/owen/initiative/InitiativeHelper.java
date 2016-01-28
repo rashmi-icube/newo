@@ -45,14 +45,14 @@ public class InitiativeHelper extends TheBorg{
 	 * @param swValue - Value of the filter
 	 * @return map with ID/Value pair of the filter values
 	 */
-	public Map<String, String> getFilterValueMapFromResult(SeqWrapper swId, SeqWrapper swValue) {
+	public Map<Integer, String> getFilterValueMapFromResult(SeqWrapper swId, SeqWrapper swValue) {
 		org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("getFilterValueMapFromResult");
-		Map<String, String> result = new HashMap<>();
+		Map<Integer, String> result = new HashMap<>();
 		Iterator iterId = swId.iterator();
 		Iterator iterValue = swValue.iterator();
 
 		while (iterId.hasNext() && iterValue.hasNext()) {
-			result.put((String) iterId.next(), (String) iterValue.next());
+			result.put(((Long) iterId.next()).intValue(), (String) iterValue.next());
 		}
 		return result;
 	}
@@ -69,7 +69,7 @@ public class InitiativeHelper extends TheBorg{
 		if (!sw.isEmpty()) {
 			Iterator iter = sw.iterator();
 			while (iter.hasNext()) {
-				String employeeId = (String) iter.next();
+				int employeeId = ((Long) iter.next()).intValue();
 				Employee e = new Employee();
 				employeeList.add(e.get(employeeId));
 			}

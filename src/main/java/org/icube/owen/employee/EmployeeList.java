@@ -32,8 +32,8 @@ public class EmployeeList extends TheBorg {
 				Filter f = filterList.get(i);
 				params.put(f.getFilterName(), getFilterKeyList(f.getFilterValues()));
 			}
-			
-			//TODO make this dynamic based on filter list 
+
+			// TODO make this dynamic based on filter list
 			String funcQuery = "", posQuery = "", zoneQuery = "";
 			ArrayList<String> funcParam = (ArrayList<String>) params.get("Function");
 			ArrayList<String> zoneParam = (ArrayList<String>) params.get("Zone");
@@ -125,7 +125,7 @@ public class EmployeeList extends TheBorg {
 	 */
 	protected Employee setEmployeeDetails(Map<String, Object> resultMap, boolean setScore) {
 		Employee e = new Employee();
-		e.setEmployeeId(resultMap.get("employeeId").toString());
+		e.setEmployeeId(Integer.valueOf(resultMap.get("employeeId").toString()));
 		e.setFirstName(resultMap.get("firstName").toString());
 		e.setLastName(resultMap.get("lastName").toString());
 		e.setReportingManagerId(resultMap.get("reportingManagerId").toString());
@@ -133,10 +133,9 @@ public class EmployeeList extends TheBorg {
 		if (setScore) {
 			e.setScore((Long) resultMap.get("Score"));
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug(
-					"Employee  : " + "-" + e.getEmployeeId() + "-" + e.getFirstName() + "-" + e.getScore());
+					"Employee  : " + e.getEmployeeId() + "-" + e.getFirstName() + "-" + e.getScore());
 		} else {
-			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug(
-					"Employee  : " + "-" + e.getEmployeeId() + "-" + e.getFirstName());
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("Employee  : " + e.getEmployeeId() + "-" + e.getFirstName());
 		}
 		return e;
 	}
@@ -147,8 +146,8 @@ public class EmployeeList extends TheBorg {
 	 * @param filterMap
 	 * @return string list of filter keys
 	 */
-	private List<String> getFilterKeyList(Map<String, String> filterMap) {
-		List<String> filterKeysStringList = new ArrayList<>();
+	private List<Integer> getFilterKeyList(Map<Integer, String> filterMap) {
+		List<Integer> filterKeysStringList = new ArrayList<>();
 		filterKeysStringList.addAll(filterMap.keySet());
 		return filterKeysStringList;
 	}
