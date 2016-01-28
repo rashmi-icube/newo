@@ -289,7 +289,8 @@ public class Initiative extends TheBorg {
 	/**
 	 * Returns the master list of initiative types based on category
 	 * 
-	 * @return initiativeTypeMap
+	 * @param category - team or individual
+	 * @return initiativeTypeMap - Map of initiative types with ID/value 
 	 */
 	public Map<Integer, String> getInitiativeTypeMap(String category) {
 		// TODO retrieve from sql db
@@ -314,6 +315,7 @@ public class Initiative extends TheBorg {
 	/**
 	 * Changes the status of the Initiative with the given initiativeId to Deleted
 	 * 
+	 * @param initiativeId - ID of the initiative to be deleted
 	 * @return true/false depending on whether the delete is done or not
 	 */
 	public boolean delete(int initiativeId) {
@@ -382,6 +384,9 @@ public class Initiative extends TheBorg {
 
 	/**
 	 * Sets the status of the initiative to completed based on the initiativeId provided in the parameter
+	 * 
+	 * @param initiativeId - ID of the initiative to be set as completed
+	 * @return true/false based on if the action was successful 
 	 */
 	public boolean complete(int initiativeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();

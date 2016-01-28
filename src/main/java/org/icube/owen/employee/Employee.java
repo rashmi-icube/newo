@@ -78,7 +78,7 @@ public class Employee extends TheBorg {
 	/**
 	 * Returns an employee object based on the employee ID given
 	 * 
-	 * @param employeeId
+	 * @param employeeId - ID of the employee that needs to be retrieved
 	 * @return employee object
 	 */
 	public Employee get(String employeeId) {

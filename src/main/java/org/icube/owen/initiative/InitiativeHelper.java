@@ -40,7 +40,10 @@ public class InitiativeHelper extends TheBorg{
 	}
 
 	/**
-	 * @return - Returns a list of strings from the resultMap
+	 * Returns a list of strings from the resultMap
+	 * @param swId - ID of the filter 
+	 * @param swValue - Value of the filter
+	 * @return map with ID/Value pair of the filter values
 	 */
 	public Map<String, String> getFilterValueMapFromResult(SeqWrapper swId, SeqWrapper swValue) {
 		org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("getFilterValueMapFromResult");

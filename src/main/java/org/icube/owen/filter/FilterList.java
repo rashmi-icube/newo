@@ -16,7 +16,7 @@ public class FilterList extends TheBorg {
 	/**
 	 * Returns a filter object of the given filterName
 	 * 
-	 * @param filterName
+	 * @param filterName - Name of the filter for which all values are to be returned
 	 * @return filter object
 	 */
 	public Filter getFilterValues(String filterName) {
