@@ -85,43 +85,43 @@ public class ObjectFactory {
 		ownerOfList.add(e.get("22"));
 
 		initiative.setInitiativeProperties("1Individual", "1", "0", Date.from(Instant.now()), Date.from(Instant.now()),
-				"You are owners of the initiative", filterMasterList, ownerOfList, partOfEmployeeList);
+				"You are owners of the initiative", null, ownerOfList, partOfEmployeeList);
 		initiative.create();
 
 		initiative.setInitiativeProperties("2Individual", "2", "0", Date.from(Instant.now()), Date.from(Instant.now()),
-				"You are owners of the initiative", filterMasterList, ownerOfList, partOfEmployeeList);
+				"You are owners of the initiative", null, ownerOfList, partOfEmployeeList);
 		initiative.create();
 
 		initiative.setInitiativeProperties("3Individual", "3", "0", Date.from(Instant.now()), Date.from(Instant.now()),
-				"You are owners of the initiative", filterMasterList, ownerOfList, partOfEmployeeList);
+				"You are owners of the initiative", null, ownerOfList, partOfEmployeeList);
 		initiative.create();
 
 		initiative.setInitiativeProperties("4Individual", "4", "0", Date.from(Instant.now()), Date.from(Instant.now()),
-				"You are owners of the initiative", filterMasterList, ownerOfList, partOfEmployeeList);
+				"You are owners of the initiative", null, ownerOfList, partOfEmployeeList);
 		initiative.create();
 
 		initiative.setInitiativeProperties("5Individual", "5", "0", Date.from(Instant.now()), Date.from(Instant.now()),
-				"You are owners of the initiative", filterMasterList, ownerOfList, partOfEmployeeList);
+				"You are owners of the initiative", null, ownerOfList, partOfEmployeeList);
 		initiative.create();
 
 		initiative.setInitiativeProperties("1Team", "6", "1", Date.from(Instant.now()), Date.from(Instant.now()),
-				"You are owners of the initiative", filterMasterList, ownerOfList, partOfEmployeeList);
+				"You are owners of the initiative", filterMasterList, ownerOfList, null);
 		initiative.create();
 
 		initiative.setInitiativeProperties("2Team", "7", "1", Date.from(Instant.now()), Date.from(Instant.now()),
-				"You are owners of the initiative", filterMasterList, ownerOfList, partOfEmployeeList);
+				"You are owners of the initiative", filterMasterList, ownerOfList, null);
 		initiative.create();
 
 		initiative.setInitiativeProperties("3Team", "8", "1", Date.from(Instant.now()), Date.from(Instant.now()),
-				"You are owners of the initiative", filterMasterList, ownerOfList, partOfEmployeeList);
+				"You are owners of the initiative", filterMasterList, ownerOfList, null);
 		initiative.create();
 
 		initiative.setInitiativeProperties("4Team", "9", "1", Date.from(Instant.now()), Date.from(Instant.now()),
-				"You are owners of the initiative", filterMasterList, ownerOfList, partOfEmployeeList);
+				"You are owners of the initiative", filterMasterList, ownerOfList, null);
 		initiative.create();
 
 		initiative.setInitiativeProperties("5Team", "10", "1", Date.from(Instant.now()), Date.from(Instant.now()),
-				"You are owners of the initiative", filterMasterList, ownerOfList, partOfEmployeeList);
+				"You are owners of the initiative", filterMasterList, ownerOfList, null);
 		initiative.create();
 
 		InitiativeList il = (InitiativeList) ObjectFactory.getInstance("org.icube.owen.initiative.InitiativeList");
