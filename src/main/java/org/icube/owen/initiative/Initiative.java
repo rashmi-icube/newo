@@ -37,13 +37,28 @@ public class Initiative extends TheBorg {
 
 	/**
 	 * Sets the initiative properties based on the values given in the parameters
+	 * @param initiativeName - Name of the initiative
+	 * @param initiativeType - ID of the type of initiative
+	 * @param initiativeCategory - team or individual
+	 * @param initiativeStartDate - start date of the initiative
+	 * @param initiativeEndDate - end date of the initiative
+	 * @param initiativeComment - comments for the initiative
+	 * @param filterList - filter list applicable to the initiative
+	 * @param ownerOfList - key people assigned to the initiative
+	 * @param partOfEmployeeList - applicable only for individual initiative should be null for team initiative
+	 * list of employees for whom the initiative has been created
 	 */
 	public void setInitiativeProperties(String initiativeName, String initiativeType, String initiativeCategory, Date initiativeStartDate,
 			Date initiativeEndDate, String initiativeComment, List<Filter> filterList, List<Employee> ownerOfList, List<Employee> partOfEmployeeList) {
 		org.apache.log4j.Logger.getLogger(Initiative.class).debug("Setting initiative properties");
 		this.initiativeName = initiativeName;
 		this.initiativeType = initiativeType;
-		this.initiativeCategory = initiativeCategory;
+		if (initiativeCategory.equalsIgnoreCase("individual")) {
+			this.initiativeCategory = "0";
+		} else if (initiativeCategory.equalsIgnoreCase("team")) {
+			this.initiativeCategory = "1";
+		}
+
 		this.initiativeStartDate = initiativeStartDate;
 		this.initiativeEndDate = initiativeEndDate;
 		this.initiativeComment = initiativeComment;
@@ -112,7 +127,6 @@ public class Initiative extends TheBorg {
 	/**
 	 * Creates the connections with the objects that are part of the initiative
 	 * 
-	 * @param params - Map of the objects that are part of the initiative taken as input from the user
 	 */
 	@SuppressWarnings("unchecked")
 	private boolean setPartOf(int initiativeId, List<Filter> filterList) {
@@ -194,10 +208,9 @@ public class Initiative extends TheBorg {
 	}
 
 	/**
+	 * Internal Helper Function
 	 * Get list of string filterValues from a map of filterValues
 	 * 
-	 * @param filterValues
-	 * @return
 	 */
 	private List<String> getFilterValueList(Map<String, String> filterValues) {
 		List<String> filterValueStringList = new ArrayList<>();
@@ -207,9 +220,9 @@ public class Initiative extends TheBorg {
 
 	/**
 	 * Creates the connections with the employees who are owners of the initiative
-	 * 
-	 * @param params
-	 * - Map of the employee id's who would be the owner of the initiative taken as input from the user
+	 * @param initiativeId - ID of the initiative for which key people are to be assigned for
+	 * @param employeeList - List of key people to be assigned to the given initiative
+	 * @return true/false based on if the operation was successful
 	 */
 	private boolean setOwner(int initiativeId, List<Employee> employeeList) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
@@ -236,7 +249,7 @@ public class Initiative extends TheBorg {
 	/**
 	 * Retrieves the single initiative based on the initiativeId given
 	 * 
-	 * @param initiativeId
+	 * @param initiativeId - ID of the initiative which needs to be retrieved
 	 * @return initiative object
 	 */
 	public Initiative get(int initiativeId) {
@@ -354,6 +367,11 @@ public class Initiative extends TheBorg {
 		return status;
 	}
 
+	/**
+	 * Return the initiative status based on the start date
+	 * @param initiativeStartDate - start date of the initiative
+	 * @return initiative status - Active or Pending
+	 */
 	private String checkInitiativeStatus(Date initiativeStartDate) {
 		String initiativeStatus = "Active";
 		if (initiativeStartDate.after(Date.from(Instant.now()))) {
