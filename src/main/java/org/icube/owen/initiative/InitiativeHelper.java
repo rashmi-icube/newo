@@ -98,5 +98,17 @@ public class InitiativeHelper extends TheBorg{
 		}
 		return initiativeCountMapList;
 	}
+	
+	public List<Employee> setPartOfEmployeeList(Map<String, Object> resultMap, Initiative i) {
+		List<Employee> existingEmployeeList = (i.getPartOfEmployeeList() == null ? new ArrayList<>() : i.getPartOfEmployeeList());
+		org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Setting part of employee list");
+		List<Long> employeeIdList = new ArrayList<>();
+		employeeIdList = (List<Long>)resultMap.get("PartOfID");
+		for(Long employeeId : employeeIdList){
+			Employee e = new Employee();
+			existingEmployeeList.add(e.get(employeeId.intValue()));
+		}
+		return existingEmployeeList;
+	}
 
 }

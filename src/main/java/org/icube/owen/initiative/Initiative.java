@@ -86,6 +86,7 @@ public class Initiative extends TheBorg {
 			}
 
 			int initiativeId = Integer.parseInt(initiativeIdStr);
+			this.initiativeId = initiativeId;
 
 			// Check if the initiative is of the category Individual
 
@@ -95,7 +96,7 @@ public class Initiative extends TheBorg {
 				} else {
 					org.apache.log4j.Logger.getLogger(Initiative.class).error("Unsuccessful in setting part_of connections for initiative");
 				}
-			} else if(this.initiativeCategory.equalsIgnoreCase("Team")) {
+			} else if (this.initiativeCategory.equalsIgnoreCase("Team")) {
 				if (setPartOf(initiativeId, this.filterList)) {
 					org.apache.log4j.Logger.getLogger(Initiative.class).debug("Success in setting part of initiative");
 				} else {
@@ -255,10 +256,11 @@ public class Initiative extends TheBorg {
 		Initiative i = new Initiative();
 		i.setInitiativeId(initiativeId);
 		try (Transaction tx = dch.graphDb.beginTx()) {
-			String query = "match (o:Employee)-[:owner_of]->(i:Init{Id:" + initiativeId + "})<-[r:part_of]-(a)"
-					+ " return i.Name as Name,i.StartDate as StartDate,"
-					+ "i.EndDate as EndDate,collect(distinct(a.Id))as PartOfID,collect(distinct(a.Name))as PartOfName, labels(a) as Filters,"
-					+ "collect(distinct (o.EmpID)) as OwnersOf,i.Comment as Comments,i.Type as Type,i.Category as Category,i.Status as Status";
+			String query = "match (o:Employee)-[:owner_of]->(i:Init{Id:" + initiativeId + "})<-[r:part_of]-(a) return i.Name as Name,"
+					+ "i.StartDate as StartDate, i.EndDate as EndDate,case i.Category when 'Individual' then collect(distinct(a.emp_id)) "
+					+ "else collect(distinct(a.Id))  end as PartOfID,collect(distinct(a.Name))as PartOfName, labels(a) as Filters, "
+					+ "collect(distinct (o.emp_id)) as OwnersOf,i.Comment as Comments,i.Type as Type,i.Category as Category,i.Status as Status";
+
 			org.apache.log4j.Logger.getLogger(Initiative.class).error("Query : " + query);
 			Result res = dch.graphDb.execute(query);
 			while (res.hasNext()) {
@@ -271,8 +273,13 @@ public class Initiative extends TheBorg {
 				i.setInitiativeStartDate(parserSDF.parse((String) result.get("StartDate")));
 				i.setInitiativeEndDate(parserSDF.parse((String) result.get("EndDate")));
 				i.setInitiativeComment(result.get("Comments").toString());
-				i.setFilterList(ih.setPartOfConnections(result, i));
-				i.setOwnerOf(ih.getOwnerOfList(result));
+				if (result.get("Category").toString().equalsIgnoreCase("Team")) {
+					i.setFilterList(ih.setPartOfConnections(result, i));
+				} else if (result.get("Category").toString().equalsIgnoreCase("Individual")) {
+					i.setPartOfEmployeeList(ih.setPartOfEmployeeList(result, i));
+				}
+
+				i.setOwnerOfList(ih.getOwnerOfList(result));
 			}
 		} catch (ParseException e) {
 			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception while retrieving the initiative with ID" + initiativeId, e);
@@ -343,15 +350,15 @@ public class Initiative extends TheBorg {
 		int updatedInitiativeId = updatedInitiative.getInitiativeId();
 		try (Transaction tx = dch.graphDb.beginTx()) {
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Started update of The initiative with ID " + updatedInitiative.initiativeId);
-			List<Employee> updatedOwnerOfList = updatedInitiative.getOwnerOf();
+			List<Employee> updatedOwnerOfList = updatedInitiative.getOwnerOfList();
 			String ownersOfQuery = "match(i:Init {Id:" + updatedInitiativeId + "})<-[r:owner_of]-(e:Employee) delete r";
 			Result ownersOfRes = dch.graphDb.execute(ownersOfQuery);
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Ownersof list deleted from initiative " + updatedInitiative.initiativeId);
 			updatedInitiative.setOwner(updatedInitiativeId, updatedOwnerOfList);
 			String query = "match(a:Init {Id:" + updatedInitiativeId + "}) set a.Name = '" + updatedInitiative.getInitiativeName().toString()
 					+ "',a.Status = '" + checkInitiativeStatus(updatedInitiative.getInitiativeStartDate()) + "'," + "a.Type = '"
-					+ updatedInitiative.getInitiativeType().toString() + "',a.Category = '" + updatedInitiative.getInitiativeCategory()
-					+ "'," + "a.Comment = '" + updatedInitiative.getInitiativeComment().toString() + "',a.EndDate = '"
+					+ updatedInitiative.getInitiativeType().toString() + "',a.Category = '" + updatedInitiative.getInitiativeCategory() + "',"
+					+ "a.Comment = '" + updatedInitiative.getInitiativeComment().toString() + "',a.EndDate = '"
 					+ updatedInitiative.getInitiativeEndDate().toString() + "'," + "a.StartDate = '"
 					+ updatedInitiative.getInitiativeStartDate().toString() + "' return a.Name as Name, " + "a.Type as Type,a.Category as Category, "
 					+ "a.Status as Status,a.Comment as Comment,a.EndDate as endDate,a.StartDate as StartDate";
@@ -456,11 +463,11 @@ public class Initiative extends TheBorg {
 		this.filterList = filterList;
 	}
 
-	public List<Employee> getOwnerOf() {
+	public List<Employee> getOwnerOfList() {
 		return ownerOfList;
 	}
 
-	public void setOwnerOf(List<Employee> employeeList) {
+	public void setOwnerOfList(List<Employee> employeeList) {
 		this.ownerOfList = employeeList;
 	}
 
@@ -478,5 +485,13 @@ public class Initiative extends TheBorg {
 
 	public void setInitiativeStatus(String initiativeStatus) {
 		this.initiativeStatus = initiativeStatus;
+	}
+
+	public List<Employee> getPartOfEmployeeList() {
+		return partOfEmployeeList;
+	}
+
+	public void setPartOfEmployeeList(List<Employee> partOfEmployeeList) {
+		this.partOfEmployeeList = partOfEmployeeList;
 	}
 }

@@ -27,10 +27,13 @@ public class InitiativeList extends TheBorg {
 		List<Initiative> initiativeList = new ArrayList<Initiative>();
 		Map<Integer, Initiative> initiativeIdMap = new HashMap<Integer, Initiative>();
 		try (Transaction tx = dch.graphDb.beginTx()) {
-			String initiativeListQuery = "match (o:Employee)-[:owner_of]->(i:Init {Status:'" + initiativeStatus + "'})<-[r:part_of]-(a)"
-					+ " return i.Id as Id,i.Name as Name,i.Status as Status, i.Category as Category, i.StartDate as StartDate,"
-					+ "i.EndDate as EndDate,collect(distinct(a.Id))as PartOfID,collect(distinct(a.Name))as PartOfName, labels(a) as Filters,"
-					+ "collect(distinct (o.emp_id)) as OwnersOf,i.Comment as Comments,i.Type as Type";
+
+			String initiativeListQuery = "match (o:Employee)-[:owner_of]->(i:Init {Status:'" + initiativeStatus
+					+ "'})<-[r:part_of]-(a) return i.Id as Id, i.Name as Name,"
+					+ "i.StartDate as StartDate, i.EndDate as EndDate, case i.Category when 'Individual' then collect(distinct(a.emp_id)) "
+					+ "else collect(distinct(a.Id))  end as PartOfID,collect(distinct(a.Name))as PartOfName, labels(a) as Filters, "
+					+ "collect(distinct (o.emp_id)) as OwnersOf,i.Comment as Comments,i.Type as Type,i.Category as Category,i.Status as Status";
+
 			Result res = dch.graphDb.execute(initiativeListQuery);
 			org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Executed query for retrieving initiative list");
 			while (res.hasNext()) {
@@ -38,7 +41,11 @@ public class InitiativeList extends TheBorg {
 				int initiativeId = Integer.valueOf(resultMap.get("Id").toString());
 				if (initiativeIdMap.containsKey(initiativeId)) {
 					Initiative i = initiativeIdMap.get(initiativeId);
-					i.setFilterList(ih.setPartOfConnections(resultMap, i));
+					if (i.getInitiativeCategory().equalsIgnoreCase("Team")) {
+						i.setFilterList(ih.setPartOfConnections(resultMap, i));
+					} else if (i.getInitiativeCategory().equalsIgnoreCase("Individual")) {
+						i.setPartOfEmployeeList(ih.setPartOfEmployeeList(resultMap, i));
+					}
 					initiativeIdMap.put(initiativeId, i);
 				} else {
 					Initiative i = new Initiative();
@@ -73,10 +80,11 @@ public class InitiativeList extends TheBorg {
 		List<Initiative> initiativeList = new ArrayList<Initiative>();
 		Map<Integer, Initiative> initiativeIdMap = new HashMap<Integer, Initiative>();
 		try (Transaction tx = dch.graphDb.beginTx()) {
-			String initiativeListQuery = "match (o:Employee)-[:owner_of]->(i:Init)<-[r:part_of]-(a)"
-					+ " return i.Id as Id,i.Name as Name,i.Status as Status, i.Category as Category, i.StartDate as StartDate,"
-					+ "i.EndDate as EndDate,collect(distinct(a.Id))as PartOfID,collect(distinct(a.Name))as PartOfName, labels(a) as Filters,"
-					+ "collect(distinct (o.emp_id)) as OwnersOf,i.Comment as Comments,i.Type as Type";
+			String initiativeListQuery = "match (o:Employee)-[:owner_of]->(i:Init)<-[r:part_of]-(a) return i.Id as Id, i.Name as Name,"
+					+ "i.StartDate as StartDate, i.EndDate as EndDate, case i.Category when 'Individual' then collect(distinct(a.emp_id)) "
+					+ "else collect(distinct(a.Id))  end as PartOfID,collect(distinct(a.Name))as PartOfName, labels(a) as Filters, "
+					+ "collect(distinct (o.emp_id)) as OwnersOf,i.Comment as Comments,i.Type as Type,i.Category as Category,i.Status as Status";
+
 			Result res = dch.graphDb.execute(initiativeListQuery);
 			org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Executed query for retrieving initiative list");
 			while (res.hasNext()) {
@@ -127,9 +135,12 @@ public class InitiativeList extends TheBorg {
 
 			i.setInitiativeComment((String) resultMap.get("Comments"));
 			i.setInitiativeType((String) resultMap.get("Type"));
-			i.setOwnerOf(ih.getOwnerOfList(resultMap));
-
-			i.setFilterList(ih.setPartOfConnections(resultMap, i));
+			i.setOwnerOfList(ih.getOwnerOfList(resultMap));
+			if (i.getInitiativeCategory().equalsIgnoreCase("Team")) {
+				i.setFilterList(ih.setPartOfConnections(resultMap, i));
+			} else if (i.getInitiativeCategory().equalsIgnoreCase("Individual")) {
+				i.setPartOfEmployeeList(ih.setPartOfEmployeeList(resultMap, i));
+			}
 
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(InitiativeList.class).error("Error in setting initiative values", e);
