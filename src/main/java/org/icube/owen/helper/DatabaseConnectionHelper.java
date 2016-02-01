@@ -4,6 +4,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.Properties;
 
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -11,9 +15,28 @@ import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 
 public class DatabaseConnectionHelper {
 
+	public static void main(String args[]) {
+		try {
+			Class.forName("com.mysql.jdbc.Driver");
+			Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/owen", "root", "");
+
+			Statement stmt = conn.createStatement();
+
+			ResultSet rs = stmt.executeQuery("select * from employee");
+
+			while (rs.next())
+				System.out.println(rs.getInt(1) + "  " + rs.getString(2) + "  " + rs.getString(3));
+
+			conn.close();
+
+		} catch (Exception e) {
+			System.out.println(e);
+		}
+	}
+
 	// private final static String DB_PATH = getDatabaseConnectionDetails();
 	private final static String DB_PATH = "C:\\Users\\fermion10\\Documents\\Neo4j\\graph.db";
-	//private final static String DB_PATH = "//Users/apple/Documents/neo4j-enterprise-2.3.1/data/ICICIdb";
+	// private final static String DB_PATH = "//Users/apple/Documents/neo4j-enterprise-2.3.1/data/ICICIdb";
 	public GraphDatabaseService graphDb;
 
 	private static String getDatabaseConnectionDetails() {

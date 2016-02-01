@@ -16,6 +16,10 @@ import org.icube.owen.initiative.Initiative;
 import org.icube.owen.initiative.InitiativeHelper;
 import org.icube.owen.initiative.InitiativeList;
 import org.icube.owen.metrics.MetricsList;
+import org.rosuda.REngine.REXP;
+import org.rosuda.REngine.REXPMismatchException;
+import org.rosuda.REngine.REngineException;
+import org.rosuda.REngine.Rserve.RConnection;
 
 public class ObjectFactory {
 
@@ -166,7 +170,7 @@ public class ObjectFactory {
 
 	}
 
-	/*public static void testRScript() {
+	public static void testRScript() {
 		try {
 			RConnection c = new RConnection();
 			// source the Palindrom function
@@ -180,11 +184,27 @@ public class ObjectFactory {
 			REXP is_abc_palindrome = c.eval("palindrome('abc')");
 			System.out.println(is_abc_palindrome.asInteger()); // prints 0 => false
 
+			int[] funcParam = { 1 };
+			int[] zoneParam = { 8 };
+			int[] posParam = { 4 };
+
+			c.assign("funcParam", funcParam);
+			c.assign("zoneParam", zoneParam);
+			c.assign("posParam", posParam);
+
+			REXP performance = c.parseAndEval("try(eval(Performance(funcParam ,posParam ,zoneParam))),silent=TRUE");
+			if (performance.inherits("try-error")) {
+				System.err.println("Error: " + performance.toString());
+			} else {
+				System.out.println(performance); // prints 0 => false
+			}
 		} catch (REngineException e) {
-			org.apache.log4j.Logger.getLogger(ObjectFactory.class).error("Exception while trying to run RScript", e);
+			e.printStackTrace();
+			// org.apache.log4j.Logger.getLogger(ObjectFactory.class).error("Exception while trying to run RScript", e);
 		} catch (REXPMismatchException e1) {
-			org.apache.log4j.Logger.getLogger(ObjectFactory.class).error("Exception while trying to run RScript", e1);
+			e1.printStackTrace();
+			// org.apache.log4j.Logger.getLogger(ObjectFactory.class).error("Exception while trying to run RScript", e1);
 		}
 
-	}*/
+	}
 }
