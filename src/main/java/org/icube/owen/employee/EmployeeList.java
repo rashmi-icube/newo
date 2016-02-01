@@ -8,6 +8,7 @@ import java.util.Map;
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
 import org.icube.owen.filter.Filter;
+import org.icube.owen.filter.FilterList;
 import org.icube.owen.helper.DatabaseConnectionHelper;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
@@ -150,5 +151,58 @@ public class EmployeeList extends TheBorg {
 		List<Integer> filterKeysStringList = new ArrayList<>();
 		filterKeysStringList.addAll(filterMap.keySet());
 		return filterKeysStringList;
+	}
+	
+	// TODO make this dynamic based on filter list
+	private String getDynamicQueryForDimensions(List<Filter> filterList){
+		
+		FilterList fl = new FilterList();
+		Map<Integer, String> filterLabelMap = fl.getFilterLabelMap();
+		
+		Map<String, Object> params = new HashMap<>();
+		for(String filterName : filterLabelMap.values()){
+			
+		}
+		
+		
+
+		for (int i = 0; i < filterList.size(); i++) {
+			Filter f = filterList.get(i);
+			params.put(f.getFilterName(), getFilterKeyList(f.getFilterValues()));
+		}
+		
+		String funcQuery = "", posQuery = "", zoneQuery = "";
+		ArrayList<String> funcParam = (ArrayList<String>) params.get("Function");
+		ArrayList<String> zoneParam = (ArrayList<String>) params.get("Zone");
+		ArrayList<String> posParam = (ArrayList<String>) params.get("Position");
+
+		if (funcParam.contains("all") || funcParam.contains("All")) {
+			funcQuery = "";
+		} else {
+			funcQuery = "f.Id in {Function}";
+		}
+
+		if (zoneParam.contains("all") || zoneParam.contains("All")) {
+			zoneQuery = "";
+		} else {
+			zoneQuery = "z.Id in {Zone}";
+		}
+
+		if (posParam.contains("all") || posParam.contains("All")) {
+			posQuery = "";
+		} else {
+			posQuery = "p.Id in " + "{Position}";
+		}
+
+		String query = "match (z:Zone)<-[:from_zone]-(a:Employee)-[:has_functionality]->(f:Function),(z:Zone)<-[:from_zone]-(b:Employee)-[:has_functionality]"
+				+ "->(f:Function),a-[:is_positioned]->(p:Position)<-[:is_positioned]-b"
+				+ ((!zoneQuery.isEmpty() || !funcQuery.isEmpty() || !posQuery.isEmpty()) ? " where " : "")
+				+ (zoneQuery.isEmpty() ? "" : (zoneQuery + ((!funcQuery.isEmpty() || !posQuery.isEmpty() ? " and " : ""))))
+				+ (funcQuery.isEmpty() ? "" : funcQuery + (!posQuery.isEmpty() ? " and " : ""))
+				+ (posQuery.isEmpty() ? "" : (posQuery))
+				+ " with a,b,count(a)"
+				+ "as TotalPeople optional match a<-[r:support]-b return a.emp_id as employeeId, a.FirstName as firstName, a.LastName as lastName,"
+				+ "a.Reporting_emp_id as reportingManagerId, a.emp_int_id as companyEmployeeId, count(r) as Score";
+		return query;
 	}
 }

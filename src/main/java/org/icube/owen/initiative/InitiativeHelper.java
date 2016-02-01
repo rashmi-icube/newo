@@ -28,8 +28,8 @@ public class InitiativeHelper extends TheBorg{
 	public List<Filter> setPartOfConnections(Map<String, Object> resultMap, Initiative i) {
 		List<Filter> existingFilterList = (i.getFilterList() == null ? new ArrayList<>() : i.getFilterList());
 		org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Setting part of connections");
-
 		Filter f = new Filter();
+		//TODO f.setFilterId(filterId);
 		f.setFilterName(resultMap.get("Filters").toString().substring(1, resultMap.get("Filters").toString().length() - 1));
 		SeqWrapper swId = (SeqWrapper) resultMap.get("PartOfID");
 		SeqWrapper swValue = (SeqWrapper) resultMap.get("PartOfName");
