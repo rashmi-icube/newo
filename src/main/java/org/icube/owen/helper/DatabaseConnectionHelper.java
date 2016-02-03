@@ -14,30 +14,6 @@ import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 
 public class DatabaseConnectionHelper {
 
-	/*
-	 * public static void main(String args[]) { try {
-	 * Class.forName("com.mysql.jdbc.Driver"); Connection conn =
-	 * DriverManager.getConnection( "jdbc:mysql://localhost:3306/owen", "root",
-	 * "root");
-	 * 
-	 * Statement stmt = conn.createStatement();
-	 * 
-	 * ResultSet rs = stmt.executeQuery("select * from dimension_master");
-	 * Map<Integer, String> filterLabelMap = new HashMap<>(); while (rs.next())
-	 * { System.out.println(rs.getInt(1) + "  " + rs.getString(2));
-	 * filterLabelMap.put(rs.getInt(1),rs.getString(2)); } Statement stmt1 =
-	 * conn.createStatement(); ResultSet rs1 = stmt.executeQuery(
-	 * "select * from initiative_type where Category = 'Individual'");
-	 * Map<Integer, String> initiativeTypeMap = new HashMap<>();
-	 * while(rs1.next()){ System.out.println(rs1.getInt(1) + "  " +
-	 * rs1.getString(2)); initiativeTypeMap.put(rs1.getInt(1),rs1.getString(2));
-	 * }
-	 * 
-	 * conn.close();
-	 * 
-	 * } catch (Exception e) { System.out.println(e); } }
-	 */
-
 	private final static String DB_PATH = getDatabaseConnectionDetails();
 	// private final static String DB_PATH =
 	// "C:\\Users\\fermion10\\Documents\\Neo4j\\graph.db";
@@ -88,12 +64,7 @@ public class DatabaseConnectionHelper {
 			e.printStackTrace();
 		}
 		registerShutdownHook(graphDb);
-		/*
-		 * try { if (!mysqlCon.isClosed()) { try { mysqlCon.close();
-		 * System.out.println("Connection to MySql closed!!!!"); } catch
-		 * (SQLException e) { e.printStackTrace(); } } } catch (SQLException e)
-		 * { e.printStackTrace(); }
-		 */
+
 	}
 
 	public void shutDown() {
