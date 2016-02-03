@@ -20,3 +20,4 @@ config.properties
 /target/
 
 *.properties
+/.DS_Store
