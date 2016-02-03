@@ -16,6 +16,7 @@ import org.icube.owen.initiative.Initiative;
 import org.icube.owen.initiative.InitiativeHelper;
 import org.icube.owen.initiative.InitiativeList;
 import org.icube.owen.metrics.MetricsList;
+import org.neo4j.graphdb.Transaction;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.REngineException;
@@ -61,7 +62,7 @@ public class ObjectFactory {
 
 	public static void main(String[] args) {
 
-		//testRScript();
+		testRScript();
 
 		Initiative initiative = (Initiative) ObjectFactory.getInstance("org.icube.owen.initiative.Initiative");
 
@@ -75,7 +76,7 @@ public class ObjectFactory {
 
 		EmployeeList el = (EmployeeList) ObjectFactory.getInstance("org.icube.owen.employee.EmployeeList");
 		System.out.println("Employee smart list : " + el.getEmployeeSmartList(filterMasterList));
-		
+
 		List<Employee> partOfEmployeeList = new ArrayList<>();
 		Employee e1 = (Employee) ObjectFactory.getInstance("org.icube.owen.employee.Employee");
 		partOfEmployeeList.add(e1.get(16));
@@ -131,10 +132,10 @@ public class ObjectFactory {
 		InitiativeList il = (InitiativeList) ObjectFactory.getInstance("org.icube.owen.initiative.InitiativeList");
 		System.out.println(il.getInitiativeList());
 
-		System.out.println(initiative.get(1)); //individual
+		System.out.println(initiative.get(1)); // individual
 		Initiative initObj = initiative.get(6);
 		initObj.getFilterList();
-		
+
 		// System.out.println(initiative.get(8)); //team
 
 		MetricsList ml = (MetricsList) ObjectFactory.getInstance("org.icube.owen.metrics.MetricsList");
@@ -161,7 +162,7 @@ public class ObjectFactory {
 
 		InitiativeHelper ih = (InitiativeHelper) ObjectFactory.getInstance("org.icube.owen.initiative.InitiativeHelper");
 		System.out.println(ih.getInitiativeCount());
-		
+
 		il.getInitiativeList("Deleted");
 		il.getInitiativeList("Completed");
 		il.getInitiativeList("Active");
@@ -170,40 +171,52 @@ public class ObjectFactory {
 
 	}
 
+	/**
+	 * library(Rserve)
+	 * Rserve(args = "--no-save")
+	 */
 	public static void testRScript() {
 		try {
-			RConnection c = new RConnection();
-			// source the Palindrom function
-			c.eval("source(\"/Users/apple/Documents/workspace/owen/resources/rscript.r\")");
+			DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+			try (Transaction tx = dch.graphDb.beginTx()) {
 
-			// call the function. Return true
-			REXP is_aba_palindrome = c.eval("palindrome('aba')");
-			System.out.println(is_aba_palindrome.asInteger()); // prints 1 => true
+				RConnection c = new RConnection();
 
-			// call the function. return false
-			REXP is_abc_palindrome = c.eval("palindrome('abc')");
-			System.out.println(is_abc_palindrome.asInteger()); // prints 0 => false
+				// source the Palindrom function
+				c.eval("source(\"/Users/apple/Documents/workspace/owen/scripts/rscript.r\")");
 
-			int[] funcParam = { 1 };
-			int[] zoneParam = { 8 };
-			int[] posParam = { 4 };
+				// call the function. Return true
+				REXP is_aba_palindrome = c.eval("palindrome('aba')");
+				System.out.println(is_aba_palindrome.asInteger()); // prints 1 => true
 
-			c.assign("funcParam", funcParam);
-			c.assign("zoneParam", zoneParam);
-			c.assign("posParam", posParam);
+				// call the function. return false
+				REXP is_abc_palindrome = c.eval("palindrome('abc')");
+				System.out.println(is_abc_palindrome.asInteger()); // prints 0 => false
 
-			REXP performance = c.parseAndEval("try(eval(Performance(funcParam ,posParam ,zoneParam))),silent=TRUE");
-			if (performance.inherits("try-error")) {
-				System.err.println("Error: " + performance.toString());
-			} else {
-				System.out.println(performance); // prints 0 => false
+				int[] funcParam = { 1 };
+				int[] zoneParam = { 8 };
+				int[] posParam = { 4 };
+
+				c.assign("funcParam", funcParam);
+				c.assign("zoneParam", zoneParam);
+				c.assign("posParam", posParam);
+
+				REXP performance = c.parseAndEval("try(eval(Performance(funcParam ,posParam ,zoneParam)))");
+				if (performance.inherits("try-error")) {
+					System.err.println("Error: " + performance.asDouble());
+				} else {
+					System.out.println(performance.asDouble()); // prints 0 => false
+				}
+				tx.close();
 			}
 		} catch (REngineException e) {
 			e.printStackTrace();
 			// org.apache.log4j.Logger.getLogger(ObjectFactory.class).error("Exception while trying to run RScript", e);
-		} catch (REXPMismatchException e1) {
-			e1.printStackTrace();
+		} catch (REXPMismatchException e) {
+			e.printStackTrace();
 			// org.apache.log4j.Logger.getLogger(ObjectFactory.class).error("Exception while trying to run RScript", e1);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 
 	}
