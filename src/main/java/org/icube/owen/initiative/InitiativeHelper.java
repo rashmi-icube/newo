@@ -5,20 +5,20 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
 import org.icube.owen.employee.Employee;
 import org.icube.owen.filter.Filter;
+import org.icube.owen.filter.FilterList;
 import org.icube.owen.helper.DatabaseConnectionHelper;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 
 import scala.collection.convert.Wrappers.SeqWrapper;
 
-public class InitiativeHelper extends TheBorg{
-
-	
+public class InitiativeHelper extends TheBorg {
 
 	/**
 	 * @param resultMap - A map containing the Initiative attributes and connections
@@ -28,11 +28,19 @@ public class InitiativeHelper extends TheBorg{
 	public List<Filter> setPartOfConnections(Map<String, Object> resultMap, Initiative i) {
 		List<Filter> existingFilterList = (i.getFilterList() == null ? new ArrayList<>() : i.getFilterList());
 		org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Setting part of connections");
+		FilterList fl = new FilterList();
 		Filter f = new Filter();
-		//TODO f.setFilterId(filterId);
-		f.setFilterName(resultMap.get("Filters").toString().substring(1, resultMap.get("Filters").toString().length() - 1));
+		Map<Integer, String> filterLabelMap = fl.getFilterLabelMap();
+		String filterName = resultMap.get("Filters").toString().substring(1, resultMap.get("Filters").toString().length() - 1);
+		for (Entry<Integer, String> entry : filterLabelMap.entrySet()) {
+			if (filterName.equals(entry.getValue())) {
+				f.setFilterId(entry.getKey());
+			}
+		}
+		f.setFilterName(filterName);
 		SeqWrapper swId = (SeqWrapper) resultMap.get("PartOfID");
 		SeqWrapper swValue = (SeqWrapper) resultMap.get("PartOfName");
+		SeqWrapper swFilterName = (SeqWrapper) resultMap.get("Filters");
 		f.setFilterValues(getFilterValueMapFromResult(swId, swValue));
 		existingFilterList.add(f);
 
@@ -76,7 +84,7 @@ public class InitiativeHelper extends TheBorg{
 		}
 		return employeeList;
 	}
-	
+
 	/**
 	 * Retrieves the initiative count for the view initiatives page
 	 * @return map of details required for the graphical representation
@@ -98,13 +106,13 @@ public class InitiativeHelper extends TheBorg{
 		}
 		return initiativeCountMapList;
 	}
-	
+
 	public List<Employee> setPartOfEmployeeList(Map<String, Object> resultMap, Initiative i) {
 		List<Employee> existingEmployeeList = (i.getPartOfEmployeeList() == null ? new ArrayList<>() : i.getPartOfEmployeeList());
 		org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Setting part of employee list");
 		List<Long> employeeIdList = new ArrayList<>();
-		employeeIdList = (List<Long>)resultMap.get("PartOfID");
-		for(Long employeeId : employeeIdList){
+		employeeIdList = (List<Long>) resultMap.get("PartOfID");
+		for (Long employeeId : employeeIdList) {
 			Employee e = new Employee();
 			existingEmployeeList.add(e.get(employeeId.intValue()));
 		}

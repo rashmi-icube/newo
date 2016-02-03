@@ -11,7 +11,7 @@ import org.neo4j.graphdb.Transaction;
 
 public class Employee extends TheBorg {
 
-	private int employeeId; 
+	private int employeeId;
 	private String companyEmployeeId;
 	private String firstName;
 	private String lastName;
@@ -85,7 +85,8 @@ public class Employee extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Employee e = new Employee();
 		try (Transaction tx = dch.graphDb.beginTx()) {
-			String query = "match (a:Employee{emp_id:"+employeeId+"}) return a.emp_id as employeeId , a.FirstName as firstName, a.LastName as LastName,"
+			String query = "match (a:Employee{emp_id:" + employeeId
+					+ "}) return a.emp_id as employeeId , a.FirstName as firstName, a.LastName as LastName,"
 					+ "a.Reporting_emp_id as reportingManagerId, a.emp_int_id as companyEmployeeId";
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("query : " + query);
 			Result res = dch.graphDb.execute(query);
@@ -109,5 +110,4 @@ public class Employee extends TheBorg {
 		return e;
 	}
 
-	
 }

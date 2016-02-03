@@ -60,7 +60,6 @@ public class DatabaseConnectionHelper {
 			System.out.println("An error occurred. Maybe user/password is invalid");
 			e.printStackTrace();
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		registerShutdownHook(graphDb);

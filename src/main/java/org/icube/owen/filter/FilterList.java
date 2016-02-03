@@ -25,37 +25,27 @@ public class FilterList extends TheBorg {
 	public Filter getFilterValues(String filterName) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 
-		org.apache.log4j.Logger.getLogger(FilterList.class).debug(
-				"filterName : " + filterName);
+		org.apache.log4j.Logger.getLogger(FilterList.class).debug("filterName : " + filterName);
 		Filter f = new Filter();
 		f.setFilterName(filterName);
 
 		try (Transaction tx = dch.graphDb.beginTx()) {
-			org.apache.log4j.Logger.getLogger(FilterList.class).debug(
-					"getFilterValues method started");
-			String query = "match (n:" + filterName
-					+ ") return n.Name as Name,n.Id as Id";
-			org.apache.log4j.Logger.getLogger(FilterList.class).debug(
-					"query : " + query);
+			org.apache.log4j.Logger.getLogger(FilterList.class).debug("getFilterValues method started");
+			String query = "match (n:" + filterName + ") return n.Name as Name,n.Id as Id";
+			org.apache.log4j.Logger.getLogger(FilterList.class).debug("query : " + query);
 			Result res = dch.graphDb.execute(query);
 			Map<Integer, String> filterValuesMap = new HashMap<>();
 			while (res.hasNext()) {
 				Map<String, Object> resultMap = res.next();
-				filterValuesMap.put(
-						Integer.valueOf(resultMap.get("Id").toString()),
-						resultMap.get("Name").toString());
-				org.apache.log4j.Logger.getLogger(FilterList.class).debug(
-						"filterValuesMap : " + filterValuesMap.toString());
+				filterValuesMap.put(Integer.valueOf(resultMap.get("Id").toString()), resultMap.get("Name").toString());
+				org.apache.log4j.Logger.getLogger(FilterList.class).debug("filterValuesMap : " + filterValuesMap.toString());
 			}
 			f.setFilterValues(filterValuesMap);
 			tx.success();
-			org.apache.log4j.Logger.getLogger(FilterList.class).debug(
-					"Filter : " + f.toString());
+			org.apache.log4j.Logger.getLogger(FilterList.class).debug("Filter : " + f.toString());
 
 		} catch (Exception e) {
-			org.apache.log4j.Logger.getLogger(FilterList.class).error(
-					"Exception in  getFilterValues for filter : " + filterName,
-					e);
+			org.apache.log4j.Logger.getLogger(FilterList.class).error("Exception in  getFilterValues for filter : " + filterName, e);
 
 		}
 		return f;
@@ -72,39 +62,29 @@ public class FilterList extends TheBorg {
 		List<Filter> allFiltersList = new ArrayList<>();
 		Map<Integer, String> filterLabelMap = getFilterLabelMap();
 		for (String filterName : filterLabelMap.values()) {
-			org.apache.log4j.Logger.getLogger(FilterList.class).debug(
-					"filterName : " + filterName);
+			org.apache.log4j.Logger.getLogger(FilterList.class).debug("filterName : " + filterName);
 			Filter f = new Filter();
 			f.setFilterName(filterName);
 
 			try (Transaction tx = dch.graphDb.beginTx()) {
-				org.apache.log4j.Logger.getLogger(FilterList.class).debug(
-						"getFilterValues method started");
-				String query = "match (n:" + filterName
-						+ ") return n.Name as Name,n.Id as Id";
-				org.apache.log4j.Logger.getLogger(FilterList.class).debug(
-						"query : " + query);
+				org.apache.log4j.Logger.getLogger(FilterList.class).debug("getFilterValues method started");
+				String query = "match (n:" + filterName + ") return n.Name as Name,n.Id as Id";
+				org.apache.log4j.Logger.getLogger(FilterList.class).debug("query : " + query);
 				Result res = dch.graphDb.execute(query);
 				Map<Integer, String> filterValuesMap = new HashMap<>();
 				while (res.hasNext()) {
 					Map<String, Object> resultMap = res.next();
-					filterValuesMap.put(
-							Integer.valueOf(resultMap.get("Id").toString()),
-							resultMap.get("Name").toString());
-					org.apache.log4j.Logger.getLogger(FilterList.class).debug(
-							"filterValuesMap : " + filterValuesMap.toString());
+					filterValuesMap.put(Integer.valueOf(resultMap.get("Id").toString()), resultMap.get("Name").toString());
+					org.apache.log4j.Logger.getLogger(FilterList.class).debug("filterValuesMap : " + filterValuesMap.toString());
 
 				}
 				f.setFilterValues(filterValuesMap);
 				tx.success();
-				org.apache.log4j.Logger.getLogger(FilterList.class).debug(
-						"Filter : " + f.toString());
+				org.apache.log4j.Logger.getLogger(FilterList.class).debug("Filter : " + f.toString());
 				allFiltersList.add(f);
 
 			} catch (Exception e) {
-				org.apache.log4j.Logger.getLogger(FilterList.class).error(
-						"Exception in  getFilterValues for filter : "
-								+ filterName, e);
+				org.apache.log4j.Logger.getLogger(FilterList.class).error("Exception in  getFilterValues for filter : " + filterName, e);
 
 			}
 		}
@@ -121,11 +101,9 @@ public class FilterList extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Map<Integer, String> filterLabelMap = new HashMap<>();
 		try {
-			CallableStatement cstmt = dch.mysqlCon
-					.prepareCall("{call FilterList()}");
+			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call FilterList()}");
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
-				System.out.println(rs.getInt(1) + "  " + rs.getString(2));
 				filterLabelMap.put(rs.getInt(1), rs.getString(2));
 			}
 		} catch (SQLException e) {

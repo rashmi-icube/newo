@@ -152,25 +152,23 @@ public class EmployeeList extends TheBorg {
 		filterKeysStringList.addAll(filterMap.keySet());
 		return filterKeysStringList;
 	}
-	
+
 	// TODO make this dynamic based on filter list
-	private String getDynamicQueryForDimensions(List<Filter> filterList){
-		
+	private String getDynamicQueryForDimensions(List<Filter> filterList) {
+
 		FilterList fl = new FilterList();
 		Map<Integer, String> filterLabelMap = fl.getFilterLabelMap();
-		
+
 		Map<String, Object> params = new HashMap<>();
-		for(String filterName : filterLabelMap.values()){
-			
+		for (String filterName : filterLabelMap.values()) {
+
 		}
-		
-		
 
 		for (int i = 0; i < filterList.size(); i++) {
 			Filter f = filterList.get(i);
 			params.put(f.getFilterName(), getFilterKeyList(f.getFilterValues()));
 		}
-		
+
 		String funcQuery = "", posQuery = "", zoneQuery = "";
 		ArrayList<String> funcParam = (ArrayList<String>) params.get("Function");
 		ArrayList<String> zoneParam = (ArrayList<String>) params.get("Zone");

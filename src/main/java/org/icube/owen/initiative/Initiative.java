@@ -302,7 +302,6 @@ public class Initiative extends TheBorg {
 	 * @return initiativeTypeMap - Map of initiative types with ID/value
 	 */
 	public Map<Integer, String> getInitiativeTypeMap(String category) {
-		// TODO retrieve from sql db
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Map<Integer, String> initiativeTypeMap = new HashMap<>();
 		try {
@@ -311,11 +310,9 @@ public class Initiative extends TheBorg {
 			cstmt.setString(1, category);
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
-				System.out.println(rs.getInt(1) + "  " + rs.getString(2));
 				initiativeTypeMap.put(rs.getInt(1), rs.getString(2));
 			}
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return initiativeTypeMap;
