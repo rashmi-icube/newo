@@ -59,23 +59,19 @@ public class DatabaseConnectionHelper {
 			Properties props = new Properties();
 			props.load(reader);
 			dbPath = props.getProperty("db_path");
-			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class)
-					.debug("DB Path : " + dbPath);
+			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("DB Path : " + dbPath);
 			reader.close();
 		} catch (FileNotFoundException ex) {
-			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class)
-					.error("Database path file doesn't exist", ex);
+			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("Database path file doesn't exist", ex);
 		} catch (IOException ex) {
-			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class)
-					.error("IOException in Database", ex);
+			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("IOException in Database", ex);
 		}
 		return dbPath;
 	}
 
 	public DatabaseConnectionHelper() {
 
-		graphDb = new GraphDatabaseFactory().newEmbeddedDatabase(new File(
-				DB_PATH));
+		graphDb = new GraphDatabaseFactory().newEmbeddedDatabase(new File(DB_PATH));
 
 		try {
 
@@ -83,11 +79,9 @@ public class DatabaseConnectionHelper {
 
 			mysqlCon = DriverManager.getConnection(mysqlurl, user, password);
 
-			System.out
-					.println("Successfully connected to MySql with owen database");
+			System.out.println("Successfully connected to MySql with owen database");
 		} catch (SQLException e) {
-			System.out
-					.println("An error occurred. Maybe user/password is invalid");
+			System.out.println("An error occurred. Maybe user/password is invalid");
 			e.printStackTrace();
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -105,8 +99,7 @@ public class DatabaseConnectionHelper {
 	public void shutDown() {
 		System.out.println();
 		System.out.println("Shutting down database ...");
-		org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class)
-				.debug("Shutting down database ...");
+		org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Shutting down database ...");
 
 		graphDb.shutdown();
 		try {
@@ -125,11 +118,10 @@ public class DatabaseConnectionHelper {
 	}
 
 	/**
-	 * Registers a shutdown hook for the Neo4j instance so that it shuts down
+	 * Registers a shutdown hook for the Neo4j instance so that it shuts down 
 	 * nicely when the VM exits (even if you "Ctrl-C" the running application).
 	 * 
-	 * @param graphDb
-	 *            - A database factory object
+	 * @param graphDb - A database factory object
 	 */
 	public void registerShutdownHook(final GraphDatabaseService graphDb) {
 
