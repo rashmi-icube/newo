@@ -19,9 +19,8 @@ public class FilterList extends TheBorg {
 	/**
 	 * Returns a filter object of the given filterName
 	 * 
-	 * @param filterName
-	 *            - Name of the filter for which all values are to be returned
-	 * @return filter object
+	 * @param filterName  - Name of the filter for which all values are to be returned
+	 * @return filter object - A filter object of the given filterName
 	 */
 	public Filter getFilterValues(String filterName) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
@@ -115,32 +114,23 @@ public class FilterList extends TheBorg {
 	/**
 	 * Returns the map of filter labels
 	 * 
-	 * @return filterLabelMap
+	 * @return filterLabelMap - A map of filter labels
 	 */
-	// TODO change this to a query from SQL once db is setup
+
 	public Map<Integer, String> getFilterLabelMap() {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Map<Integer, String> filterLabelMap = new HashMap<>();
 		try {
-			// Statement stmt = dch.mysqlCon.createStatement();
 			CallableStatement cstmt = dch.mysqlCon
 					.prepareCall("{call FilterList()}");
 			ResultSet rs = cstmt.executeQuery();
-			// ResultSet rs =
-			// stmt.executeQuery("select * from dimension_master");
 			while (rs.next()) {
 				System.out.println(rs.getInt(1) + "  " + rs.getString(2));
 				filterLabelMap.put(rs.getInt(1), rs.getString(2));
 			}
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		/*
-		 * filterLabelMap.put(1, "Function"); filterLabelMap.put(2, "Zone");
-		 * filterLabelMap.put(3, "Position");
-		 */
-
 		return filterLabelMap;
 	}
 }

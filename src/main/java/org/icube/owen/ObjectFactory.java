@@ -66,7 +66,7 @@ public class ObjectFactory {
 
 		Initiative initiative = (Initiative) ObjectFactory.getInstance("org.icube.owen.initiative.Initiative");
 
-		System.out.println("Initiative type map : " + initiative.getInitiativeTypeMap("team"));
+		System.out.println("Initiative type map : " + initiative.getInitiativeTypeMap("Team"));
 
 		FilterList fl = (FilterList) ObjectFactory.getInstance("org.icube.owen.filter.FilterList");
 		List<Filter> filterMasterList = fl.getFilterValues();
