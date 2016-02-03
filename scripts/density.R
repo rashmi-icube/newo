@@ -4,7 +4,7 @@ density=function(){
   library(igraph)
   library(moments)
   
-  mydb = dbConnect(MySQL(), user='hpatel', password='hitesh16', dbname='owen1')
+  mydb = dbConnect(MySQL(), user='hpatel', password='hitesh16', dbname='owen')
   
   empquery="Select * from employee"
   
