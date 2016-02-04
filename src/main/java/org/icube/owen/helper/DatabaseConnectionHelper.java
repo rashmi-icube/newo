@@ -14,16 +14,15 @@ import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 
 public class DatabaseConnectionHelper {
 
-	private final static String DB_PATH = getDatabaseConnectionDetails();
-	// private final static String DB_PATH =
-	// "C:\\Users\\fermion10\\Documents\\Neo4j\\graph.db";
+	// private final static String DB_PATH = getDatabaseConnectionDetails();
+	private final static String DB_PATH = "C:\\Users\\fermion10\\Documents\\Neo4j\\graph.db";
 	// private final static String DB_PATH =
 	// "//Users/apple/Documents/neo4j-enterprise-2.3.1/data/ICICIdb";
 	public GraphDatabaseService graphDb;
 	public Connection mysqlCon;
-	private final static String mysqlurl = "jdbc:mysql://localhost:3306/owen";
-	private final static String user = "root";
-	private final static String password = "root";
+	private final static String mysqlurl = "jdbc:mysql://192.168.1.6:3306/owen";
+	private final static String user = "icube";
+	private final static String password = "icube123";
 
 	private static String getDatabaseConnectionDetails() {
 

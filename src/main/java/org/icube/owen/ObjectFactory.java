@@ -16,11 +16,6 @@ import org.icube.owen.initiative.Initiative;
 import org.icube.owen.initiative.InitiativeHelper;
 import org.icube.owen.initiative.InitiativeList;
 import org.icube.owen.metrics.MetricsList;
-import org.neo4j.graphdb.Transaction;
-import org.rosuda.REngine.REXP;
-import org.rosuda.REngine.REXPMismatchException;
-import org.rosuda.REngine.REngineException;
-import org.rosuda.REngine.Rserve.RConnection;
 
 public class ObjectFactory {
 
@@ -62,7 +57,7 @@ public class ObjectFactory {
 
 	public static void main(String[] args) {
 
-		testRScript();
+		// testRScript();
 
 		Initiative initiative = (Initiative) ObjectFactory.getInstance("org.icube.owen.initiative.Initiative");
 
@@ -75,7 +70,9 @@ public class ObjectFactory {
 		System.out.println("Function filter values : " + functionFilter);
 
 		EmployeeList el = (EmployeeList) ObjectFactory.getInstance("org.icube.owen.employee.EmployeeList");
-		System.out.println("Employee smart list : " + el.getEmployeeSmartList(filterMasterList));
+		System.out.println("Employee smart list :" + el.getEmployeeSmartListForIndividual());
+		EmployeeList el1 = (EmployeeList) ObjectFactory.getInstance("org.icube.owen.employee.EmployeeList");
+		System.out.println("Employee smart list : " + el1.getEmployeeSmartListForTeam(filterMasterList, "Retention"));
 
 		List<Employee> partOfEmployeeList = new ArrayList<>();
 		Employee e1 = (Employee) ObjectFactory.getInstance("org.icube.owen.employee.Employee");
@@ -139,7 +136,7 @@ public class ObjectFactory {
 		// System.out.println(initiative.get(8)); //team
 
 		MetricsList ml = (MetricsList) ObjectFactory.getInstance("org.icube.owen.metrics.MetricsList");
-		System.out.println(ml.getInitiativeMetrics("team", filterMasterList));
+		System.out.println(ml.getInitiativeMetrics("team", 7));
 
 		Initiative updatedinitiative = initiative.get(3);
 		ownerOfList = new ArrayList<>();
@@ -155,7 +152,8 @@ public class ObjectFactory {
 		System.out.println(il.getInitiativeList());
 
 		initiative.delete(2);
-		System.out.println(il.getInitiativeList("Deleted"));
+		System.out.println(il.getInitiativeListByStatus("Active"));
+		System.out.println(il.getInitiativeListByType(1));
 
 		initiative = initiative.get(3);
 		initiative.complete(3);
@@ -163,10 +161,10 @@ public class ObjectFactory {
 		InitiativeHelper ih = (InitiativeHelper) ObjectFactory.getInstance("org.icube.owen.initiative.InitiativeHelper");
 		System.out.println(ih.getInitiativeCount());
 
-		il.getInitiativeList("Deleted");
-		il.getInitiativeList("Completed");
-		il.getInitiativeList("Active");
-		il.getInitiativeList("Pending");
+		il.getInitiativeListByStatus("Deleted");
+		il.getInitiativeListByStatus("Completed");
+		il.getInitiativeListByStatus("Active");
+		il.getInitiativeListByStatus("Pending");
 		il.getInitiativeList();
 
 	}
@@ -175,7 +173,7 @@ public class ObjectFactory {
 	 * library(Rserve)
 	 * Rserve(args = "--no-save")
 	 */
-	public static void testRScript() {
+	/*public static void testRScript() {
 		try {
 			DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 			try (Transaction tx = dch.graphDb.beginTx()) {
@@ -219,5 +217,5 @@ public class ObjectFactory {
 			e.printStackTrace();
 		}
 
-	}
+	}*/
 }

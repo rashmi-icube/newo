@@ -101,7 +101,7 @@ public class FilterList extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Map<Integer, String> filterLabelMap = new HashMap<>();
 		try {
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call FilterList()}");
+			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getDimensionList()}");
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
 				filterLabelMap.put(rs.getInt(1), rs.getString(2));

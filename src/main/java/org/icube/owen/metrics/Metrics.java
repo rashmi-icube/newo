@@ -8,6 +8,7 @@ public class Metrics extends TheBorg{
 	private String category;
 	private double score;
 	private double average;
+	private boolean primary;
 	
 	public String getName() {
 		return name;
@@ -32,6 +33,12 @@ public class Metrics extends TheBorg{
 	}
 	public void setAverage(double average) {
 		this.average = average;
+	}
+	public boolean isPrimary() {
+		return primary;
+	}
+	public void setPrimary(boolean primary) {
+		this.primary = primary;
 	}
 	
 	

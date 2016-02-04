@@ -16,16 +16,17 @@ import org.neo4j.graphdb.Transaction;
 public class EmployeeList extends TheBorg {
 
 	/**
-	 * Returns the employee smart list based on the filter objects provided
+	 * Returns the employee smart list based on the filter objects provided for initiatives of type Team
 	 * 
 	 * @param filterList - list of filter objects
+	 * @param initiativeType - type of the initiative
 	 * @return list of employee objects
 	 */
-	public List<Employee> getEmployeeSmartList(List<Filter> filterList) {
+	public List<Employee> getEmployeeSmartListForTeam(List<Filter> filterList, String initiativeType) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Employee> employeeSmartList = new ArrayList<Employee>();
 		try (Transaction tx = dch.graphDb.beginTx()) {
-			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("getEmployeeSmartList method started");
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("getEmployeeSmartListForTeam method started");
 
 			Map<String, Object> params = new HashMap<>();
 
@@ -35,7 +36,7 @@ public class EmployeeList extends TheBorg {
 			}
 
 			// TODO make this dynamic based on filter list
-			String funcQuery = "", posQuery = "", zoneQuery = "";
+			String funcQuery = "", posQuery = "", zoneQuery = "", relation = "";
 			ArrayList<String> funcParam = (ArrayList<String>) params.get("Function");
 			ArrayList<String> zoneParam = (ArrayList<String>) params.get("Zone");
 			ArrayList<String> posParam = (ArrayList<String>) params.get("Position");
@@ -58,6 +59,17 @@ public class EmployeeList extends TheBorg {
 				posQuery = "p.Id in " + "{Position}";
 			}
 
+			if (initiativeType.equalsIgnoreCase("Performance")) {
+				relation = "learning";
+			} else if (initiativeType.equalsIgnoreCase("Social Cohesion")) {
+				relation = "social";
+			} else if (initiativeType.equalsIgnoreCase("Innovation")) {
+				relation = "innovation";
+			} else if (initiativeType.equalsIgnoreCase("Sentiment")) {
+				relation = "mentor";
+			} else if (initiativeType.equalsIgnoreCase("Retention")) {
+				relation = "learning|social|innovation|mentor";
+			}
 			String query = "match (z:Zone)<-[:from_zone]-(a:Employee)-[:has_functionality]->(f:Function),(z:Zone)<-[:from_zone]-(b:Employee)-[:has_functionality]"
 					+ "->(f:Function),a-[:is_positioned]->(p:Position)<-[:is_positioned]-b"
 					+ ((!zoneQuery.isEmpty() || !funcQuery.isEmpty() || !posQuery.isEmpty()) ? " where " : "")
@@ -65,7 +77,9 @@ public class EmployeeList extends TheBorg {
 					+ (funcQuery.isEmpty() ? "" : funcQuery + (!posQuery.isEmpty() ? " and " : ""))
 					+ (posQuery.isEmpty() ? "" : (posQuery))
 					+ " with a,b,count(a)"
-					+ "as TotalPeople optional match a<-[r:support]-b return a.emp_id as employeeId, a.FirstName as firstName, a.LastName as lastName,"
+					+ "as TotalPeople optional match a<-[r:"
+					+ relation
+					+ "]-b return a.emp_id as employeeId, a.FirstName as firstName, a.LastName as lastName,"
 					+ "a.Reporting_emp_id as reportingManagerId, a.emp_int_id as companyEmployeeId, count(r) as Score";
 
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("query : " + query);
@@ -86,8 +100,37 @@ public class EmployeeList extends TheBorg {
 	}
 
 	/**
+	 * Returns the employee smart list for initiatives of type Individual based on the filter objects provided
+	 * @return - List of employee objects
+	 */
+	// TODO : replace with actual query
+	public List<Employee> getEmployeeSmartListForIndividual() {
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		List<Employee> employeeSmartList = new ArrayList<Employee>();
+		try (Transaction tx = dch.graphDb.beginTx()) {
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("getEmployeeSmartListForIndividual method started");
+			String query = "";
+			query = "match (a:Employee)<-[r]-() where a.emp_id<=10 return a.emp_id as employeeId, a.FirstName as firstName, a.LastName as lastName,"
+					+ "a.Reporting_emp_id as reportingManagerId, a.emp_int_id as companyEmployeeId, count(r) as Score";
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("query : " + query);
+			Result res = dch.graphDb.execute(query);
+			while (res.hasNext()) {
+				Map<String, Object> resultMap = res.next();
+				Employee e = setEmployeeDetails(resultMap, true);
+				employeeSmartList.add(e);
+			}
+			tx.success();
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("employeeList : " + employeeSmartList.toString());
+
+		} catch (Exception e) {
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).error("Exception while getting the employeeSmartList", e);
+
+		}
+		return employeeSmartList;
+	}
+
+	/**
 	 * Get a list of all employee objects
-	 * 
 	 * @return employeeList
 	 */
 	public List<Employee> getEmployeeMasterList() {
@@ -144,7 +187,7 @@ public class EmployeeList extends TheBorg {
 	/**
 	 * Returns a list of string filter ids from a map of filters
 	 * 
-	 * @param filterMap
+	 * @param filterMap - Map of filters
 	 * @return string list of filter keys
 	 */
 	private List<Integer> getFilterKeyList(Map<Integer, String> filterMap) {

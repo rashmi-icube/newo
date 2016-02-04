@@ -16,26 +16,68 @@ import org.neo4j.graphdb.Transaction;
 public class InitiativeList extends TheBorg {
 
 	/**
-	 * Get the list of initiatives based on the status provided in the filter 
-	 * @param initiativeStatus : Can be any one of the following : Active, Pending, Deleted, Completed
-	 * @return list of initiatives
+	 * Get the list of initiatives based on the status provided in the filter
+	 * @param initiativeStatus - Status of the initiatives to be listed
+	 * @return - list of initiatives
 	 */
-	public List<Initiative> getInitiativeList(String initiativeStatus) {
+	public List<Initiative> getInitiativeListByStatus(String initiativeStatus) {
+		List<Initiative> initiativeList = new ArrayList<Initiative>();
+		initiativeList = getInitiativeList("Status", initiativeStatus);
+		return initiativeList;
+	}
+
+	/**
+	 * Get the list of initiatives based on the type provided in the filter
+	 * @param initiativeTypeId - ID of the type of initiative to be listed
+	 * @return - list of initiatives
+	 */
+	public List<Initiative> getInitiativeListByType(int initiativeTypeId) {
+		List<Initiative> initiativeList = new ArrayList<Initiative>();
+		initiativeList = getInitiativeList("Type", initiativeTypeId);
+		return initiativeList;
+	}
+
+	/**
+	 * @param viewByCriteria - Retrieves list of initiative based on criteria(Status/Type)
+	 * @param viewByValue - Status/Type of initiative to be viewed
+	 * @return List of initiatives
+	 */
+	public List<Initiative> getInitiativeList(String viewByCriteria, Object viewByValue) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		InitiativeHelper ih = new InitiativeHelper();
 		org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Get initiative list");
 		List<Initiative> initiativeList = new ArrayList<Initiative>();
 		Map<Integer, Initiative> initiativeIdMap = new HashMap<Integer, Initiative>();
 		try (Transaction tx = dch.graphDb.beginTx()) {
-			String initiativeListQuery = "match (o:Employee)-[:owner_of]->(i:Init {Status:'" + initiativeStatus
-					+ "'})<-[r:part_of]-(a) return i.Id as Id, i.Name as Name,"
-					+ "i.StartDate as StartDate, i.EndDate as EndDate, case i.Category when 'Individual' then collect(distinct(a.emp_id)) "
-					+ "else collect(distinct(a.Id))  end as PartOfID,collect(distinct(a.Name))as PartOfName, labels(a) as Filters, "
-					+ "collect(distinct (o.emp_id)) as OwnersOf,i.Comment as Comments,i.Type as Type,i.Category as Category,i.Status as Status";
-			org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Query for retrieving initiative with status " + initiativeStatus);
+			String initiativeListQuery = "";
+			if (viewByCriteria.equalsIgnoreCase("Type")) {
+
+				initiativeListQuery = "match (o:Employee)-[:owner_of]->(i:Init {Type:'" + (Integer) viewByValue
+						+ "'})<-[r:part_of]-(a) return i.Id as Id, i.Name as Name,"
+						+ "i.StartDate as StartDate, i.EndDate as EndDate, case i.Category when 'Individual' then collect(distinct(a.emp_id)) "
+						+ "else collect(distinct(a.Id))  end as PartOfID,collect(distinct(a.Name))as PartOfName, labels(a) as Filters, "
+						+ "collect(distinct (o.emp_id)) as OwnersOf,i.Comment as Comments,i.Type as Type,i.Category as Category,i.Status as Status";
+				org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Query for retrieving initiative of type " + viewByValue);
+
+			} else if (viewByCriteria.equalsIgnoreCase("Status")) {
+
+				initiativeListQuery = "match (o:Employee)-[:owner_of]->(i:Init {Status:'" + (String) viewByValue
+						+ "'})<-[r:part_of]-(a) return i.Id as Id, i.Name as Name,"
+						+ "i.StartDate as StartDate, i.EndDate as EndDate, case i.Category when 'Individual' then collect(distinct(a.emp_id)) "
+						+ "else collect(distinct(a.Id))  end as PartOfID,collect(distinct(a.Name))as PartOfName, labels(a) as Filters, "
+						+ "collect(distinct (o.emp_id)) as OwnersOf,i.Comment as Comments,i.Type as Type,i.Category as Category,i.Status as Status";
+				org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Query for retrieving initiative with status " + viewByValue);
+
+			}
+
+			if (initiativeListQuery.isEmpty()) {
+				org.apache.log4j.Logger.getLogger(InitiativeList.class).error("Incorrect criteria has been given " + viewByCriteria);
+				throw new Exception();
+			}
+
 			Result res = dch.graphDb.execute(initiativeListQuery);
 			org.apache.log4j.Logger.getLogger(InitiativeList.class).debug(
-					"Executed query for retrieving initiative list with status " + initiativeStatus);
+					"Executed query for retrieving initiative list with " + viewByCriteria + viewByValue);
 			while (res.hasNext()) {
 				Map<String, Object> resultMap = res.next();
 				int initiativeId = Integer.valueOf(resultMap.get("Id").toString());
@@ -60,7 +102,7 @@ public class InitiativeList extends TheBorg {
 				initiativeList.add(initiativeIdMap.get(initiativeId));
 			}
 			org.apache.log4j.Logger.getLogger(InitiativeList.class).debug(
-					"List of initiatives of type " + initiativeStatus + ": " + initiativeList.toString());
+					"List of initiatives of " + viewByCriteria + viewByValue + ": " + initiativeList.toString());
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(InitiativeList.class).error("Exception while getting the initiative list", e);
 		}

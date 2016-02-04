@@ -1,6 +1,5 @@
 package org.icube.owen.employee;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.icube.owen.ObjectFactory;

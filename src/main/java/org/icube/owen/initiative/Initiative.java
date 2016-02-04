@@ -252,7 +252,7 @@ public class Initiative extends TheBorg {
 	 * Retrieves the single initiative based on the initiativeId given
 	 * 
 	 * @param initiativeId - ID of the initiative which needs to be retrieved
-	 * @return initiative object
+	 * @return initiative object 
 	 */
 	public Initiative get(int initiativeId) {
 		InitiativeHelper ih = new InitiativeHelper();
