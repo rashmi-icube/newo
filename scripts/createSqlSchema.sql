@@ -439,7 +439,7 @@ DELIMITER ;
 
 
 DELIMITER //
-CREATE PROCEDURE GetDimensionList()
+CREATE PROCEDURE getDimensionList()
 BEGIN
   SELECT dimension_id,dimension_name FROM dimension_master;
 END //
@@ -447,7 +447,7 @@ DELIMITER ;
 
 
 DELIMITER //
-CREATE PROCEDURE GetDimensionValue
+CREATE PROCEDURE getDimensionValue
 (IN dim_id int)
 BEGIN
   SELECT dimension_val_id,dimension_val_name FROM dimension_value
@@ -457,7 +457,7 @@ DELIMITER ;
 
 
 DELIMITER //
-CREATE PROCEDURE GetAllDimensionValue()
+CREATE PROCEDURE getAllDimensionValue()
 BEGIN
   SELECT dimension_val_id,dimension_val_name,dimension_id FROM dimension_value;
 END //
@@ -465,7 +465,7 @@ DELIMITER ;
 
 
 DELIMITER //
-CREATE PROCEDURE GetMetriclistForCategory
+CREATE PROCEDURE getMetricListForCategory
 (IN cat varchar(20))
 BEGIN
   SELECT metric_master.metric_id as metric_id,metric_master.metric_name as metric_name FROM initiative_type Left join metric_master
@@ -475,7 +475,7 @@ DELIMITER ;
 
 
 DELIMITER //
-CREATE PROCEDURE GetMetricForInitiative
+CREATE PROCEDURE getMetricForInitiative
 (IN init_id INT)
 BEGIN
   SELECT metric_master.metric_id as metric_id,metric_master.metric_name as metric_name FROM initiative_type Left join metric_master
