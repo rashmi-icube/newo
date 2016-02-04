@@ -483,3 +483,14 @@ on initiative_type.metric_id=metric_master.metric_id where initiative_type.init_
 END //
 DELIMITER ;
 
+
+
+CREATE TABLE `neo_url` (
+  `company_id` int(11) NOT NULL AUTO_INCREMENT,
+  `db_location` varchar(256) NOT NULL,
+  `db_url` varchar(256) NOT NULL,
+  `port` int(11) NOT  NULL,
+  PRIMARY KEY (`company_id`)
+  );
+  
+  INSERT INTO `owen`.`neo_url` (`company_id`, `db_location`, `db_url`, `port`) VALUES ('1', 'c:/', 'localhost', '7474');
