@@ -9,7 +9,7 @@ TeamMetric=function(Function,Position,Zone){
   return(op)
 }
 
-IndividualMetric=function(Function,Position,Zone){
+IndividualMetric=function(emp_id){
 #   library(RNeo4j)
 #   library(igraph)
 #   library(moments)
