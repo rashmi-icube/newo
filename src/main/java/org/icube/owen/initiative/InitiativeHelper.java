@@ -79,9 +79,9 @@ public class InitiativeHelper extends TheBorg {
 		List<Map<String, Object>> initiativeCountMapList = new ArrayList<>();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		try {
-			// TODO hpatel to give new query for getting the count for everything even if it is 0
-			String query = "match (i:Init) where i.Status='Active' or i.Status='Completed' return i.Category as category,"
-					+ "i.Type as initiativeType,i.Status as status,count(i) as totalInitiatives";
+			String query = "match (i:Init) where i.Status='Active' or i.Status='Completed' with  distinct(i.Status) as stat match (z:Init) "
+					+ "with distinct(z.Category) as cat,stat match (j:Init {Category:cat}) with distinct(j.Type) as TYP,stat,cat optional "
+					+ "match (a:Init) where a.Status=stat and a.Type=TYP return cat as catergory,TYP as initiativeType,stat as status ,count(a) as totalInitiatives";
 			ResultSet res = dch.neo4jCon.createStatement().executeQuery(query);
 			while (res.next()) {
 				Map<String, Object> initiativeCountMap = new HashMap<>();

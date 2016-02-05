@@ -16,6 +16,7 @@ import org.icube.owen.initiative.Initiative;
 import org.icube.owen.initiative.InitiativeHelper;
 import org.icube.owen.initiative.InitiativeList;
 import org.icube.owen.metrics.MetricsList;
+import org.rosuda.REngine.REXP;
 
 public class ObjectFactory {
 
@@ -56,8 +57,6 @@ public class ObjectFactory {
 	}
 
 	public static void main(String[] args) {
-
-		// testRScript();
 
 		Initiative initiative = (Initiative) ObjectFactory.getInstance("org.icube.owen.initiative.Initiative");
 
@@ -135,7 +134,8 @@ public class ObjectFactory {
 		// System.out.println(initiative.get(8)); //team
 
 		MetricsList ml = (MetricsList) ObjectFactory.getInstance("org.icube.owen.metrics.MetricsList");
-		System.out.println(ml.getInitiativeMetrics("team", 7));
+		System.out.println(ml.getInitiativeMetricsForIndividual(partOfEmployeeList, 1));
+		System.out.println(ml.getInitiativeMetricsForTeam(filterMasterList, 6));
 
 		Initiative updatedinitiative = initiative.get(3);
 		ownerOfList.clear();
@@ -163,6 +163,8 @@ public class ObjectFactory {
 		il.getInitiativeListByStatus("Active");
 		il.getInitiativeListByStatus("Pending");
 		il.getInitiativeList();
+		
+		testRScript();
 
 	}
 
@@ -170,53 +172,41 @@ public class ObjectFactory {
 	 * library(Rserve)
 	 * Rserve(args = "--no-save")
 	 */
-	/*public static void testRScript() {
+	public static void testRScript() {
 		try {
 
 			DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-			ResultSet resultSet = dch.neo4jCon.createStatement().executeQuery("MATCH (n:Init{Id:5}) RETURN n");
-
-			while (resultSet.next()) {
-				Map<String, Object> e = (Map<String, Object>) resultSet.getObject("n");
-				System.out.println("id: " + e.get("Id") + ", name: " + e.get("Name"));
-			}
-
-			RConnection c = new RConnection();
 
 			// source the Palindrom function
-			c.eval("source(\"/Users/apple/Documents/workspace/owen/scripts/rscript.r\")");
+			dch.rCon.eval("source(\"/Users/apple/Documents/workspace/owen/scripts/rscript.r\")");
 
 			// call the function. Return true
-			REXP is_aba_palindrome = c.eval("palindrome('aba')");
+			REXP is_aba_palindrome = dch.rCon.eval("palindrome('aba')");
 			System.out.println(is_aba_palindrome.asInteger()); // prints 1 => true
 
 			// call the function. return false
-			REXP is_abc_palindrome = c.eval("palindrome('abc')");
+			REXP is_abc_palindrome = dch.rCon.eval("palindrome('abc')");
 			System.out.println(is_abc_palindrome.asInteger()); // prints 0 => false
 
+			dch.rCon.eval("source(\"/Users/apple/Documents/workspace/owen/scripts/performanceTeam.r\")");
 			int[] funcParam = { 1 };
 			int[] zoneParam = { 8 };
 			int[] posParam = { 4 };
 
-			c.assign("funcParam", funcParam);
-			c.assign("zoneParam", zoneParam);
-			c.assign("posParam", posParam);
+			dch.rCon.assign("funcParam", funcParam);
+			dch.rCon.assign("zoneParam", zoneParam);
+			dch.rCon.assign("posParam", posParam);
 
-			REXP performance = c.parseAndEval("try(eval(Performance(funcParam ,posParam ,zoneParam)))");
+			REXP performance = dch.rCon.parseAndEval("try(eval(Performance(funcParam ,posParam ,zoneParam)))");
 			if (performance.inherits("try-error")) {
 				System.err.println("Error: " + performance.asDouble());
 			} else {
 				System.out.println(performance.asDouble()); // prints 0 => false
 			}
-		} catch (REngineException e) {
-			e.printStackTrace();
-			// org.apache.log4j.Logger.getLogger(ObjectFactory.class).error("Exception while trying to run RScript", e);
-		} catch (REXPMismatchException e) {
-			e.printStackTrace();
-			// org.apache.log4j.Logger.getLogger(ObjectFactory.class).error("Exception while trying to run RScript", e1);
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
-	}*/
+	}
 }

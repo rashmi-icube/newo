@@ -9,11 +9,14 @@ import java.util.Properties;
 
 import org.icube.owen.TheBorg;
 import org.neo4j.jdbc.Driver;
+import org.rosuda.REngine.Rserve.RConnection;
+import org.rosuda.REngine.Rserve.RserveException;
 
 public class DatabaseConnectionHelper extends TheBorg {
 
 	public Connection mysqlCon;
 	public Connection neo4jCon;
+	public RConnection rCon;
 	/*private final static String mysqlurl = "jdbc:mysql://192.168.1.6:3306/owen";
 	private final static String user = "icube";
 	private final static String password = "icube123";*/
@@ -53,9 +56,14 @@ public class DatabaseConnectionHelper extends TheBorg {
 			} catch (Exception e) {
 				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("An error occurred while connecting to neo4j server", e);
 			}
+
+			// R connection
+			rCon = new RConnection();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error(
 					"An error occurred while attempting to get neo4j connection details", e);
+		} catch (RserveException e) {
+			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("An error occurred while trying to connect to R", e);
 		}
 
 	}
@@ -67,7 +75,7 @@ public class DatabaseConnectionHelper extends TheBorg {
 			if (!mysqlCon.isClosed()) {
 				try {
 					mysqlCon.close();
-					System.out.println("Connection to MySql closed!!!!");
+					org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Connection to mySql closed!!!!");
 				} catch (SQLException e) {
 					org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class)
 							.error("An error occurred while closing the mysql connection", e);
@@ -76,11 +84,15 @@ public class DatabaseConnectionHelper extends TheBorg {
 			if (!neo4jCon.isClosed()) {
 				try {
 					neo4jCon.close();
-					System.out.println("Connection to Neo4j closed!!!!");
+					org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Connection to neo4j closed!!!!");
 				} catch (SQLException e) {
 					org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class)
 							.error("An error occurred while closing the neo4j connection", e);
 				}
+			}
+			if (rCon.isConnected()) {
+				rCon.close();
+				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Connection to R closed!!!!");
 			}
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("An error occurred while attempting to close db connections", e);
