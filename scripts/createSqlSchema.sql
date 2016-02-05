@@ -508,3 +508,13 @@ BEGIN
   SELECT db_url,port FROM neo_url where company_id=comp_id; 
 END //
 DELIMITER ;  
+
+
+DELIMITER //
+CREATE PROCEDURE getListCollegue
+(IN array VARCHAR(1000))
+BEGIN
+select emp_id from Employee
+where cube_id in (select cube_id from employee where FIND_IN_SET(emp_id, array));
+END //
+DELIMITER 
