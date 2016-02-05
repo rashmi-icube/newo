@@ -499,3 +499,12 @@ CREATE TABLE `neo_url` (
   );
   
   INSERT INTO `owen`.`neo_url` (`db_location`, `db_url`, `port`,`userid`,`password`) VALUES ('c:/', 'localhost', '7474','icube','icube123');
+
+  
+DELIMITER //
+CREATE PROCEDURE getNeoConnectionUrl
+(IN comp_id INT)
+BEGIN
+  SELECT db_url,port FROM neo_url where company_id=comp_id; 
+END //
+DELIMITER ;  
