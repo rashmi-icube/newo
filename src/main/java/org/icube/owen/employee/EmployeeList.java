@@ -1,5 +1,7 @@
 package org.icube.owen.employee;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -8,10 +10,7 @@ import java.util.Map;
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
 import org.icube.owen.filter.Filter;
-import org.icube.owen.filter.FilterList;
 import org.icube.owen.helper.DatabaseConnectionHelper;
-import org.neo4j.graphdb.Result;
-import org.neo4j.graphdb.Transaction;
 
 public class EmployeeList extends TheBorg {
 
@@ -22,10 +21,12 @@ public class EmployeeList extends TheBorg {
 	 * @param initiativeType - type of the initiative
 	 * @return list of employee objects
 	 */
+	@SuppressWarnings("unchecked")
 	public List<Employee> getEmployeeSmartListForTeam(List<Filter> filterList, String initiativeType) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Employee> employeeSmartList = new ArrayList<Employee>();
-		try (Transaction tx = dch.graphDb.beginTx()) {
+
+		try {
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("getEmployeeSmartListForTeam method started");
 
 			Map<String, Object> params = new HashMap<>();
@@ -44,21 +45,23 @@ public class EmployeeList extends TheBorg {
 			if (funcParam.contains("all") || funcParam.contains("All")) {
 				funcQuery = "";
 			} else {
-				funcQuery = "f.Id in {Function}";
+				funcQuery = "f.Id in " + funcParam.toString();
+
 			}
 
 			if (zoneParam.contains("all") || zoneParam.contains("All")) {
 				zoneQuery = "";
 			} else {
-				zoneQuery = "z.Id in {Zone}";
+				zoneQuery = "z.Id in " + zoneParam.toString();
 			}
 
 			if (posParam.contains("all") || posParam.contains("All")) {
 				posQuery = "";
 			} else {
-				posQuery = "p.Id in " + "{Position}";
+				posQuery = "p.Id in " + posParam.toString();
 			}
 
+			// TODO Swarna : Why not use switch case?
 			if (initiativeType.equalsIgnoreCase("Performance")) {
 				relation = "learning";
 			} else if (initiativeType.equalsIgnoreCase("Social Cohesion")) {
@@ -80,16 +83,15 @@ public class EmployeeList extends TheBorg {
 					+ "as TotalPeople optional match a<-[r:"
 					+ relation
 					+ "]-b return a.emp_id as employeeId, a.FirstName as firstName, a.LastName as lastName,"
-					+ "a.Reporting_emp_id as reportingManagerId, a.emp_int_id as companyEmployeeId, count(r) as Score";
+					+ "a.Reporting_emp_id as reportingManagerId, a.emp_int_id as companyEmployeeId, count(r) as score";
 
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("query : " + query);
-			Result res = dch.graphDb.execute(query, params);
-			while (res.hasNext()) {
-				Map<String, Object> resultMap = res.next();
-				Employee e = setEmployeeDetails(resultMap, true);
+			ResultSet res = dch.neo4jCon.createStatement().executeQuery(query);
+			while (res.next()) {
+				Employee e = setEmployeeDetails(res, true);
 				employeeSmartList.add(e);
 			}
-			tx.success();
+
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("employeeList : " + employeeSmartList.toString());
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).error("Exception while getting the employeeSmartList", e);
@@ -103,23 +105,22 @@ public class EmployeeList extends TheBorg {
 	 * Returns the employee smart list for initiatives of type Individual based on the filter objects provided
 	 * @return - List of employee objects
 	 */
-	// TODO : replace with actual query
+	// TODO hpatel replace with actual query
 	public List<Employee> getEmployeeSmartListForIndividual() {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Employee> employeeSmartList = new ArrayList<Employee>();
-		try (Transaction tx = dch.graphDb.beginTx()) {
+		try {
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("getEmployeeSmartListForIndividual method started");
-			String query = "";
-			query = "match (a:Employee)<-[r]-() where a.emp_id<=10 return a.emp_id as employeeId, a.FirstName as firstName, a.LastName as lastName,"
-					+ "a.Reporting_emp_id as reportingManagerId, a.emp_int_id as companyEmployeeId, count(r) as Score";
+			String query = "match (a:Employee)<-[r]-() where a.emp_id<=10 return a.emp_id as employeeId, a.FirstName as firstName, a.LastName as lastName,"
+					+ "a.Reporting_emp_id as reportingManagerId, a.emp_int_id as companyEmployeeId, count(r) as score";
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("query : " + query);
-			Result res = dch.graphDb.execute(query);
-			while (res.hasNext()) {
-				Map<String, Object> resultMap = res.next();
-				Employee e = setEmployeeDetails(resultMap, true);
+			ResultSet res = dch.neo4jCon.createStatement().executeQuery(query);
+			while (res.next()) {
+
+				Employee e = setEmployeeDetails(res, true);
 				employeeSmartList.add(e);
 			}
-			tx.success();
+
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("employeeList : " + employeeSmartList.toString());
 
 		} catch (Exception e) {
@@ -136,17 +137,17 @@ public class EmployeeList extends TheBorg {
 	public List<Employee> getEmployeeMasterList() {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Employee> employeeList = new ArrayList<>();
-		try (Transaction tx = dch.graphDb.beginTx()) {
+		try {
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("getEmployeeMasterList method started");
-			String query = "match (a:Employee) return a.emp_id as employeeId, a.FirstName as firstName, a.LastName as lastName";
+			String query = "match (a:Employee) return a.emp_id as employeeId, a.FirstName as firstName, a.LastName as lastName, "
+					+ "a.Reporting_emp_id as reportingManagerId, a.emp_int_id as companyEmployeeId";
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("query : " + query);
-			Result res = dch.graphDb.execute(query);
-			while (res.hasNext()) {
-				Map<String, Object> resultMap = res.next();
-				Employee e = setEmployeeDetails(resultMap, false);
+			ResultSet res = dch.neo4jCon.createStatement().executeQuery(query);
+			while (res.next()) {
+				Employee e = setEmployeeDetails(res, false);
 				employeeList.add(e);
 			}
-			tx.success();
+
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("employeeList : " + employeeList.toString());
 
 		} catch (Exception e) {
@@ -161,21 +162,19 @@ public class EmployeeList extends TheBorg {
 	/**
 	 * Set the employee details based on the result from the cypher query
 	 * 
-	 * @param resultMap
-	 * actual result from cypher
-	 * @param setScore
-	 * if the score should be set for the employee or not
+	 * @param resultMap actual result from cypher
+	 * @param setScore if the score should be set for the employee or not
 	 * @return employee object
 	 */
-	protected Employee setEmployeeDetails(Map<String, Object> resultMap, boolean setScore) {
+	protected Employee setEmployeeDetails(ResultSet res, boolean setScore) throws SQLException {
 		Employee e = new Employee();
-		e.setEmployeeId(Integer.valueOf(resultMap.get("employeeId").toString()));
-		e.setFirstName(resultMap.get("firstName").toString());
-		e.setLastName(resultMap.get("lastName").toString());
-		e.setReportingManagerId(resultMap.get("reportingManagerId").toString());
-		e.setCompanyEmployeeId(resultMap.get("companyEmployeeId").toString());
+		e.setEmployeeId(res.getInt("employeeId"));
+		e.setCompanyEmployeeId(res.getString("companyEmployeeId"));
+		e.setFirstName(res.getString("firstName"));
+		e.setLastName(res.getString("lastName"));
+		e.setReportingManagerId(res.getString("reportingManagerId"));
 		if (setScore) {
-			e.setScore((Long) resultMap.get("Score"));
+			e.setScore(res.getLong("score"));
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug(
 					"Employee  : " + e.getEmployeeId() + "-" + e.getFirstName() + "-" + e.getScore());
 		} else {
@@ -196,54 +195,4 @@ public class EmployeeList extends TheBorg {
 		return filterKeysStringList;
 	}
 
-	// TODO make this dynamic based on filter list
-	private String getDynamicQueryForDimensions(List<Filter> filterList) {
-
-		FilterList fl = new FilterList();
-		Map<Integer, String> filterLabelMap = fl.getFilterLabelMap();
-
-		Map<String, Object> params = new HashMap<>();
-		for (String filterName : filterLabelMap.values()) {
-
-		}
-
-		for (int i = 0; i < filterList.size(); i++) {
-			Filter f = filterList.get(i);
-			params.put(f.getFilterName(), getFilterKeyList(f.getFilterValues()));
-		}
-
-		String funcQuery = "", posQuery = "", zoneQuery = "";
-		ArrayList<String> funcParam = (ArrayList<String>) params.get("Function");
-		ArrayList<String> zoneParam = (ArrayList<String>) params.get("Zone");
-		ArrayList<String> posParam = (ArrayList<String>) params.get("Position");
-
-		if (funcParam.contains("all") || funcParam.contains("All")) {
-			funcQuery = "";
-		} else {
-			funcQuery = "f.Id in {Function}";
-		}
-
-		if (zoneParam.contains("all") || zoneParam.contains("All")) {
-			zoneQuery = "";
-		} else {
-			zoneQuery = "z.Id in {Zone}";
-		}
-
-		if (posParam.contains("all") || posParam.contains("All")) {
-			posQuery = "";
-		} else {
-			posQuery = "p.Id in " + "{Position}";
-		}
-
-		String query = "match (z:Zone)<-[:from_zone]-(a:Employee)-[:has_functionality]->(f:Function),(z:Zone)<-[:from_zone]-(b:Employee)-[:has_functionality]"
-				+ "->(f:Function),a-[:is_positioned]->(p:Position)<-[:is_positioned]-b"
-				+ ((!zoneQuery.isEmpty() || !funcQuery.isEmpty() || !posQuery.isEmpty()) ? " where " : "")
-				+ (zoneQuery.isEmpty() ? "" : (zoneQuery + ((!funcQuery.isEmpty() || !posQuery.isEmpty() ? " and " : ""))))
-				+ (funcQuery.isEmpty() ? "" : funcQuery + (!posQuery.isEmpty() ? " and " : ""))
-				+ (posQuery.isEmpty() ? "" : (posQuery))
-				+ " with a,b,count(a)"
-				+ "as TotalPeople optional match a<-[r:support]-b return a.emp_id as employeeId, a.FirstName as firstName, a.LastName as lastName,"
-				+ "a.Reporting_emp_id as reportingManagerId, a.emp_int_id as companyEmployeeId, count(r) as Score";
-		return query;
-	}
 }

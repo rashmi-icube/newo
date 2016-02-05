@@ -9,7 +9,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -19,8 +18,6 @@ import org.icube.owen.TheBorg;
 import org.icube.owen.employee.Employee;
 import org.icube.owen.filter.Filter;
 import org.icube.owen.helper.DatabaseConnectionHelper;
-import org.neo4j.graphdb.Result;
-import org.neo4j.graphdb.Transaction;
 
 public class Initiative extends TheBorg {
 
@@ -73,8 +70,8 @@ public class Initiative extends TheBorg {
 	 */
 	public int create() {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		String initiativeIdStr = "";
-		try (Transaction tx = dch.graphDb.beginTx()) {
+		int initiativeId = 0;
+		try {
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Creating the initiative");
 
 			String createInitQuery = "match (i:Init)  with CASE count(i) WHEN 0  THEN 1 ELSE max(i.Id)+1 END as uid "
@@ -83,43 +80,43 @@ public class Initiative extends TheBorg {
 					+ initiativeEndDate.toString() + "',Comment:'" + initiativeComment + "'}) return i.Id as Id";
 
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Create initiative query : " + createInitQuery);
-			Result res = dch.graphDb.execute(createInitQuery);
-			Iterator it = res.columnAs("Id");
-			while (it.hasNext()) {
-				initiativeIdStr = it.next().toString();
+			ResultSet res = dch.neo4jCon.createStatement().executeQuery(createInitQuery);
+			while (res.next()) {
+				initiativeId = res.getInt("Id");
 			}
+			if (initiativeId > 0) {
+				this.initiativeId = initiativeId;
 
-			int initiativeId = Integer.parseInt(initiativeIdStr);
-			this.initiativeId = initiativeId;
+				// Check if the initiative is of the category Individual
 
-			// Check if the initiative is of the category Individual
-
-			if (this.initiativeCategory.equalsIgnoreCase("Individual")) {
-				if (setEmployeesPartOf(initiativeId, this.partOfEmployeeList)) {
-					org.apache.log4j.Logger.getLogger(Initiative.class).debug("Success in setting part_of connections for initiative");
-				} else {
-					org.apache.log4j.Logger.getLogger(Initiative.class).error("Unsuccessful in setting part_of connections for initiative");
+				if (this.initiativeCategory.equalsIgnoreCase("Individual")) {
+					if (setEmployeesPartOf(initiativeId, this.partOfEmployeeList)) {
+						org.apache.log4j.Logger.getLogger(Initiative.class).debug("Success in setting part_of connections for initiative");
+					} else {
+						org.apache.log4j.Logger.getLogger(Initiative.class).error("Unsuccessful in setting part_of connections for initiative");
+					}
+				} else if (this.initiativeCategory.equalsIgnoreCase("Team")) {
+					if (setPartOf(initiativeId, this.filterList)) {
+						org.apache.log4j.Logger.getLogger(Initiative.class).debug("Success in setting part of initiative");
+					} else {
+						org.apache.log4j.Logger.getLogger(Initiative.class).error("Unsuccessful in setting part of initiative");
+					}
 				}
-			} else if (this.initiativeCategory.equalsIgnoreCase("Team")) {
-				if (setPartOf(initiativeId, this.filterList)) {
-					org.apache.log4j.Logger.getLogger(Initiative.class).debug("Success in setting part of initiative");
+				if (!this.ownerOfList.isEmpty() && setOwner(initiativeId, this.ownerOfList)) {
+					org.apache.log4j.Logger.getLogger(Initiative.class).debug("Success in setting owner for initiative");
 				} else {
-					org.apache.log4j.Logger.getLogger(Initiative.class).error("Unsuccessful in setting part of initiative");
+					org.apache.log4j.Logger.getLogger(Initiative.class).error("Unsuccessful in setting owner for initiative");
 				}
-			}
-			if (!this.ownerOfList.isEmpty() && setOwner(initiativeId, this.ownerOfList)) {
-				org.apache.log4j.Logger.getLogger(Initiative.class).debug("Success in setting owner for initiative");
+
 			} else {
-				org.apache.log4j.Logger.getLogger(Initiative.class).error("Unsuccessful in setting owner for initiative");
+				org.apache.log4j.Logger.getLogger(Initiative.class).error("Unable to create initiative");
 			}
-
-			tx.success();
 
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception in Create initiative query", e);
 
 		}
-		org.apache.log4j.Logger.getLogger(Initiative.class).debug("Initiative ID : " + initiativeIdStr);
+		org.apache.log4j.Logger.getLogger(Initiative.class).debug("Initiative ID : " + initiativeId);
 
 		return initiativeId;
 	}
@@ -131,7 +128,7 @@ public class Initiative extends TheBorg {
 	@SuppressWarnings("unchecked")
 	private boolean setPartOf(int initiativeId, List<Filter> filterList) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		try (Transaction tx = dch.graphDb.beginTx()) {
+		try {
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Create Initiative Connections for initiativeId " + initiativeId);
 			Map<String, Object> params = new HashMap<>();
 			params.put("initiativeId", initiativeId);
@@ -146,31 +143,36 @@ public class Initiative extends TheBorg {
 			ArrayList<String> zoneParam = (ArrayList<String>) params.get("Zone");
 			ArrayList<String> posParam = (ArrayList<String>) params.get("Position");
 			if (funcParam.contains("all") || funcParam.contains("All")) {
-				funcQuery = "Match (i:Init),(f:Function) WHERE i.Id = {initiativeId} Create f-[:part_of]->i ";
+				funcQuery = "Match (i:Init),(f:Function) WHERE i.Id = " + initiativeId + " Create f-[:part_of]->i ";
 			} else {
-				funcQuery = "Match (i:Init),(f:Function) where i.Id = {initiativeId} and f.Id in {Function} Create f-[:part_of]->i ";
+				funcQuery = "Match (i:Init),(f:Function) where i.Id = " + initiativeId + " and f.Id in " + funcParam.toString()
+						+ " Create f-[:part_of]->i ";
 			}
 
 			if (zoneParam.contains("all") || zoneParam.contains("All")) {
-				zoneQuery = "Match (i:Init),(z:Zone) where i.Id = {initiativeId} create z-[:part_of]->i";
-			} else {
-				zoneQuery = "Match (i:Init),(z:Zone) where i.Id = {initiativeId} and z.Id in {Zone} create z-[:part_of]->i";
+				zoneQuery = "Match (i:Init),(z:Zone) where i.Id = " + initiativeId + " create z-[:part_of]->i";
 
+			} else {
+				zoneQuery = "Match (i:Init),(z:Zone) where i.Id = " + initiativeId + " and z.Id in " + zoneParam.toString()
+						+ " create z-[:part_of]->i";
 			}
 
 			if (posParam.contains("all") || posParam.contains("All")) {
-				posQuery = "Match (i:Init),(p:Position) where i.Id = {initiativeId} Create p-[:part_of]->i";
+				posQuery = "Match (i:Init),(p:Position) where i.Id = " + initiativeId + " Create p-[:part_of]->i";
+
 			} else {
-				posQuery = "Match (i:Init),(p:Position) where i.Id = {initiativeId} and p.Id in {Position} Create p-[:part_of]->i";
+				posQuery = "Match (i:Init),(p:Position) where i.Id = " + initiativeId + " and p.Id in " + posParam.toString()
+						+ " Create p-[:part_of]->i";
+
 			}
 
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Function query : " + funcQuery);
-			dch.graphDb.execute(funcQuery, params);
+			dch.neo4jCon.createStatement().executeQuery(funcQuery);
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Position query : " + posQuery);
-			dch.graphDb.execute(posQuery, params);
+			dch.neo4jCon.createStatement().executeQuery(posQuery);
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Zone query : " + zoneQuery);
-			dch.graphDb.execute(zoneQuery, params);
-			tx.success();
+			dch.neo4jCon.createStatement().executeQuery(zoneQuery);
+
 			return true;
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception while setting part of for initiative ID" + initiativeId, e);
@@ -187,19 +189,17 @@ public class Initiative extends TheBorg {
 	 */
 	private boolean setEmployeesPartOf(int initiativeId, List<Employee> employeeList) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		try (Transaction tx = dch.graphDb.beginTx()) {
+		try {
 			ArrayList<Integer> empIdList = new ArrayList<>();
 			for (Employee e : employeeList) {
 				empIdList.add(e.getEmployeeId());
 			}
 
-			Map<String, Object> params = new HashMap<>();
-			params.put("initiativeId", initiativeId);
-			params.put("empIdList", empIdList);
-			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Creating part_of connections for initiative : " + params.get("initiativeId"));
-			String query = "Match (i:Init),(e:Employee) where i.Id = {initiativeId} and e.emp_id in {empIdList} Create e-[:part_of]->i";
-			dch.graphDb.execute(query, params);
-			tx.success();
+			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Creating part_of connections for initiative : " + initiativeId);
+			String query = "Match (i:Init),(e:Employee) where i.Id = " + initiativeId + " and e.emp_id in " + empIdList.toString()
+					+ " Create e-[:part_of]->i";
+			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Creating part_of connections query : " + query);
+			dch.neo4jCon.createStatement().executeQuery(query);
 			return true;
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(Initiative.class).error(
@@ -228,19 +228,16 @@ public class Initiative extends TheBorg {
 	 */
 	private boolean setOwner(int initiativeId, List<Employee> employeeList) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		try (Transaction tx = dch.graphDb.beginTx()) {
+		try {
 			ArrayList<Integer> empIdList = new ArrayList<>();
 			for (Employee e : employeeList) {
 				empIdList.add(e.getEmployeeId());
 			}
-
-			Map<String, Object> params = new HashMap<>();
-			params.put("initiativeId", initiativeId);
-			params.put("empIdList", empIdList);
-			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Creating connections for initiative : " + params.get("initiativeId"));
-			String query = "Match (i:Init),(e:Employee) where i.Id = {initiativeId} and e.emp_id in {empIdList} Create e-[:owner_of]->i";
-			dch.graphDb.execute(query, params);
-			tx.success();
+			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Creating connections for initiative : " + initiativeId);
+			String query = "Match (i:Init),(e:Employee) where i.Id = " + initiativeId + " and e.emp_id in " + empIdList.toString()
+					+ " Create e-[:owner_of]->i";
+			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Creating connections for initiative query : " + query);
+			dch.neo4jCon.createStatement().executeQuery(query);
 			return true;
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception while creating owner for initiative : " + initiativeId, e);
@@ -261,37 +258,34 @@ public class Initiative extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Initiative i = new Initiative();
 		i.setInitiativeId(initiativeId);
-		try (Transaction tx = dch.graphDb.beginTx()) {
+		try {
 			String query = "match (o:Employee)-[:owner_of]->(i:Init{Id:" + initiativeId + "})<-[r:part_of]-(a) return i.Name as Name,"
 					+ "i.StartDate as StartDate, i.EndDate as EndDate,case i.Category when 'Individual' then collect(distinct(a.emp_id)) "
 					+ "else collect(distinct(a.Id))  end as PartOfID,collect(distinct(a.Name))as PartOfName, labels(a) as Filters, "
 					+ "collect(distinct (o.emp_id)) as OwnersOf,i.Comment as Comments,i.Type as Type,i.Category as Category,i.Status as Status";
-
 			org.apache.log4j.Logger.getLogger(Initiative.class).error("Query : " + query);
-			Result res = dch.graphDb.execute(query);
-			while (res.hasNext()) {
-				Map<String, Object> result = res.next();
-				i.setInitiativeName(result.get("Name").toString());
-				i.setInitiativeType(result.get("Type").toString());
-				i.setInitiativeStatus(result.get("Status").toString());
-				i.setInitiativeCategory(result.get("Category").toString());
+			ResultSet res = dch.neo4jCon.createStatement().executeQuery(query);
+			while (res.next()) {
+				i.setInitiativeName(res.getString("Name"));
+				i.setInitiativeType(res.getString("Type"));
+				i.setInitiativeStatus(res.getString("Status"));
+				i.setInitiativeCategory(res.getString("Category"));
 				SimpleDateFormat parserSDF = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzzz yyyy", Locale.ENGLISH);
-				i.setInitiativeStartDate(parserSDF.parse((String) result.get("StartDate")));
-				i.setInitiativeEndDate(parserSDF.parse((String) result.get("EndDate")));
-				i.setInitiativeComment(result.get("Comments").toString());
-				if (result.get("Category").toString().equalsIgnoreCase("Team")) {
-					i.setFilterList(ih.setPartOfConnections(result, i));
-				} else if (result.get("Category").toString().equalsIgnoreCase("Individual")) {
-					i.setPartOfEmployeeList(ih.setPartOfEmployeeList(result, i));
+				i.setInitiativeStartDate(parserSDF.parse((String) res.getString("StartDate")));
+				i.setInitiativeEndDate(parserSDF.parse((String) res.getString("EndDate")));
+				i.setInitiativeComment(res.getString("Comments"));
+				if (res.getString("Category").equalsIgnoreCase("Team")) {
+					i.setFilterList(ih.setPartOfConnections(res, i));
+				} else if (res.getString("Category").equalsIgnoreCase("Individual")) {
+					i.setPartOfEmployeeList(ih.setPartOfEmployeeList(res, i));
 				}
 
-				i.setOwnerOfList(ih.getOwnerOfList(result));
+				i.setOwnerOfList(ih.getOwnerOfList(res));
 			}
-		} catch (ParseException e) {
+		} catch (ParseException | SQLException e) {
 			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception while retrieving the initiative with ID" + initiativeId, e);
 
 		}
-
 		return i;
 	}
 
@@ -328,13 +322,13 @@ public class Initiative extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		boolean status = false;
 
-		try (Transaction tx = dch.graphDb.beginTx()) {
+		try {
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Starting to delete the initiative ID " + initiativeId);
 			String query = "match(a:Init {Id:" + initiativeId + "}) set a.Status = 'Deleted' return a.Status as currentStatus";
-			Result res = dch.graphDb.execute(query);
+			dch.neo4jCon.createStatement().executeQuery(query);
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Deleted initiative with ID " + initiativeId);
 			status = true;
-			tx.success();
+
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception in deleting initiative", e);
 
@@ -352,11 +346,11 @@ public class Initiative extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		boolean status = false;
 		int updatedInitiativeId = updatedInitiative.getInitiativeId();
-		try (Transaction tx = dch.graphDb.beginTx()) {
+		try {
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Started update of The initiative with ID " + updatedInitiative.initiativeId);
 			List<Employee> updatedOwnerOfList = updatedInitiative.getOwnerOfList();
 			String ownersOfQuery = "match(i:Init {Id:" + updatedInitiativeId + "})<-[r:owner_of]-(e:Employee) delete r";
-			Result ownersOfRes = dch.graphDb.execute(ownersOfQuery);
+			dch.neo4jCon.createStatement().executeQuery(ownersOfQuery);
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Ownersof list deleted from initiative " + updatedInitiative.initiativeId);
 			updatedInitiative.setOwner(updatedInitiativeId, updatedOwnerOfList);
 			String query = "match(a:Init {Id:" + updatedInitiativeId + "}) set a.Name = '" + updatedInitiative.getInitiativeName().toString()
@@ -366,9 +360,9 @@ public class Initiative extends TheBorg {
 					+ updatedInitiative.getInitiativeEndDate().toString() + "'," + "a.StartDate = '"
 					+ updatedInitiative.getInitiativeStartDate().toString() + "' return a.Name as Name, " + "a.Type as Type,a.Category as Category, "
 					+ "a.Status as Status,a.Comment as Comment,a.EndDate as endDate,a.StartDate as StartDate";
-			Result res = dch.graphDb.execute(query);
+			dch.neo4jCon.createStatement().executeQuery(query);
 			status = true;
-			tx.success();
+
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Updated initiative with ID " + updatedInitiativeId);
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception in updating initiative " + updatedInitiativeId, e);
@@ -398,11 +392,11 @@ public class Initiative extends TheBorg {
 	 */
 	public boolean complete(int initiativeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		try (Transaction tx = dch.graphDb.beginTx()) {
+		try {
 			String query = "match(a:Init {Id:" + initiativeId + "}) set a.Status = 'Completed'";
-			Result res = dch.graphDb.execute(query);
+			dch.neo4jCon.createStatement().executeQuery(query);
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Changed the status of initiative with ID " + initiativeId + " to Completed");
-			tx.success();
+
 			return true;
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception in changing the status to Completed for initiative " + initiativeId,

@@ -11,8 +11,8 @@ Performance=function(Function,Position,Zone){
   library(igraph)
   library(moments)
   
-  graph = startGraph("http://localhost:7474/db/data/")
-    
+  #graph = startGraph("http://localhost:7474/db/data/")
+   graph = RNeo4j::
   querynode = paste("match (z:Zone)<-[:from_zone]-(a:Employee)-[:has_functionality]->(f:Function),a-[:is_positioned]->(p:Position) 
                     where f.Id in [",paste(Function,collapse=","),"] and p.Id in [",paste(Position,collapse=","),"] and z.Id in [",paste(Zone,collapse=","),"] return a.emp_id",sep="")
   

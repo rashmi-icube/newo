@@ -1,12 +1,11 @@
 package org.icube.owen.employee;
 
+import java.sql.ResultSet;
 import java.util.Map;
 
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
 import org.icube.owen.helper.DatabaseConnectionHelper;
-import org.neo4j.graphdb.Result;
-import org.neo4j.graphdb.Transaction;
 
 public class Employee extends TheBorg {
 
@@ -80,26 +79,26 @@ public class Employee extends TheBorg {
 	 * @param employeeId - ID of the employee that needs to be retrieved
 	 * @return employee object
 	 */
+	@SuppressWarnings("unchecked")
 	public Employee get(int employeeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Employee e = new Employee();
-		try (Transaction tx = dch.graphDb.beginTx()) {
-			String query = "match (a:Employee{emp_id:" + employeeId
-					+ "}) return a.emp_id as employeeId , a.FirstName as firstName, a.LastName as LastName,"
-					+ "a.Reporting_emp_id as reportingManagerId, a.emp_int_id as companyEmployeeId";
+		try {
+			String query = "match (e:Employee{emp_id:" + employeeId + "}) return e";
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("query : " + query);
-			Result res = dch.graphDb.execute(query);
-			while (res.hasNext()) {
-				Map<String, Object> resultMap = res.next();
+			ResultSet res = dch.neo4jCon.createStatement().executeQuery(query);
 
-				e.setEmployeeId(Integer.valueOf(resultMap.get("employeeId").toString()));
-				e.setCompanyEmployeeId(resultMap.get("companyEmployeeId").toString());
-				e.setFirstName(resultMap.get("firstName").toString());
+			while (res.next()) {
+				Map<String, Object> resultMap = (Map<String, Object>) res.getObject("e");
+
+				e.setEmployeeId((int) resultMap.get("emp_id"));
+				e.setCompanyEmployeeId((String) resultMap.get("emp_int_id"));
+				e.setFirstName(resultMap.get("FirstName").toString());
 				e.setLastName(resultMap.get("LastName").toString());
-				e.setReportingManagerId(resultMap.get("reportingManagerId").toString());
+				e.setReportingManagerId(resultMap.get("Reporting_emp_id").toString());
 				org.apache.log4j.Logger.getLogger(Employee.class).debug(
 						"Employee  : " + e.getEmployeeId() + "-" + e.getFirstName() + "-" + e.getLastName());
-				tx.success();
+
 			}
 		} catch (Exception e1) {
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).error("Exception while retrieving employee object with employeeId : " + employeeId,
@@ -108,5 +107,4 @@ public class Employee extends TheBorg {
 		}
 		return e;
 	}
-
 }

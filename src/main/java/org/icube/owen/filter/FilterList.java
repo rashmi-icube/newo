@@ -11,8 +11,6 @@ import java.util.Map;
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
 import org.icube.owen.helper.DatabaseConnectionHelper;
-import org.neo4j.graphdb.Result;
-import org.neo4j.graphdb.Transaction;
 
 public class FilterList extends TheBorg {
 
@@ -29,19 +27,17 @@ public class FilterList extends TheBorg {
 		Filter f = new Filter();
 		f.setFilterName(filterName);
 
-		try (Transaction tx = dch.graphDb.beginTx()) {
+		try {
 			org.apache.log4j.Logger.getLogger(FilterList.class).debug("getFilterValues method started");
 			String query = "match (n:" + filterName + ") return n.Name as Name,n.Id as Id";
 			org.apache.log4j.Logger.getLogger(FilterList.class).debug("query : " + query);
-			Result res = dch.graphDb.execute(query);
+			ResultSet res = dch.neo4jCon.createStatement().executeQuery(query);
 			Map<Integer, String> filterValuesMap = new HashMap<>();
-			while (res.hasNext()) {
-				Map<String, Object> resultMap = res.next();
-				filterValuesMap.put(Integer.valueOf(resultMap.get("Id").toString()), resultMap.get("Name").toString());
+			while (res.next()) {
+				filterValuesMap.put(res.getInt("Id"), res.getString("Name"));
 				org.apache.log4j.Logger.getLogger(FilterList.class).debug("filterValuesMap : " + filterValuesMap.toString());
 			}
 			f.setFilterValues(filterValuesMap);
-			tx.success();
 			org.apache.log4j.Logger.getLogger(FilterList.class).debug("Filter : " + f.toString());
 
 		} catch (Exception e) {
@@ -66,20 +62,19 @@ public class FilterList extends TheBorg {
 			Filter f = new Filter();
 			f.setFilterName(filterName);
 
-			try (Transaction tx = dch.graphDb.beginTx()) {
+			try {
 				org.apache.log4j.Logger.getLogger(FilterList.class).debug("getFilterValues method started");
 				String query = "match (n:" + filterName + ") return n.Name as Name,n.Id as Id";
 				org.apache.log4j.Logger.getLogger(FilterList.class).debug("query : " + query);
-				Result res = dch.graphDb.execute(query);
+				ResultSet res = dch.neo4jCon.createStatement().executeQuery(query);
 				Map<Integer, String> filterValuesMap = new HashMap<>();
-				while (res.hasNext()) {
-					Map<String, Object> resultMap = res.next();
-					filterValuesMap.put(Integer.valueOf(resultMap.get("Id").toString()), resultMap.get("Name").toString());
+				while (res.next()) {
+					filterValuesMap.put(res.getInt("Id"), res.getString("Name"));
 					org.apache.log4j.Logger.getLogger(FilterList.class).debug("filterValuesMap : " + filterValuesMap.toString());
 
 				}
 				f.setFilterValues(filterValuesMap);
-				tx.success();
+
 				org.apache.log4j.Logger.getLogger(FilterList.class).debug("Filter : " + f.toString());
 				allFiltersList.add(f);
 
