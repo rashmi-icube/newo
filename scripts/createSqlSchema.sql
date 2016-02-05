@@ -26,13 +26,14 @@ CREATE TABLE `survey_batch` (
   `survey_batch_id` int(11) NOT NULL AUTO_INCREMENT,
   `freq_id` int(11) NOT NULL,
   `start_date` date NOT NULL,
+  `end_date` date NOT NULL,
   `target_init_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`survey_batch_id`),
   KEY `freq_id` (`freq_id`),
   CONSTRAINT `survey_batch_ibfk_1` FOREIGN KEY (`freq_id`) REFERENCES `frequency_master` (`freq_id`)
 );
 
-INSERT INTO `survey_batch` VALUES (1,1,'0001-10-15',NULL),(2,1,'0001-11-15',NULL),(3,1,'0001-12-15',NULL);
+INSERT INTO `survey_batch` VALUES (1,1,'0001-10-15','0001-12-30',NULL),(2,1,'0001-11-15','0001-12-30',NULL),(3,1,'0001-12-15','0001-12-30',NULL);
 
 
 /*create Survey question table*/
@@ -518,3 +519,5 @@ select emp_id from Employee
 where cube_id in (select cube_id from employee where FIND_IN_SET(emp_id, array));
 END //
 DELIMITER 
+
+
