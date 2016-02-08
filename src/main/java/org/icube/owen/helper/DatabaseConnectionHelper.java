@@ -22,7 +22,7 @@ public class DatabaseConnectionHelper extends TheBorg {
 	private final static String password = "icube123";*/
 	private final static String mysqlurl = "jdbc:mysql://localhost:3306/owen";
 	private final static String user = "root";
-	private final static String password = "";
+	private final static String password = "root";
 
 	public DatabaseConnectionHelper() {
 

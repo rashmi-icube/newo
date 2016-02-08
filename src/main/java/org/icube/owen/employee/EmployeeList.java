@@ -1,5 +1,6 @@
 package org.icube.owen.employee;
 
+import java.sql.CallableStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -22,7 +23,7 @@ public class EmployeeList extends TheBorg {
 	 * @return list of employee objects
 	 */
 	@SuppressWarnings("unchecked")
-	public List<Employee> getEmployeeSmartListForTeam(List<Filter> filterList, String initiativeType) {
+	public List<Employee> getEmployeeSmartListForTeam(List<Filter> filterList, int initiativeType) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Employee> employeeSmartList = new ArrayList<Employee>();
 
@@ -60,19 +61,24 @@ public class EmployeeList extends TheBorg {
 			} else {
 				posQuery = "p.Id in " + posParam.toString();
 			}
-
-			// TODO Swarna : Why not use switch case?
-			if (initiativeType.equalsIgnoreCase("Performance")) {
+			switch (initiativeType) {
+			case 6:
 				relation = "learning";
-			} else if (initiativeType.equalsIgnoreCase("Social Cohesion")) {
+				break;
+			case 7:
 				relation = "social";
-			} else if (initiativeType.equalsIgnoreCase("Innovation")) {
-				relation = "innovation";
-			} else if (initiativeType.equalsIgnoreCase("Sentiment")) {
-				relation = "mentor";
-			} else if (initiativeType.equalsIgnoreCase("Retention")) {
+				break;
+			case 8:
 				relation = "learning|social|innovation|mentor";
+				break;
+			case 9:
+				relation = "innovation";
+				break;
+			case 10:
+				relation = "mentor";
+				break;
 			}
+
 			String query = "match (z:Zone)<-[:from_zone]-(a:Employee)-[:has_functionality]->(f:Function),(z:Zone)<-[:from_zone]-(b:Employee)-[:has_functionality]"
 					+ "->(f:Function),a-[:is_positioned]->(p:Position)<-[:is_positioned]-b"
 					+ ((!zoneQuery.isEmpty() || !funcQuery.isEmpty() || !posQuery.isEmpty()) ? " where " : "")
@@ -103,16 +109,56 @@ public class EmployeeList extends TheBorg {
 
 	/**
 	 * Returns the employee smart list for initiatives of type Individual based on the filter objects provided
-	 * @return - List of employee objects
+	 * @param partOfEmployeeList - List of employee objects which are part of the initiative
+	 * @param initiativeType - ID of the type of initiative
+	 * @return List of employee objects
 	 */
-	// TODO hpatel replace with actual query
-	public List<Employee> getEmployeeSmartListForIndividual() {
+	public List<Employee> getEmployeeSmartListForIndividual(List<Employee> partOfEmployeeList, int initiativeType) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Employee> employeeSmartList = new ArrayList<Employee>();
+		List<Integer> employeeIdList = new ArrayList<Integer>();
+		List<Integer> partOfEmployeeIdList = new ArrayList<>();
+		String relation = "";
+		for (Employee e : partOfEmployeeList) {
+			partOfEmployeeIdList.add(e.getEmployeeId());
+		}
+		try {
+			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getListCollegue(?)}");
+			cstmt.setString(1, partOfEmployeeIdList.toString().substring(1, partOfEmployeeIdList.toString().length() - 1));
+			ResultSet rs = cstmt.executeQuery();
+			while (rs.next()) {
+				employeeIdList.add(rs.getInt(1));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		switch (initiativeType) {
+		case 1:
+			relation = "learning";
+			break;
+		case 2:
+			relation = "social";
+			break;
+		case 3:
+			relation = "learning|social|innovation|mentor";
+			break;
+		case 4:
+			relation = "innovation";
+			break;
+		case 5:
+			relation = "mentor";
+			break;
+		}
 		try {
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("getEmployeeSmartListForIndividual method started");
-			String query = "match (a:Employee)<-[r]-() where a.emp_id<=10 return a.emp_id as employeeId, a.FirstName as firstName, a.LastName as lastName,"
-					+ "a.Reporting_emp_id as reportingManagerId, a.emp_int_id as companyEmployeeId, count(r) as score";
+			String query = "match (a:Employee)<-[r:"
+					+ relation
+					+ "]-(b:Employee) where a.emp_id in"
+					+ employeeIdList
+					+ " and b.emp_id in"
+					+ employeeIdList
+					+ " return a.emp_id as employeeId, a.FirstName as firstName, a.LastName as lastName, a.Reporting_emp_id as reportingManagerId, a.emp_int_id as companyEmployeeId, count(r) as score";
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("query : " + query);
 			ResultSet res = dch.neo4jCon.createStatement().executeQuery(query);
 			while (res.next()) {

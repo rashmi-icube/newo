@@ -68,16 +68,16 @@ public class ObjectFactory {
 		Filter functionFilter = fl.getFilterValues("Position");
 		System.out.println("Function filter values : " + functionFilter);
 
-		EmployeeList el = (EmployeeList) ObjectFactory.getInstance("org.icube.owen.employee.EmployeeList");
-		System.out.println("Employee smart list :" + el.getEmployeeSmartListForIndividual());
-		el = (EmployeeList) ObjectFactory.getInstance("org.icube.owen.employee.EmployeeList");
-		System.out.println("Employee smart list : " + el.getEmployeeSmartListForTeam(filterMasterList, "Retention"));
-
 		List<Employee> partOfEmployeeList = new ArrayList<>();
 		Employee e = (Employee) ObjectFactory.getInstance("org.icube.owen.employee.Employee");
 		partOfEmployeeList.add(e.get(16));
 		partOfEmployeeList.add(e.get(12));
 		partOfEmployeeList.add(e.get(11));
+
+		EmployeeList el = (EmployeeList) ObjectFactory.getInstance("org.icube.owen.employee.EmployeeList");
+		System.out.println("Employee smart list :" + el.getEmployeeSmartListForIndividual(partOfEmployeeList, 1));
+		el = (EmployeeList) ObjectFactory.getInstance("org.icube.owen.employee.EmployeeList");
+		System.out.println("Employee smart list : " + el.getEmployeeSmartListForTeam(filterMasterList, 6));
 
 		List<Employee> ownerOfList = new ArrayList<>();
 		ownerOfList.add(e.get(19));
@@ -134,8 +134,8 @@ public class ObjectFactory {
 		// System.out.println(initiative.get(8)); //team
 
 		MetricsList ml = (MetricsList) ObjectFactory.getInstance("org.icube.owen.metrics.MetricsList");
-		System.out.println(ml.getInitiativeMetricsForIndividual(partOfEmployeeList, 1));
-		System.out.println(ml.getInitiativeMetricsForTeam(filterMasterList, 6));
+		// System.out.println(ml.getInitiativeMetricsForIndividual(partOfEmployeeList, 1));
+		// System.out.println(ml.getInitiativeMetricsForTeam(filterMasterList, 6));
 
 		Initiative updatedinitiative = initiative.get(3);
 		ownerOfList.clear();
@@ -163,8 +163,8 @@ public class ObjectFactory {
 		il.getInitiativeListByStatus("Active");
 		il.getInitiativeListByStatus("Pending");
 		il.getInitiativeList();
-		
-		testRScript();
+
+		// testRScript();
 
 	}
 
@@ -178,8 +178,8 @@ public class ObjectFactory {
 			DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 
 			// source the Palindrom function
-			dch.rCon.eval("source(\"/Users/apple/Documents/workspace/owen/scripts/rscript.r\")");
-
+			// dch.rCon.eval("source(\"/Users/apple/Documents/workspace/owen/scripts/rscript.r\")");
+			dch.rCon.eval("source(\"C:/Users/tmehta/workspace/owen/scripts/rscript.r\")");
 			// call the function. Return true
 			REXP is_aba_palindrome = dch.rCon.eval("palindrome('aba')");
 			System.out.println(is_aba_palindrome.asInteger()); // prints 1 => true
@@ -188,7 +188,8 @@ public class ObjectFactory {
 			REXP is_abc_palindrome = dch.rCon.eval("palindrome('abc')");
 			System.out.println(is_abc_palindrome.asInteger()); // prints 0 => false
 
-			dch.rCon.eval("source(\"/Users/apple/Documents/workspace/owen/scripts/performanceTeam.r\")");
+			// dch.rCon.eval("source(\"/Users/apple/Documents/workspace/owen/scripts/performanceTeam.r\")");
+			dch.rCon.eval("source(\"C:/Users/tmehta/workspace/owen/scripts/performanceTeam.r\")");
 			int[] funcParam = { 1 };
 			int[] zoneParam = { 8 };
 			int[] posParam = { 4 };
