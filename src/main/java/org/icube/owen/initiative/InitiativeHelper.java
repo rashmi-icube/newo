@@ -18,7 +18,7 @@ import org.icube.owen.helper.DatabaseConnectionHelper;
 public class InitiativeHelper extends TheBorg {
 
 	/**
-	 * @param resultMap - A map containing the Initiative attributes and connections
+	 * @param res - A sql resultset containing the Initiative attributes and connections
 	 * @param i - An Initiative object
 	 * @return - List of Filter objects
 	 * @throws SQLException 

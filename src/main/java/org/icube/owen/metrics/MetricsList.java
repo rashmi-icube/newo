@@ -107,7 +107,7 @@ public class MetricsList extends TheBorg {
 	 * 
 	 * @param partOfEmployeeList - list of employees to be part of the initiative
 	 * @param initiativeTypeId - ID of the kind of initiative
-	 * @return
+	 * @return list of metrics objects
 	 */
 	public List<Metrics> getInitiativeMetricsForIndividual(int initiativeTypeId, List<Employee> partOfEmployeeList) {
 		DatabaseConnectionHelper dch = new DatabaseConnectionHelper();

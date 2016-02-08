@@ -16,6 +16,7 @@ public class InitiativeList extends TheBorg {
 
 	/**
 	 * Get the list of initiatives based on the status provided in the filter
+	 * @param category - category for the initiative
 	 * @param initiativeStatus - Status of the initiatives to be listed
 	 * @return - list of initiatives
 	 */
@@ -27,6 +28,7 @@ public class InitiativeList extends TheBorg {
 
 	/**
 	 * Get the list of initiatives based on the type provided in the filter
+	 * @param category - category for the initiative
 	 * @param initiativeTypeId - ID of the type of initiative to be listed
 	 * @return - list of initiatives
 	 */
