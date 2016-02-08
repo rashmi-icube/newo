@@ -17,12 +17,12 @@ public class DatabaseConnectionHelper extends TheBorg {
 	public Connection mysqlCon;
 	public Connection neo4jCon;
 	public RConnection rCon;
-	/*private final static String mysqlurl = "jdbc:mysql://192.168.1.6:3306/owen";
+	private final static String mysqlurl = "jdbc:mysql://192.168.1.6:3306/owen";
 	private final static String user = "icube";
-	private final static String password = "icube123";*/
-	private final static String mysqlurl = "jdbc:mysql://localhost:3306/owen";
+	private final static String password = "icube123";
+	/*private final static String mysqlurl = "jdbc:mysql://localhost:3306/owen";
 	private final static String user = "root";
-	private final static String password = "root";
+	private final static String password = "";*/
 
 	public DatabaseConnectionHelper() {
 

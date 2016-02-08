@@ -81,7 +81,7 @@ public class InitiativeHelper extends TheBorg {
 		try {
 			String query = "match (i:Init) where i.Status='Active' or i.Status='Completed' with  distinct(i.Status) as stat match (z:Init) "
 					+ "with distinct(z.Category) as cat,stat match (j:Init {Category:cat}) with distinct(j.Type) as TYP,stat,cat optional "
-					+ "match (a:Init) where a.Status=stat and a.Type=TYP return cat as catergory,TYP as initiativeType,stat as status ,count(a) as totalInitiatives";
+					+ "match (a:Init) where a.Status=stat and a.Type=TYP return cat as category,TYP as initiativeType,stat as status ,count(a) as totalInitiatives";
 			ResultSet res = dch.neo4jCon.createStatement().executeQuery(query);
 			while (res.next()) {
 				Map<String, Object> initiativeCountMap = new HashMap<>();

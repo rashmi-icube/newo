@@ -6,7 +6,7 @@ public class Metrics extends TheBorg {
 
 	private String name;
 	private String category;
-	private double score;
+	private int score;
 	private double average;
 	private boolean primary;
 
@@ -26,11 +26,11 @@ public class Metrics extends TheBorg {
 		this.category = category;
 	}
 
-	public double getScore() {
+	public int getScore() {
 		return score;
 	}
 
-	public void setScore(double score) {
+	public void setScore(int score) {
 		this.score = score;
 	}
 

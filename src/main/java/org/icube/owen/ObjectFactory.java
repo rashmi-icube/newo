@@ -77,7 +77,7 @@ public class ObjectFactory {
 		EmployeeList el = (EmployeeList) ObjectFactory.getInstance("org.icube.owen.employee.EmployeeList");
 		System.out.println("Employee smart list :" + el.getEmployeeSmartListForIndividual(partOfEmployeeList, 1));
 		el = (EmployeeList) ObjectFactory.getInstance("org.icube.owen.employee.EmployeeList");
-		System.out.println("Employee smart list : " + el.getEmployeeSmartListForTeam(filterMasterList, 6));
+		System.out.println("Employee smart list : " + el.getEmployeeSmartListForTeam(filterMasterList, 7));
 
 		List<Employee> ownerOfList = new ArrayList<>();
 		ownerOfList.add(e.get(19));
@@ -134,8 +134,8 @@ public class ObjectFactory {
 		// System.out.println(initiative.get(8)); //team
 
 		MetricsList ml = (MetricsList) ObjectFactory.getInstance("org.icube.owen.metrics.MetricsList");
-		// System.out.println(ml.getInitiativeMetricsForIndividual(partOfEmployeeList, 1));
-		// System.out.println(ml.getInitiativeMetricsForTeam(filterMasterList, 6));
+		System.out.println(ml.getInitiativeMetricsForIndividual(1, partOfEmployeeList));
+		System.out.println(ml.getInitiativeMetricsForTeam(6, filterMasterList));
 
 		Initiative updatedinitiative = initiative.get(3);
 		ownerOfList.clear();
@@ -149,8 +149,8 @@ public class ObjectFactory {
 		System.out.println(il.getInitiativeList());
 
 		initiative.delete(2);
-		System.out.println(il.getInitiativeListByStatus("Active"));
-		System.out.println(il.getInitiativeListByType(1));
+		System.out.println(il.getInitiativeListByStatus("Individual", "Active"));
+		System.out.println(il.getInitiativeListByType("Individual", 1));
 
 		initiative = initiative.get(3);
 		initiative.complete(3);
@@ -158,10 +158,10 @@ public class ObjectFactory {
 		InitiativeHelper ih = (InitiativeHelper) ObjectFactory.getInstance("org.icube.owen.initiative.InitiativeHelper");
 		System.out.println(ih.getInitiativeCount());
 
-		il.getInitiativeListByStatus("Deleted");
-		il.getInitiativeListByStatus("Completed");
-		il.getInitiativeListByStatus("Active");
-		il.getInitiativeListByStatus("Pending");
+		il.getInitiativeListByStatus("Team", "Deleted");
+		il.getInitiativeListByStatus("Team", "Completed");
+		il.getInitiativeListByStatus("Team", "Active");
+		il.getInitiativeListByStatus("Team", "Pending");
 		il.getInitiativeList();
 
 		// testRScript();

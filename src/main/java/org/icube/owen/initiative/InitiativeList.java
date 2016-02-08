@@ -19,9 +19,9 @@ public class InitiativeList extends TheBorg {
 	 * @param initiativeStatus - Status of the initiatives to be listed
 	 * @return - list of initiatives
 	 */
-	public List<Initiative> getInitiativeListByStatus(String initiativeStatus) {
+	public List<Initiative> getInitiativeListByStatus(String category, String initiativeStatus) {
 		List<Initiative> initiativeList = new ArrayList<Initiative>();
-		initiativeList = getInitiativeList("Status", initiativeStatus);
+		initiativeList = getInitiativeList(category, "Status", initiativeStatus);
 		return initiativeList;
 	}
 
@@ -30,9 +30,9 @@ public class InitiativeList extends TheBorg {
 	 * @param initiativeTypeId - ID of the type of initiative to be listed
 	 * @return - list of initiatives
 	 */
-	public List<Initiative> getInitiativeListByType(int initiativeTypeId) {
+	public List<Initiative> getInitiativeListByType(String category, int initiativeTypeId) {
 		List<Initiative> initiativeList = new ArrayList<Initiative>();
-		initiativeList = getInitiativeList("Type", initiativeTypeId);
+		initiativeList = getInitiativeList(category, "Type", initiativeTypeId);
 		return initiativeList;
 	}
 
@@ -41,7 +41,7 @@ public class InitiativeList extends TheBorg {
 	 * @param viewByValue - Status/Type of initiative to be viewed
 	 * @return List of initiatives
 	 */
-	private List<Initiative> getInitiativeList(String viewByCriteria, Object viewByValue) {
+	private List<Initiative> getInitiativeList(String category, String viewByCriteria, Object viewByValue) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		InitiativeHelper ih = new InitiativeHelper();
 		org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Get initiative list");
@@ -51,21 +51,21 @@ public class InitiativeList extends TheBorg {
 			String initiativeListQuery = "";
 			if (viewByCriteria.equalsIgnoreCase("Type")) {
 
-				initiativeListQuery = "match (o:Employee)-[:owner_of]->(i:Init {Type:'" + (Integer) viewByValue
+				initiativeListQuery = "match (o:Employee)-[:owner_of]->(i:Init {Type:'" + (Integer) viewByValue + "', Category:'" + category
 						+ "'})<-[r:part_of]-(a) return i.Id as Id, i.Name as Name,"
 						+ "i.StartDate as StartDate, i.EndDate as EndDate, case i.Category when 'Individual' then collect(distinct(a.emp_id)) "
 						+ "else collect(distinct(a.Id))  end as PartOfID,collect(distinct(a.Name))as PartOfName, labels(a) as Filters, "
 						+ "collect(distinct (o.emp_id)) as OwnersOf,i.Comment as Comments,i.Type as Type,i.Category as Category,i.Status as Status";
-				org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Query for retrieving initiative of type " + viewByValue);
+				org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Query for retrieving initiative of type " + viewByValue + " : " + initiativeListQuery);
 
 			} else if (viewByCriteria.equalsIgnoreCase("Status")) {
 
-				initiativeListQuery = "match (o:Employee)-[:owner_of]->(i:Init {Status:'" + (String) viewByValue
+				initiativeListQuery = "match (o:Employee)-[:owner_of]->(i:Init {Status:'" + (String) viewByValue + "', Category:'" + category
 						+ "'})<-[r:part_of]-(a) return i.Id as Id, i.Name as Name,"
 						+ "i.StartDate as StartDate, i.EndDate as EndDate, case i.Category when 'Individual' then collect(distinct(a.emp_id)) "
 						+ "else collect(distinct(a.Id))  end as PartOfID,collect(distinct(a.Name))as PartOfName, labels(a) as Filters, "
 						+ "collect(distinct (o.emp_id)) as OwnersOf,i.Comment as Comments,i.Type as Type,i.Category as Category,i.Status as Status";
-				org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Query for retrieving initiative with status " + viewByValue);
+				org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Query for retrieving initiative with status " + viewByValue  + " : " + initiativeListQuery);
 
 			}
 

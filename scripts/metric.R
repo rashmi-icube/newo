@@ -8,9 +8,9 @@ TeamMetric=function(Function,Position,Zone){
   
   op=data.frame(metric_id=as.numeric(),score=as.numeric())
   
-  graph = startGraph("http://localhost:7474/db/data/", username="neo4j", password="hitesh16")
+  graph = startGraph("http://localhost:7474/db/data/")
   
-  mydb = dbConnect(MySQL(), user='hpatel', password='hitesh16', dbname='owen')
+  mydb = dbConnect(MySQL(), user='icube', password='icube123', dbname='owen')
   
   querynode = paste("match (z:Zone)<-[:from_zone]-(a:Employee)-[:has_functionality]->(f:Function),
               a-[:is_positioned]->(p:Position) 
@@ -160,9 +160,9 @@ IndividualMetric=function(emp_id){
   
   op=data.frame(metric_id=as.numeric(),score=as.numeric())
   
-  graph = startGraph("http://localhost:7474/db/data/", username="neo4j", password="hitesh16")
+  graph = startGraph("http://localhost:7474/db/data/", username="", password="")
   
-  mydb = dbConnect(MySQL(), user='hpatel', password='hitesh16', dbname='owen')
+  mydb = dbConnect(MySQL(), user='icube', password='icube123', dbname='owen')
   
   # expertise
   queryedge = paste("match (a:Employee {emp_id:",emp_id,"})-[r:learning]->(b:Employee)
