@@ -518,7 +518,7 @@ CREATE PROCEDURE getListColleague
 (IN array VARCHAR(1000))
 BEGIN
 select emp_id from Employee
-where cube_id in (select cube_id from employee where FIND_IN_SET(emp_id, array));
+where cube_id in (select DISTINCT(cube_id) from employee where FIND_IN_SET(emp_id, array));
 END //
 DELIMITER 
 
