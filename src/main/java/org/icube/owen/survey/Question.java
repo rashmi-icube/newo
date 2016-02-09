@@ -1,5 +1,6 @@
 package org.icube.owen.survey;
 
+import java.time.Instant;
 import java.util.Date;
 
 import org.icube.owen.TheBorg;
@@ -109,5 +110,19 @@ public class Question extends TheBorg {
 	public Question getQuestion(int questionId) {
 		// TODO Swarna fill the functionality
 		return new Question();
+	}
+
+	public String getQuestionStatus(Date startDate, Date endDate) {
+		String status = "";
+
+		if (endDate.before(Date.from(Instant.now()))) {
+			status = "completed";
+		} else if (startDate.after(Date.from(Instant.now()))) {
+			status = "upcoming";
+		} else {
+			status = "current";
+		}
+
+		return status;
 	}
 }

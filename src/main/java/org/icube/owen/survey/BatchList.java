@@ -5,10 +5,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.List;
 
 import org.apache.commons.lang3.time.DateUtils;
@@ -27,8 +25,7 @@ public class BatchList extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Batch> batchList = new ArrayList<Batch>();
 		List<Question> questionList = new ArrayList<Question>();
-		
-		
+
 		try {
 			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getBatchList()}");
 			ResultSet rs = cstmt.executeQuery();
@@ -66,6 +63,7 @@ public class BatchList extends TheBorg {
 		boolean isChanged = false;
 
 		// Should trigger the updation of all future dates for the questions part of the batch
+		// TODO check if UI does this validation
 		if (batch.getFrequency().equals(changedFrequency)) {
 			org.apache.log4j.Logger.getLogger(BatchList.class).debug("Do nothing... Old frequency same as changed frequency : " + changedFrequency);
 			return isChanged;
@@ -76,18 +74,20 @@ public class BatchList extends TheBorg {
 			questionIdList.add(q.getQuestionId());
 		}
 		Collections.sort(questionIdList);
-		boolean isFirst = true;
+		Date previousEndDate = null;
 		for (int questionId : questionIdList) {
 			Question q = new Question();
 			q = q.getQuestion(questionId);
 
-			if (q.getEndDate().equals(Date.from(Instant.now())) || q.getEndDate().before(Date.from(Instant.now()))) {
+			if (q.getQuestionStatus(q.getStartDate(), q.getEndDate()).equalsIgnoreCase("completed")) {
 				org.apache.log4j.Logger.getLogger(BatchList.class)
 						.debug("Do nothing... Question has already been completed : " + q.getQuestionText());
 			} else {
-				updateQuestion(q, changedFrequency, isFirst);
+
+				boolean isCurrent = q.getQuestionStatus(q.getStartDate(), q.getEndDate()).equalsIgnoreCase("current");
+				previousEndDate = updateQuestion(q, changedFrequency, isCurrent, previousEndDate);
 			}
-			isFirst = false;
+
 		}
 
 		// if start date + frequency < current_date then end date = current date
@@ -98,54 +98,66 @@ public class BatchList extends TheBorg {
 
 	}
 
-	private Date updateQuestion(Question q, Frequency frequency, boolean isFirst) {
-
-		Date d = null;
-		Calendar c = Calendar.getInstance();
+	private Date updateQuestion(Question q, Frequency frequency, boolean isCurrent, Date previousEndDate) {
 
 		switch (frequency) {
 		case WEEKLY: // 7
-			if (isFirst) {
-				q.setEndDate(DateUtils.addDays(q.getStartDate(), 7));
+			if (isCurrent) {
+				Date endDate = DateUtils.addDays(q.getStartDate(), 6);
+				q.setEndDate(endDate.before(Date.from(Instant.now())) ? Date.from(Instant.now()) : endDate);
+			} else {
+				Date startDate = DateUtils.addDays(previousEndDate, 1);
+				q.setStartDate(startDate);
+				Date endDate = DateUtils.addDays(startDate, 6);
+				q.setEndDate(endDate);
+				previousEndDate = endDate;
 
 			}
-			// d = c.add(startDate, 7);
+
 			break;
 		case BIWEEKLY: // 14
-			if (isFirst) {
-				q.setEndDate(DateUtils.addDays(q.getStartDate(), 14));
+			if (isCurrent) {
+				Date endDate = DateUtils.addDays(q.getStartDate(), 13);
+				q.setEndDate(endDate.before(Date.from(Instant.now())) ? Date.from(Instant.now()) : endDate);
+			} else {
+				Date startDate = DateUtils.addDays(previousEndDate, 1);
+				q.setStartDate(startDate);
+				Date endDate = DateUtils.addDays(startDate, 13);
+				q.setEndDate(endDate);
+				previousEndDate = endDate;
 
 			}
 			break;
 		case MONTHLY: // 1 month
-			if (isFirst) {
-				q.setEndDate(DateUtils.addMonths(q.getStartDate(), 1));
+			if (isCurrent) {
+				Date endDate = DateUtils.addDays(DateUtils.addMonths(q.getStartDate(), 1), -1);
+				q.setEndDate(endDate.before(Date.from(Instant.now())) ? Date.from(Instant.now()) : endDate);
+			} else {
+				Date startDate = DateUtils.addDays(previousEndDate, 1);
+				q.setStartDate(startDate);
+				Date endDate = DateUtils.addDays(DateUtils.addMonths(q.getStartDate(), 1), -1);
+				q.setEndDate(endDate);
+				previousEndDate = endDate;
+
 			}
 			break;
 		case QUARTERLY: // 3 months
-			if (isFirst) {
-				q.setEndDate(DateUtils.addMonths(q.getStartDate(), 1));
+			if (isCurrent) {
+				Date endDate = DateUtils.addDays(DateUtils.addMonths(q.getStartDate(), 3), -1);
+				q.setEndDate(endDate.before(Date.from(Instant.now())) ? Date.from(Instant.now()) : endDate);
+			} else {
+				Date startDate = DateUtils.addDays(previousEndDate, 1);
+				q.setStartDate(startDate);
+				Date endDate = DateUtils.addDays(DateUtils.addMonths(q.getStartDate(), 3), -1);
+				q.setEndDate(endDate);
+				previousEndDate = endDate;
+
 			}
 			break;
 
 		}
 
-		return d;
-	}
-
-	private Date addDays(Date date, int days) {
-		GregorianCalendar cal = new GregorianCalendar();
-		cal.setTime(date);
-		cal.add(Calendar.DATE, days);
-		return cal.getTime();
-	}
-
-	private Date subtractDays(Date date, int days) {
-		GregorianCalendar cal = new GregorianCalendar();
-		cal.setTime(date);
-		cal.add(Calendar.DATE, -days);
-
-		return cal.getTime();
+		return previousEndDate;
 	}
 
 }
