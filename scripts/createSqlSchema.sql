@@ -545,6 +545,19 @@ order by t.que_id;
 END //
 DELIMITER 
 
+DELIMITER //
+CREATE PROCEDURE getQuestionListForBatch(
+in batchid int)
+BEGIN
+select * from (SELECT question.que_id,question.question,question.que_type,question.survey_batch_id,question.startdate,question.enddate,count(distinct(me_response.emp_id))/(select count(emp_id) from employee) as resp  FROM question,me_response
+where question.que_id=me_response.que_id and question.survey_batch_id=batchid group by question.que_id
+Union
+SELECT question.que_id,question.question,question.que_type,question.survey_batch_id,question.startdate,question.enddate,count(distinct(we_response.emp_id))/(select count(emp_id) from employee) as resp  FROM question,we_response
+where question.que_id=we_response.que_id and question.survey_batch_id=batchid group by question.que_id) as t
+order by t.que_id;
+END //
+DELIMITER 
+
 
 
 DELIMITER //
