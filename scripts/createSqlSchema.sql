@@ -527,7 +527,7 @@ DELIMITER //
 CREATE PROCEDURE getBatchList()
 BEGIN
 SELECT survey_batch_id,survey_batch.freq_id,frequency_master.freq_name,start_date,end_date FROM survey_batch join frequency_master
-on survey_batch.freq_id=frequency_master.freq_id;;
+on survey_batch.freq_id=frequency_master.freq_id;
 END //
 DELIMITER 
 
@@ -545,6 +545,7 @@ order by t.que_id;
 END //
 DELIMITER 
 
+
 DELIMITER //
 CREATE PROCEDURE getQuestionListForBatch(
 in batchid int)
@@ -558,6 +559,19 @@ order by t.que_id;
 END //
 DELIMITER 
 
+
+DELIMITER //
+CREATE PROCEDURE getQuestionListForQuestion(
+in queid int)
+BEGIN
+select * from (SELECT question.que_id,question.question,question.que_type,question.survey_batch_id,question.startdate,question.enddate,count(distinct(me_response.emp_id))/(select count(emp_id) from employee) as resp  FROM question,me_response
+where question.que_id=me_response.que_id and question.que_id=queid group by question.que_id
+Union
+SELECT question.que_id,question.question,question.que_type,question.survey_batch_id,question.startdate,question.enddate,count(distinct(we_response.emp_id))/(select count(emp_id) from employee) as resp  FROM question,we_response
+where question.que_id=we_response.que_id and question.que_id=queid group by question.que_id) as t
+order by t.que_id;
+END //
+DELIMITER 
 
 
 DELIMITER //
