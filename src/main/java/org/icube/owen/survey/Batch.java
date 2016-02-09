@@ -1,4 +1,4 @@
-package org.icube.owen.configure;
+package org.icube.owen.survey;
 
 import java.util.Date;
 import java.util.List;

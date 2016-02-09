@@ -1,4 +1,4 @@
-package org.icube.owen.configure;
+package org.icube.owen.survey;
 
 import java.sql.CallableStatement;
 import java.sql.ResultSet;

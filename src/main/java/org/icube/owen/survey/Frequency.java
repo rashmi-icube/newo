@@ -1,4 +1,4 @@
-package org.icube.owen.configure;
+package org.icube.owen.survey;
 
 public enum Frequency {
 	WEEKLY(1), BIWEEKLY(2), MONTHLY(3), QUARTERLY(4);
