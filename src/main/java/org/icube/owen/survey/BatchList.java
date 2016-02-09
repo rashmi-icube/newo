@@ -27,12 +27,13 @@ public class BatchList extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Batch> batchList = new ArrayList<Batch>();
 		List<Question> questionList = new ArrayList<Question>();
-		Batch b = new Batch();
-		Question q = new Question();
+		
+		
 		try {
 			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getBatchList()}");
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
+				Batch b = new Batch();
 				b.setFrequency(Frequency.values()[rs.getInt("freq_id")]);
 				b.setStartDate(rs.getDate("start_date"));
 				b.setEndDate(rs.getDate("end_date"));
@@ -41,6 +42,7 @@ public class BatchList extends TheBorg {
 				cstmt1.setInt(1, rs.getInt("survey_batch_id"));
 				ResultSet rs1 = cstmt1.executeQuery();
 				while (rs1.next()) {
+					Question q = new Question();
 					q.setEndDate(rs1.getDate("enddate"));
 					q.setStartDate(rs1.getDate("startdate"));
 					q.setQuestionText(rs1.getString("question"));
