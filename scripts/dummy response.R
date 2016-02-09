@@ -22,7 +22,8 @@ for (i in 1:nrow(question)){
   for (j in 1:length(respondent)){
     emp_id=respondent[j]
     days=as.numeric(difftime(enddate,startdate,units = "days"))+1
-    secs=days*24*60*60-1
+    secs=days*24*60*60-2
+    startdate=as.POSIXct(strptime(paste(startdate,' 00:00:01'),"%Y-%m-%d %H:%M:%S"))
     response_time=startdate+sample(1:secs,1)
    if (que_type==0){
       response=sample(1:5,1)
