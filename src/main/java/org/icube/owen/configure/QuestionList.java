@@ -4,43 +4,38 @@ import java.sql.CallableStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
 import org.icube.owen.helper.DatabaseConnectionHelper;
 
-public class BatchList extends TheBorg {
-	
+public class QuestionList extends TheBorg {
 	public static void main(String arg[]) {
-		getBatchList();
+		getQuestionList();
 	}
 
-	public static List<Batch> getBatchList(){
-
+	public static List<Question> getQuestionList() {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		List<Batch> batchList = new ArrayList<Batch>();
 		List<Question> questionList = new ArrayList<Question>();
-		Batch b = new Batch();
 		Question q = new Question();
 		try {
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getBatchList()}");
+			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getQuestionList()}");
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
-				b.setFrequency(Frequency.values()[rs.getInt("freq_id")]);
-				b.setStartDate(rs.getDate("start_date"));
-				b.setEndDate(rs.getDate("end_date"));
-				b.setQuestionList(questionList);
-				b.setBatchId(rs.getInt("survey_batch_id"));
-				batchList.add(b);
+				q.setEndDate(rs.getDate("enddate"));
+				q.setStartDate(rs.getDate("startdate"));
+				q.setQuestionText(rs.getString("question"));
+				q.setQuestionId(rs.getInt("que_id"));
+				q.setResponsePercentage(rs.getDouble("resp"));
+				q.setQuestionType(QuestionType.values()[rs.getInt("que_type")]);
+				q.setSurveyBatchId(rs.getInt("survey_batch_id"));
+				questionList.add(q);
 			}
+
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		return batchList ;
-		
+		return questionList;
 	}
-
 }

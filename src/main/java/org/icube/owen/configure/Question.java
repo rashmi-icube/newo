@@ -11,6 +11,8 @@ public class Question extends TheBorg {
 	private String questionText;
 	private QuestionType questionType;
 	private double responsePercentage;
+	private int questionId;
+	private int surveyBatchId;
 
 	public Date getStartDate() {
 		return startDate;
@@ -74,6 +76,34 @@ public class Question extends TheBorg {
 	 */
 	public void setResponsePercentage(double responsePercentage) {
 		this.responsePercentage = responsePercentage;
+	}
+
+	/**
+	 * @return the questionId
+	 */
+	public int getQuestionId() {
+		return questionId;
+	}
+
+	/**
+	 * @param questionId the questionId to set
+	 */
+	public void setQuestionId(int questionId) {
+		this.questionId = questionId;
+	}
+
+	/**
+	 * @return the surveyBatchId
+	 */
+	public int getSurveyBatchId() {
+		return surveyBatchId;
+	}
+
+	/**
+	 * @param surveyBatchId the surveyBatchId to set
+	 */
+	public void setSurveyBatchId(int surveyBatchId) {
+		this.surveyBatchId = surveyBatchId;
 	}
 
 }

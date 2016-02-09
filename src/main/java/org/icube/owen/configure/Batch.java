@@ -11,6 +11,7 @@ public class Batch extends TheBorg {
 	private Date endDate;
 	private List<Question> questionList;
 	private Frequency batchFrequency;
+	private int batchId;
 
 	public Date getStartDate() {
 		return startDate;
@@ -40,8 +41,22 @@ public class Batch extends TheBorg {
 		return batchFrequency;
 	}
 
-	public void setFrequency(Frequency input) {
-		batchFrequency = input;
+	public void setFrequency(Frequency batchFrequency) {
+		this.batchFrequency = batchFrequency;
+	}
+
+	/**
+	 * @return the batchId
+	 */
+	public int getBatchId() {
+		return batchId;
+	}
+
+	/**
+	 * @param batchId the batchId to set
+	 */
+	public void setBatchId(int batchId) {
+		this.batchId = batchId;
 	}
 
 }

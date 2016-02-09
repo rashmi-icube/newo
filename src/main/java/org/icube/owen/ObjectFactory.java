@@ -57,7 +57,7 @@ public class ObjectFactory {
 	}
 
 	public static void main(String[] args) {
-
+		
 		Initiative initiative = (Initiative) ObjectFactory.getInstance("org.icube.owen.initiative.Initiative");
 
 		System.out.println("Initiative type map : " + initiative.getInitiativeTypeMap("Team"));
