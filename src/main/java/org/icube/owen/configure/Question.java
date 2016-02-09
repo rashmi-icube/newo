@@ -106,4 +106,8 @@ public class Question extends TheBorg {
 		this.surveyBatchId = surveyBatchId;
 	}
 
+	public Question getQuestion(int questionId) {
+		// TODO Swarna fill the functionality
+		return new Question();
+	}
 }
