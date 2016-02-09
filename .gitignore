@@ -13,11 +13,8 @@
 *.log
 *.gen
 *.cfs
-config.properties
-
+*.properties
 *.prefs
 
 /target/
-
-*.properties
 /.DS_Store
