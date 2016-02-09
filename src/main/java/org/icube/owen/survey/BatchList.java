@@ -36,8 +36,21 @@ public class BatchList extends TheBorg {
 				b.setFrequency(Frequency.values()[rs.getInt("freq_id")]);
 				b.setStartDate(rs.getDate("start_date"));
 				b.setEndDate(rs.getDate("end_date"));
-				b.setQuestionList(questionList);
 				b.setBatchId(rs.getInt("survey_batch_id"));
+				CallableStatement cstmt1 = dch.mysqlCon.prepareCall("{call getQuestionListForBatch(?)}");
+				cstmt1.setInt(1, rs.getInt("survey_batch_id"));
+				ResultSet rs1 = cstmt1.executeQuery();
+				while (rs1.next()) {
+					q.setEndDate(rs1.getDate("enddate"));
+					q.setStartDate(rs1.getDate("startdate"));
+					q.setQuestionText(rs1.getString("question"));
+					q.setQuestionId(rs1.getInt("que_id"));
+					q.setResponsePercentage(rs1.getDouble("resp"));
+					q.setQuestionType(QuestionType.values()[rs1.getInt("que_type")]);
+					q.setSurveyBatchId(rs1.getInt("survey_batch_id"));
+					questionList.add(q);
+				}
+				b.setQuestionList(questionList);
 				batchList.add(b);
 			}
 		} catch (SQLException e) {
@@ -66,7 +79,7 @@ public class BatchList extends TheBorg {
 			Question q = new Question();
 			q = q.getQuestion(questionId);
 
-			if (q.getEndDate().equals(Date.from(Instant.now()))  || q.getEndDate().before(Date.from(Instant.now()))) {
+			if (q.getEndDate().equals(Date.from(Instant.now())) || q.getEndDate().before(Date.from(Instant.now()))) {
 				org.apache.log4j.Logger.getLogger(BatchList.class)
 						.debug("Do nothing... Question has already been completed : " + q.getQuestionText());
 			} else {
@@ -84,33 +97,31 @@ public class BatchList extends TheBorg {
 	}
 
 	private Date updateQuestion(Question q, Frequency frequency, boolean isFirst) {
-		
-		
+
 		Date d = null;
 		Calendar c = Calendar.getInstance();
-		
-		
+
 		switch (frequency) {
-		case WEEKLY: //7
-			if(isFirst){
+		case WEEKLY: // 7
+			if (isFirst) {
 				q.setEndDate(DateUtils.addDays(q.getStartDate(), 7));
-				
+
 			}
 			// d = c.add(startDate, 7);
 			break;
-		case BIWEEKLY: //14
-			if(isFirst){
+		case BIWEEKLY: // 14
+			if (isFirst) {
 				q.setEndDate(DateUtils.addDays(q.getStartDate(), 14));
-				
+
 			}
 			break;
 		case MONTHLY: // 1 month
-			if(isFirst){
+			if (isFirst) {
 				q.setEndDate(DateUtils.addMonths(q.getStartDate(), 1));
 			}
 			break;
 		case QUARTERLY: // 3 months
-			if(isFirst){
+			if (isFirst) {
 				q.setEndDate(DateUtils.addMonths(q.getStartDate(), 1));
 			}
 			break;
