@@ -549,7 +549,7 @@ DELIMITER
 
 DELIMITER //
 CREATE PROCEDURE updateBatchFrequency(
-in batchid INT
+in batchid INT,
 in freq INT
 )
 BEGIN
@@ -563,8 +563,8 @@ DELIMITER
 
 DELIMITER //
 CREATE PROCEDURE updateBatchDate(
-in batchid INT
-in sdate INT
+in batchid INT,
+in sdate INT,
 in edate INT
 )
 BEGIN
@@ -578,8 +578,8 @@ DELIMITER
 
 DELIMITER //
 CREATE PROCEDURE updateQuestionDate(
-in queid INT
-in sdate INT
+in queid INT,
+in sdate INT,
 in edate INT
 )
 BEGIN
