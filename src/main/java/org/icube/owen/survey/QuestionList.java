@@ -3,9 +3,7 @@ package org.icube.owen.survey;
 import java.sql.CallableStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import org.icube.owen.ObjectFactory;
@@ -15,7 +13,7 @@ import org.icube.owen.helper.DatabaseConnectionHelper;
 public class QuestionList extends TheBorg {
 	public static void main(String arg[]) {
 		QuestionList ql = new QuestionList();
-		ql.getQuestion(2);
+		ql.getQuestionListByStatus(1, "Upcoming");
 	}
 
 	public List<Question> getQuestionList() {
@@ -43,7 +41,7 @@ public class QuestionList extends TheBorg {
 		return questionList;
 	}
 
-	public List<Question> getQuestionListByStatus(int batchId, String questionStatus) {
+	public List<Question> getQuestionListByStatus(int batchId, String filter) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Question> questionList = new ArrayList<Question>();
 		List<Question> QuestionListByStatus = new ArrayList<Question>();
@@ -68,18 +66,10 @@ public class QuestionList extends TheBorg {
 		}
 
 		for (Question q1 : questionList) {
-
-			switch (questionStatus) {
-			case ("Upcoming"):
-				if (q1.getStartDate().after(Date.from(Instant.now()))) {
+	
+				if ((q1.getQuestionStatus(q1.getStartDate(), q1.getEndDate())).equalsIgnoreCase(filter)) {
 					QuestionListByStatus.add(q1);
-				}
-				break;
-			case ("Completed"):
-				if (q1.getEndDate().before(Date.from(Instant.now()))) {
-					QuestionListByStatus.add(q1);
-				}
-				break;
+				
 
 			}
 		}
