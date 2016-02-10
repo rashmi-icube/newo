@@ -539,12 +539,15 @@ DELIMITER
 DELIMITER //
 CREATE PROCEDURE getQuestionList()
 BEGIN
-select * from (SELECT question.que_id,question.question,question.que_type,question.survey_batch_id,question.startdate,question.enddate,count(distinct(me_response.emp_id))/(select count(emp_id) from employee) as resp  FROM question,me_response
-where question.que_id=me_response.que_id group by question.que_id
-Union
-SELECT question.que_id,question.question,question.que_type,question.survey_batch_id,question.startdate,question.enddate,count(distinct(we_response.emp_id))/(select count(emp_id) from employee) as resp  FROM question,we_response
-where question.que_id=we_response.que_id group by question.que_id) as t
-order by t.que_id;
+select * from (SELECT question.que_id,question.question,question.que_type,question.survey_batch_id,
+question.startdate,question.enddate,
+count(distinct(me_response.emp_id))/(select count(emp_id) from employee) as resp  FROM question LEft join me_response
+on question.que_id=me_response.que_id where  question.que_type=0 group by question.que_id
+union
+SELECT question.que_id,question.question,question.que_type,question.survey_batch_id,
+question.startdate,question.enddate,
+count(distinct(we_response.emp_id))/(select count(emp_id) from employee) as resp  FROM question LEft join we_response
+on question.que_id=we_response.que_id where  question.que_type=1  group by question.que_id) as t order by t.que_id;
 END //
 DELIMITER 
 
@@ -553,14 +556,19 @@ DELIMITER //
 CREATE PROCEDURE getQuestionListForBatch(
 in batchid int)
 BEGIN
-select * from (SELECT question.que_id,question.question,question.que_type,question.survey_batch_id,question.startdate,question.enddate,count(distinct(me_response.emp_id))/(select count(emp_id) from employee) as resp  FROM question,me_response
-where question.que_id=me_response.que_id and question.survey_batch_id=batchid group by question.que_id
-Union
-SELECT question.que_id,question.question,question.que_type,question.survey_batch_id,question.startdate,question.enddate,count(distinct(we_response.emp_id))/(select count(emp_id) from employee) as resp  FROM question,we_response
-where question.que_id=we_response.que_id and question.survey_batch_id=batchid group by question.que_id) as t
-order by t.que_id;
+select * from (SELECT question.que_id,question.question,question.que_type,question.survey_batch_id,
+question.startdate,question.enddate,
+count(distinct(me_response.emp_id))/(select count(emp_id) from employee) as resp  FROM question LEft join me_response
+on question.que_id=me_response.que_id where  question.que_type=0 and question.survey_batch_id=batchid group by question.que_id
+union
+SELECT question.que_id,question.question,question.que_type,question.survey_batch_id,
+question.startdate,question.enddate,
+count(distinct(we_response.emp_id))/(select count(emp_id) from employee) as resp  FROM question LEft join we_response
+on question.que_id=we_response.que_id where  question.que_type=1 and question.survey_batch_id=batchid  group by question.que_id) as t order by t.que_id;
 END //
 DELIMITER 
+
+
 
 
 DELIMITER //
