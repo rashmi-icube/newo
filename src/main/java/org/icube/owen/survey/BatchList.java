@@ -1,12 +1,12 @@
 package org.icube.owen.survey;
 
 import java.sql.CallableStatement;
+import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.lang3.time.DateUtils;
@@ -17,7 +17,9 @@ import org.icube.owen.helper.DatabaseConnectionHelper;
 public class BatchList extends TheBorg {
 
 	public static void main(String arg[]) {
-		getBatchList();
+		// getBatchList();
+
+		changeFrequency(getBatchList().get(0), Frequency.WEEKLY);
 	}
 
 	public static List<Batch> getBatchList() {
@@ -31,7 +33,7 @@ public class BatchList extends TheBorg {
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
 				Batch b = new Batch();
-				b.setFrequency(Frequency.values()[rs.getInt("freq_id")]);
+				b.setBatchFrequency(Frequency.values()[rs.getInt("freq_id")]);
 				b.setStartDate(rs.getDate("start_date"));
 				b.setEndDate(rs.getDate("end_date"));
 				b.setBatchId(rs.getInt("survey_batch_id"));
@@ -59,12 +61,14 @@ public class BatchList extends TheBorg {
 
 	}
 
-	public boolean changeFrequency(Batch batch, Frequency changedFrequency) {
+	public static boolean changeFrequency(Batch batch, Frequency changedFrequency) {
+		DatabaseConnectionHelper dch = new DatabaseConnectionHelper();
+
 		boolean isChanged = false;
 
 		// Should trigger the updation of all future dates for the questions part of the batch
 		// TODO check if UI does this validation
-		if (batch.getFrequency().equals(changedFrequency)) {
+		if (batch.getBatchFrequency().equals(changedFrequency)) {
 			org.apache.log4j.Logger.getLogger(BatchList.class).debug("Do nothing... Old frequency same as changed frequency : " + changedFrequency);
 			return isChanged;
 		}
@@ -82,10 +86,31 @@ public class BatchList extends TheBorg {
 			if (q.getQuestionStatus(q.getStartDate(), q.getEndDate()).equalsIgnoreCase("completed")) {
 				org.apache.log4j.Logger.getLogger(BatchList.class)
 						.debug("Do nothing... Question has already been completed : " + q.getQuestionText());
+				continue;
 			} else {
 
 				boolean isCurrent = q.getQuestionStatus(q.getStartDate(), q.getEndDate()).equalsIgnoreCase("current");
 				previousEndDate = updateQuestion(q, changedFrequency, isCurrent, previousEndDate);
+				try {
+					CallableStatement cstmt = dch.mysqlCon.prepareCall("{call updateQuestionDate(?, ?, ?)}");
+					cstmt.setInt(1, questionId);
+					cstmt.setDate(2, (java.sql.Date) q.getStartDate());
+					cstmt.setDate(3, (java.sql.Date) q.getEndDate());
+					ResultSet rs = cstmt.executeQuery();
+				} catch (SQLException e) {
+					org.apache.log4j.Logger.getLogger(BatchList.class).error("Exception while updating question ID : " + questionId, e);
+				}
+
+			}
+			try {
+				CallableStatement cstmt = dch.mysqlCon.prepareCall("{call updateBatch(?, ?, ?, ?)}");
+				cstmt.setInt(1, batch.getBatchId());
+				cstmt.setInt(2, changedFrequency.getValue());
+				cstmt.setDate(3, (java.sql.Date) batch.getStartDate());
+				cstmt.setDate(4, (java.sql.Date) previousEndDate);
+				ResultSet rs = cstmt.executeQuery();
+			} catch (SQLException e) {
+				org.apache.log4j.Logger.getLogger(BatchList.class).error("Exception while updating batch ID : " + batch.getBatchId(), e);
 			}
 
 		}
@@ -98,17 +123,18 @@ public class BatchList extends TheBorg {
 
 	}
 
-	private Date updateQuestion(Question q, Frequency frequency, boolean isCurrent, Date previousEndDate) {
+	private static Date updateQuestion(Question q, Frequency frequency, boolean isCurrent, Date previousEndDate) {
 
 		switch (frequency) {
 		case WEEKLY: // 7
 			if (isCurrent) {
-				Date endDate = DateUtils.addDays(q.getStartDate(), 6);
-				q.setEndDate(endDate.before(Date.from(Instant.now())) ? Date.from(Instant.now()) : endDate);
+				Date endDate = (Date) DateUtils.addDays(q.getStartDate(), 6);
+				q.setEndDate(endDate.before(Date.from(Instant.now())) ?(Date) Date.from(Instant.now())  : endDate);
+				previousEndDate = endDate;
 			} else {
-				Date startDate = DateUtils.addDays(previousEndDate, 1);
+				Date startDate = (Date) DateUtils.addDays(previousEndDate, 1);
 				q.setStartDate(startDate);
-				Date endDate = DateUtils.addDays(startDate, 6);
+				Date endDate = (Date) DateUtils.addDays(startDate, 6);
 				q.setEndDate(endDate);
 				previousEndDate = endDate;
 
@@ -117,12 +143,14 @@ public class BatchList extends TheBorg {
 			break;
 		case BIWEEKLY: // 14
 			if (isCurrent) {
-				Date endDate = DateUtils.addDays(q.getStartDate(), 13);
-				q.setEndDate(endDate.before(Date.from(Instant.now())) ? Date.from(Instant.now()) : endDate);
+				Date endDate = (Date) DateUtils.addDays(q.getStartDate(), 13);
+				q.setEndDate(endDate.before(Date.from(Instant.now())) ? (Date) Date.from(Instant.now()) : endDate);
+				previousEndDate = endDate;
+
 			} else {
-				Date startDate = DateUtils.addDays(previousEndDate, 1);
+				Date startDate = (Date) DateUtils.addDays(previousEndDate, 1);
 				q.setStartDate(startDate);
-				Date endDate = DateUtils.addDays(startDate, 13);
+				Date endDate = (Date) DateUtils.addDays(startDate, 13);
 				q.setEndDate(endDate);
 				previousEndDate = endDate;
 
@@ -130,12 +158,14 @@ public class BatchList extends TheBorg {
 			break;
 		case MONTHLY: // 1 month
 			if (isCurrent) {
-				Date endDate = DateUtils.addDays(DateUtils.addMonths(q.getStartDate(), 1), -1);
-				q.setEndDate(endDate.before(Date.from(Instant.now())) ? Date.from(Instant.now()) : endDate);
+				Date endDate = (Date) DateUtils.addDays(DateUtils.addMonths(q.getStartDate(), 1), -1);
+				q.setEndDate(endDate.before(Date.from(Instant.now())) ? (Date) Date.from(Instant.now()) : endDate);
+				previousEndDate = endDate;
+
 			} else {
-				Date startDate = DateUtils.addDays(previousEndDate, 1);
+				Date startDate = (Date) DateUtils.addDays(previousEndDate, 1);
 				q.setStartDate(startDate);
-				Date endDate = DateUtils.addDays(DateUtils.addMonths(q.getStartDate(), 1), -1);
+				Date endDate = (Date) DateUtils.addDays(DateUtils.addMonths(q.getStartDate(), 1), -1);
 				q.setEndDate(endDate);
 				previousEndDate = endDate;
 
@@ -143,12 +173,14 @@ public class BatchList extends TheBorg {
 			break;
 		case QUARTERLY: // 3 months
 			if (isCurrent) {
-				Date endDate = DateUtils.addDays(DateUtils.addMonths(q.getStartDate(), 3), -1);
-				q.setEndDate(endDate.before(Date.from(Instant.now())) ? Date.from(Instant.now()) : endDate);
+				Date endDate = (Date) DateUtils.addDays(DateUtils.addMonths(q.getStartDate(), 3), -1);
+				q.setEndDate(endDate.before(Date.from(Instant.now())) ? (Date) Date.from(Instant.now()) : endDate);
+				previousEndDate = endDate;
+
 			} else {
-				Date startDate = DateUtils.addDays(previousEndDate, 1);
+				Date startDate = (Date) DateUtils.addDays(previousEndDate, 1);
 				q.setStartDate(startDate);
-				Date endDate = DateUtils.addDays(DateUtils.addMonths(q.getStartDate(), 3), -1);
+				Date endDate = (Date) DateUtils.addDays(DateUtils.addMonths(q.getStartDate(), 3), -1);
 				q.setEndDate(endDate);
 				previousEndDate = endDate;
 
