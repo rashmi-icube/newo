@@ -45,7 +45,8 @@ public class MetricsList extends TheBorg {
 				primaryMetricMap.put(rs.getInt(1), rs.getString(2));
 			}
 
-			dch.rCon.eval("source(\"/Users/apple/Documents/workspace/owen/scripts/metric.r\")");
+			String rScriptPath = new java.io.File("").getAbsolutePath();
+			dch.rCon.eval("source(\"//" + rScriptPath + "/scripts/metric.r\")");
 
 			List<Integer> funcList = new ArrayList<>();
 			List<Integer> posList = new ArrayList<>();
@@ -65,6 +66,7 @@ public class MetricsList extends TheBorg {
 			REXP teamMetricScore = dch.rCon.parseAndEval("try(eval(TeamMetric(funcList, posList, zoneList)))");
 			if (teamMetricScore.inherits("try-error")) {
 				org.apache.log4j.Logger.getLogger(MetricsList.class).error("Error: " + teamMetricScore.asString());
+				return metricsList;
 			} else {
 				org.apache.log4j.Logger.getLogger(MetricsList.class).debug(teamMetricScore.asList());
 			}
@@ -130,7 +132,8 @@ public class MetricsList extends TheBorg {
 				primaryMetricMap.put(rs.getInt(1), rs.getString(2));
 			}
 
-			dch.rCon.eval("source(\"/Users/apple/Documents/workspace/owen/scripts/metric.r\")");
+			String rScriptPath = new java.io.File("").getAbsolutePath();
+			dch.rCon.eval("source(\"//" + rScriptPath + "/scripts/metric.r\")");
 			List<Integer> empIdList = new ArrayList<>();
 			for (Employee e : partOfEmployeeList) {
 				empIdList.add(e.getEmployeeId());
@@ -146,6 +149,7 @@ public class MetricsList extends TheBorg {
 			REXP individualMetricScore = dch.rCon.parseAndEval("try(eval(IndividualMetric(empIdList)))");
 			if (individualMetricScore.inherits("try-error")) {
 				org.apache.log4j.Logger.getLogger(MetricsList.class).error("Error: " + individualMetricScore.asString());
+				return metricsList;
 			} else {
 				org.apache.log4j.Logger.getLogger(MetricsList.class).debug(individualMetricScore.asList());
 			}
