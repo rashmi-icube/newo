@@ -16,6 +16,9 @@ import org.icube.owen.initiative.Initiative;
 import org.icube.owen.initiative.InitiativeHelper;
 import org.icube.owen.initiative.InitiativeList;
 import org.icube.owen.metrics.MetricsList;
+import org.icube.owen.survey.BatchList;
+import org.icube.owen.survey.Question;
+import org.icube.owen.survey.QuestionList;
 import org.rosuda.REngine.REXP;
 
 public class ObjectFactory {
@@ -57,6 +60,20 @@ public class ObjectFactory {
 	}
 
 	public static void main(String[] args) {
+		
+		QuestionList ql = (QuestionList) ObjectFactory.getInstance("org.icube.owen.survey.QuestionList");
+		ql.getQuestionList();
+		ql.getQuestionListForBatch(1);
+		ql.getQuestionListByStatus(1, "Upcoming");
+		ql.getQuestionListByStatus(1, "Completed");
+		
+		Question q = (Question) ObjectFactory.getInstance("org.icube.owen.survey.Question");
+		q.getCurrentQuestion(1);
+		q.getQuestion(1);
+		q.getResponse(q.getQuestion(2));
+		
+		BatchList bl = (BatchList) ObjectFactory.getInstance("org.icube.owen.survey.BatchList");
+		bl.getBatchList();
 		
 		Initiative initiative = (Initiative) ObjectFactory.getInstance("org.icube.owen.initiative.Initiative");
 

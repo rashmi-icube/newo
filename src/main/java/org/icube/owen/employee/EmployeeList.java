@@ -123,7 +123,7 @@ public class EmployeeList extends TheBorg {
 			partOfEmployeeIdList.add(e.getEmployeeId());
 		}
 		try {
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getListCollegue(?)}");
+			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getListColleague(?)}");
 			cstmt.setString(1, partOfEmployeeIdList.toString().substring(1, partOfEmployeeIdList.toString().length() - 1));
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
