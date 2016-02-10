@@ -583,8 +583,8 @@ DELIMITER //
 CREATE PROCEDURE updateBatch(
 in batchid INT,
 in freq INT,
-in sdate ,
-in edate INT
+in sdate Date ,
+in edate Date 
 )
 BEGIN
 update survey_batch 
