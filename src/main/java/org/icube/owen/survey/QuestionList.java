@@ -15,6 +15,10 @@ public class QuestionList extends TheBorg {
 		ql.getQuestionListForBatch(1);
 	}
 
+	/**
+	 * Retrieves the list of all the questions
+	 * @return - A list of questions
+	 */
 	public List<Question> getQuestionList() {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Question> questionList = new ArrayList<>();
@@ -40,6 +44,11 @@ public class QuestionList extends TheBorg {
 		return questionList;
 	}
 
+	/**
+	 * Retrieves the list of questions in a specific batch
+	 * @param batchId - the batch ID
+	 * @return - A list of Question objects
+	 */
 	public List<Question> getQuestionListForBatch(int batchId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Question> questionList = new ArrayList<Question>();
@@ -65,6 +74,12 @@ public class QuestionList extends TheBorg {
 		return questionList;
 	}
 
+	/**
+	 * Retrieves the list of questions of a particular batch and status (Upcoming/Completed)
+	 * @param batchId - batch ID 
+	 * @param filter - the status of the questions to be retrieved 
+	 * @return - A list of Question objects based on the filter(status) and the batch ID 
+	 */
 	public List<Question> getQuestionListByStatus(int batchId, String filter) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Question> questionList = new ArrayList<Question>();

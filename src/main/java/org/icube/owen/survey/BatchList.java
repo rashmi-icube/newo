@@ -71,12 +71,6 @@ public class BatchList extends TheBorg {
 	 * @param changedFrequency - The updated frequency value
 	 * @return - True/False depending on whether the frequency has been changed or not
 	 */
-	/**
-	 * Changes the frequency of a batch
-	 * @param batch - The batch object 
-	 * @param changedFrequency - The updated frequency value
-	 * @return - True/False depending on whether the frequency has been changed or not
-	 */
 	public static boolean changeFrequency(Batch batch, Frequency changedFrequency) {
 		DatabaseConnectionHelper dch = new DatabaseConnectionHelper();
 
@@ -138,8 +132,6 @@ public class BatchList extends TheBorg {
 
 	}
 
-	
-	
 	private static Date updateQuestion(Question q, Frequency frequency, boolean isCurrent, Date previousEndDate) {
 
 		switch (frequency) {

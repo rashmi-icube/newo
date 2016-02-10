@@ -113,6 +113,11 @@ public class Question extends TheBorg {
 		this.surveyBatchId = surveyBatchId;
 	}
 
+	/**
+	 * Retrieves the question based on the question ID passed
+	 * @param questionId - ID of the question to be retrieved
+	 * @return a Question object
+	 */
 	public Question getQuestion(int questionId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Question q = new Question();
@@ -149,6 +154,11 @@ public class Question extends TheBorg {
 		return status;
 	}
 
+	/**
+	 * Retrieves the response data for a question
+	 * @param q - a Question object for which the response data is required
+	 * @return - A map containing the responses and the date
+	 */
 	public Map<Date, Integer> getResponse(Question q) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Map<Date, Integer> responseMap = new HashMap<>();
@@ -166,6 +176,11 @@ public class Question extends TheBorg {
 
 	}
 
+	/**
+	 * Retrieves the current question
+	 * @param batchId - batch ID of the question
+	 * @return - the current Question object
+	 */
 	public Question getCurrentQuestion(int batchId) {
 		Question q = new Question();
 		QuestionList ql = new QuestionList();

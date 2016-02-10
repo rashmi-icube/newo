@@ -45,10 +45,10 @@ public class MetricsList extends TheBorg {
 				primaryMetricMap.put(rs.getInt(1), rs.getString(2));
 			}
 
-			String rScriptPath = new java.io.File("").getAbsolutePath();
-			dch.rCon.eval("source(\"//" + rScriptPath + "/scripts/metric.r\")");
-			org.apache.log4j.Logger.getLogger(MetricsList.class).debug(
-					"Successfully loaded rScript: source(\"//" + rScriptPath + "/scripts/metric.r\")");
+			// String rScriptPath = "//" + new java.io.File("").getAbsolutePath() + "/scripts/metric.r";
+			String rScriptPath = "\\C:\\Users\\fermion10\\Documents\\Neo4j\\scripts\\metric.r";
+			dch.rCon.eval("source(\"" + rScriptPath + "\")");
+			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Successfully loaded rScript: source(\"//" + rScriptPath);
 
 			List<Integer> funcList = new ArrayList<>();
 			List<Integer> posList = new ArrayList<>();
@@ -134,10 +134,10 @@ public class MetricsList extends TheBorg {
 				primaryMetricMap.put(rs.getInt(1), rs.getString(2));
 			}
 
-			String rScriptPath = new java.io.File("").getAbsolutePath();
-			dch.rCon.eval("source(\"//" + rScriptPath + "/scripts/metric.r\")");
-			org.apache.log4j.Logger.getLogger(MetricsList.class).debug(
-					"Successfully loaded rScript: source(\"//" + rScriptPath + "/scripts/metric.r\")");
+			// String rScriptPath = "//" + new java.io.File("").getAbsolutePath() + "/scripts/metric.r";
+			String rScriptPath = "\\C:\\Users\\fermion10\\Documents\\Neo4j\\scripts\\metric.r";
+			dch.rCon.eval("source(\"" + rScriptPath + "\")");
+			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Successfully loaded rScript: source(\"//" + rScriptPath);
 
 			List<Integer> empIdList = new ArrayList<>();
 			for (Employee e : partOfEmployeeList) {
