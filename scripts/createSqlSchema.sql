@@ -577,29 +577,18 @@ END //
 DELIMITER 
 
 
-DELIMITER //
-CREATE PROCEDURE updateBatchFrequency(
-in batchid INT,
-in freq INT
-)
-BEGIN
-update survey_batch 
-set freq_id=freq
-where survey_batch_id=batchid;
-END //
-DELIMITER 
-
 
 
 DELIMITER //
-CREATE PROCEDURE updateBatchDate(
+CREATE PROCEDURE updateBatch(
 in batchid INT,
-in sdate INT,
+in freq INT,
+in sdate ,
 in edate INT
 )
 BEGIN
 update survey_batch 
-set start_date=sdate,end_date=edate
+set freq_id=freq,start_date=sdate,end_date=edate
 where survey_batch_id=batchid;
 END //
 DELIMITER 
@@ -609,8 +598,8 @@ DELIMITER
 DELIMITER //
 CREATE PROCEDURE updateQuestionDate(
 in queid INT,
-in sdate INT,
-in edate INT
+in sdate Date,
+in edate Date
 )
 BEGIN
 update question 
