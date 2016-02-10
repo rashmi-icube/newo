@@ -1,12 +1,12 @@
 package org.icube.owen.survey;
 
 import java.sql.CallableStatement;
+import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.lang3.time.DateUtils;
@@ -16,11 +16,7 @@ import org.icube.owen.helper.DatabaseConnectionHelper;
 
 public class BatchList extends TheBorg {
 
-	public static void main(String arg[]) {
-		getBatchList();
-	}
-
-	public static List<Batch> getBatchList() {
+	public List<Batch> getBatchList() {
 
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Batch> batchList = new ArrayList<Batch>();
@@ -59,7 +55,7 @@ public class BatchList extends TheBorg {
 
 	}
 
-	public boolean changeFrequency(Batch batch, Frequency changedFrequency) {
+	/*public boolean changeFrequency(Batch batch, Frequency changedFrequency) {
 		boolean isChanged = false;
 
 		// Should trigger the updation of all future dates for the questions part of the batch
@@ -158,6 +154,6 @@ public class BatchList extends TheBorg {
 		}
 
 		return previousEndDate;
-	}
+	}*/
 
 }

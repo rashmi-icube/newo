@@ -1,13 +1,12 @@
 package org.icube.owen.survey;
 
 import java.sql.CallableStatement;
+import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
 import org.icube.owen.helper.DatabaseConnectionHelper;
@@ -149,21 +148,38 @@ public class Question extends TheBorg {
 
 		return status;
 	}
-	
-	public Map<Date,Integer> getResponse(Question q){
+
+	public Map<Date, Integer> getResponse(Question q) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		Map<Date,Integer> responseMap = new HashMap<>();
+		Map<Date, Integer> responseMap = new HashMap<>();
 		try {
 			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getResponseData(?)}");
 			cstmt.setInt(1, q.getQuestionId());
 			ResultSet rs = cstmt.executeQuery();
-			while(rs.next()){
+			while (rs.next()) {
 				responseMap.put(rs.getDate("date"), rs.getInt("responses"));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		return responseMap;
-		
+
+	}
+
+	public Question getCurrentQuestion(int batchId) {
+		Question q = new Question();
+		QuestionList ql = new QuestionList();
+		for (Question q1 : ql.getQuestionListForBatch(batchId)) {
+			if ((q1.getStartDate().compareTo(Date.from(Instant.now())) <= 0) && (q1.getEndDate().after(Date.from(Instant.now())))) {
+				q.setQuestionId(q1.getQuestionId());
+				q.setQuestionText(q1.getQuestionText());
+				q.setStartDate(q1.getStartDate());
+				q.setEndDate(q1.getEndDate());
+				q.setResponsePercentage(q1.getResponsePercentage());
+				q.setQuestionType(q1.getQuestionType());
+				q.setSurveyBatchId(q1.getSurveyBatchId());
+			}
+		}
+		return q;
 	}
 }
