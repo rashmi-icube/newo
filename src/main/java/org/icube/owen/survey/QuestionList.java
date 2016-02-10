@@ -11,14 +11,7 @@ import org.icube.owen.TheBorg;
 import org.icube.owen.helper.DatabaseConnectionHelper;
 
 public class QuestionList extends TheBorg {
-	public static void main(String arg[]) {
-		QuestionList ql = new QuestionList();
-		ql.getQuestionListByStatus(1, "Upcoming");
-
-		Question q = new Question();
-		q.getResponse(ql.getQuestion(1));
-	}
-
+	
 	public List<Question> getQuestionList() {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Question> questionList = new ArrayList<>();
@@ -79,26 +72,6 @@ public class QuestionList extends TheBorg {
 		return QuestionListByStatus;
 	}
 
-	public Question getQuestion(int questionId) {
-		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		Question q = new Question();
-		try {
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getQuestionListForQuestion(?)}");
-			cstmt.setInt(1, questionId);
-			ResultSet rs = cstmt.executeQuery();
-			while (rs.next()) {
-				q.setEndDate(rs.getDate("enddate"));
-				q.setStartDate(rs.getDate("startdate"));
-				q.setQuestionText(rs.getString("question"));
-				q.setQuestionId(rs.getInt("que_id"));
-				q.setResponsePercentage(rs.getDouble("resp"));
-				q.setQuestionType(QuestionType.values()[rs.getInt("que_type")]);
-				q.setSurveyBatchId(rs.getInt("survey_batch_id"));
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return q;
-	}
+	
 
 }

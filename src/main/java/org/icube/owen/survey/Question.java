@@ -115,8 +115,25 @@ public class Question extends TheBorg {
 	}
 
 	public Question getQuestion(int questionId) {
-		// TODO Swarna fill the functionality
-		return new Question();
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		Question q = new Question();
+		try {
+			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getQuestionListForQuestion(?)}");
+			cstmt.setInt(1, questionId);
+			ResultSet rs = cstmt.executeQuery();
+			while (rs.next()) {
+				q.setEndDate(rs.getDate("enddate"));
+				q.setStartDate(rs.getDate("startdate"));
+				q.setQuestionText(rs.getString("question"));
+				q.setQuestionId(rs.getInt("que_id"));
+				q.setResponsePercentage(rs.getDouble("resp"));
+				q.setQuestionType(QuestionType.values()[rs.getInt("que_type")]);
+				q.setSurveyBatchId(rs.getInt("survey_batch_id"));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return q;
 	}
 
 	public String getQuestionStatus(Date startDate, Date endDate) {
