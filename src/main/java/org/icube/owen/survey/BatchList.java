@@ -23,6 +23,7 @@ public class BatchList extends TheBorg {
 	}
 
 	public static List<Batch> getBatchList() {
+	
 
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Batch> batchList = new ArrayList<Batch>();
