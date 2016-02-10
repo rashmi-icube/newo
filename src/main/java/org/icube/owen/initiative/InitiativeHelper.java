@@ -30,7 +30,7 @@ public class InitiativeHelper extends TheBorg {
 		FilterList fl = new FilterList();
 		Filter f = new Filter();
 		Map<Integer, String> filterLabelMap = fl.getFilterLabelMap();
-		String filterName = res.getString("Filters").substring(1, res.getString("Filters").length() - 1);
+		String filterName = res.getString("Filters").substring(2, res.getString("Filters").length() - 2);
 		for (Entry<Integer, String> entry : filterLabelMap.entrySet()) {
 			if (filterName.equals(entry.getValue())) {
 				f.setFilterId(entry.getKey());
