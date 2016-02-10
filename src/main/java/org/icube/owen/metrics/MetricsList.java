@@ -47,6 +47,8 @@ public class MetricsList extends TheBorg {
 
 			String rScriptPath = new java.io.File("").getAbsolutePath();
 			dch.rCon.eval("source(\"//" + rScriptPath + "/scripts/metric.r\")");
+			org.apache.log4j.Logger.getLogger(MetricsList.class).debug(
+					"Successfully loaded rScript: source(\"//" + rScriptPath + "/scripts/metric.r\")");
 
 			List<Integer> funcList = new ArrayList<>();
 			List<Integer> posList = new ArrayList<>();
@@ -68,7 +70,7 @@ public class MetricsList extends TheBorg {
 				org.apache.log4j.Logger.getLogger(MetricsList.class).error("Error: " + teamMetricScore.asString());
 				return metricsList;
 			} else {
-				org.apache.log4j.Logger.getLogger(MetricsList.class).debug(teamMetricScore.asList());
+				org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Metrics calculation completed for team " + teamMetricScore.asList());
 			}
 
 			RList result = teamMetricScore.asList();
@@ -134,6 +136,9 @@ public class MetricsList extends TheBorg {
 
 			String rScriptPath = new java.io.File("").getAbsolutePath();
 			dch.rCon.eval("source(\"//" + rScriptPath + "/scripts/metric.r\")");
+			org.apache.log4j.Logger.getLogger(MetricsList.class).debug(
+					"Successfully loaded rScript: source(\"//" + rScriptPath + "/scripts/metric.r\")");
+
 			List<Integer> empIdList = new ArrayList<>();
 			for (Employee e : partOfEmployeeList) {
 				empIdList.add(e.getEmployeeId());
@@ -151,7 +156,8 @@ public class MetricsList extends TheBorg {
 				org.apache.log4j.Logger.getLogger(MetricsList.class).error("Error: " + individualMetricScore.asString());
 				return metricsList;
 			} else {
-				org.apache.log4j.Logger.getLogger(MetricsList.class).debug(individualMetricScore.asList());
+				org.apache.log4j.Logger.getLogger(MetricsList.class).debug(
+						"Metrics calculation completed for individual " + individualMetricScore.asList());
 			}
 
 			RList result = individualMetricScore.asList();

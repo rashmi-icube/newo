@@ -52,13 +52,17 @@ public class DatabaseConnectionHelper extends TheBorg {
 
 			try {
 				Class.forName("org.neo4j.jdbc.Driver");
-				neo4jCon = new Driver().connect("jdbc:neo4j://" + url + ":" + port + "/", new Properties());
+				String path = "jdbc:neo4j://" + url + ":" + port + "/";
+				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Neo4j connection path : " + path);
+				neo4jCon = new Driver().connect(path, new Properties());
+				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Successfully connected to Neo4j with owen database");
 			} catch (Exception e) {
 				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("An error occurred while connecting to neo4j server", e);
 			}
 
 			// R connection
 			rCon = new RConnection();
+			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Successfully connected to R");
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error(
 					"An error occurred while attempting to get neo4j connection details", e);
