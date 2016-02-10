@@ -1,17 +1,25 @@
 package org.icube.owen.survey;
 
-import java.util.Date;
+import java.sql.Date;
 import java.util.List;
 
 import org.icube.owen.TheBorg;
 
 public class Batch extends TheBorg {
 
+	private int batchId;
 	private Date startDate;
 	private Date endDate;
 	private List<Question> questionList;
 	private Frequency batchFrequency;
-	private int batchId;
+
+	public int getBatchId() {
+		return batchId;
+	}
+
+	public void setBatchId(int batchId) {
+		this.batchId = batchId;
+	}
 
 	public Date getStartDate() {
 		return startDate;
@@ -37,26 +45,12 @@ public class Batch extends TheBorg {
 		this.questionList = questionList;
 	}
 
-	public Frequency getFrequency() {
+	public Frequency getBatchFrequency() {
 		return batchFrequency;
 	}
 
-	public void setFrequency(Frequency batchFrequency) {
+	public void setBatchFrequency(Frequency batchFrequency) {
 		this.batchFrequency = batchFrequency;
-	}
-
-	/**
-	 * @return the batchId
-	 */
-	public int getBatchId() {
-		return batchId;
-	}
-
-	/**
-	 * @param batchId the batchId to set
-	 */
-	public void setBatchId(int batchId) {
-		this.batchId = batchId;
 	}
 
 }
