@@ -14,12 +14,15 @@ public class QuestionList extends TheBorg {
 	public static void main(String arg[]) {
 		QuestionList ql = new QuestionList();
 		ql.getQuestionListByStatus(1, "Upcoming");
+
+		Question q = new Question();
+		q.getResponse(ql.getQuestion(1));
 	}
 
 	public List<Question> getQuestionList() {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Question> questionList = new ArrayList<>();
-		
+
 		try {
 			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getQuestionList()}");
 			ResultSet rs = cstmt.executeQuery();
@@ -30,8 +33,8 @@ public class QuestionList extends TheBorg {
 				q.setQuestionType(QuestionType.values()[rs.getInt("que_type")]);
 				q.setSurveyBatchId(rs.getInt("survey_batch_id"));
 				q.setStartDate(rs.getDate("startdate"));
-				q.setEndDate(rs.getDate("enddate"));				
-				q.setResponsePercentage(rs.getDouble("resp"));				
+				q.setEndDate(rs.getDate("enddate"));
+				q.setResponsePercentage(rs.getDouble("resp"));
 				questionList.add(q);
 			}
 
@@ -45,7 +48,7 @@ public class QuestionList extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Question> questionList = new ArrayList<Question>();
 		List<Question> QuestionListByStatus = new ArrayList<Question>();
-		
+
 		try {
 			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getQuestionListForBatch(?)}");
 			cstmt.setInt(1, batchId);
@@ -66,25 +69,24 @@ public class QuestionList extends TheBorg {
 		}
 
 		for (Question q1 : questionList) {
-	
-				if ((q1.getQuestionStatus(q1.getStartDate(), q1.getEndDate())).equalsIgnoreCase(filter)) {
-					QuestionListByStatus.add(q1);
-				
+
+			if ((q1.getQuestionStatus(q1.getStartDate(), q1.getEndDate())).equalsIgnoreCase(filter)) {
+				QuestionListByStatus.add(q1);
 
 			}
 		}
 
 		return QuestionListByStatus;
 	}
-	
-	public Question getQuestion(int questionId){
+
+	public Question getQuestion(int questionId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Question q = new Question();
 		try {
 			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getQuestionListForQuestion(?)}");
 			cstmt.setInt(1, questionId);
 			ResultSet rs = cstmt.executeQuery();
-			while (rs.next()) {	
+			while (rs.next()) {
 				q.setEndDate(rs.getDate("enddate"));
 				q.setStartDate(rs.getDate("startdate"));
 				q.setQuestionText(rs.getString("question"));
@@ -98,5 +100,5 @@ public class QuestionList extends TheBorg {
 		}
 		return q;
 	}
-	
+
 }
