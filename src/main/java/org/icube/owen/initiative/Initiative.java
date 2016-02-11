@@ -23,6 +23,7 @@ public class Initiative extends TheBorg {
 
 	private int initiativeId;
 	private String initiativeName = "";
+	//TODO change initiativeType to integer initiativeTypeId 
 	private String initiativeType = "";
 	private String initiativeCategory = "";
 	private String initiativeStatus = "";

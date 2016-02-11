@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
 import org.icube.owen.employee.Employee;
 import org.icube.owen.filter.Filter;
@@ -26,7 +27,7 @@ public class MetricsList extends TheBorg {
 	 */
 	public List<Metrics> getInitiativeMetricsForTeam(int initiativeTypeId, List<Filter> filterList) {
 		org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Entered getInitiativeMetricsForTeam method");
-		DatabaseConnectionHelper dch = new DatabaseConnectionHelper();
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Completed creating an instance of DatabaseConnectionHelper");
 		List<Metrics> metricsList = new ArrayList<>();
 		Map<Integer, String> metricsTypeMap = new HashMap<>();
@@ -50,9 +51,13 @@ public class MetricsList extends TheBorg {
 			}
 
 			// String rScriptPath = "//" + new java.io.File("").getAbsolutePath() + "/scripts/metric.r";
-			String rScriptPath = "C:\\Users\\fermion10\\Documents\\Neo4j\\scripts\\metric.r";
+			String rScriptPath = "C:\\\\Users\\\\fermion10\\\\Documents\\\\Neo4j\\\\scripts\\\\metric.r";
 			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Trying to load the RScript file at " + rScriptPath);
-			dch.rCon.eval("source(\"" + rScriptPath + "\")");
+
+			String s = "source(\"" + rScriptPath + "\")";
+			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("R Path for eval " + s);
+
+			dch.rCon.eval(s);
 			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Successfully loaded rScript: source(\"//" + rScriptPath);
 
 			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Filling up parameters for rscript function");
@@ -105,11 +110,12 @@ public class MetricsList extends TheBorg {
 				}
 				metricsList.add(m);
 			}
+			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Successfully calculated metrics for the team");
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(MetricsList.class).error(
 					"Exception while trying to retrieve metrics for category team and type ID " + initiativeTypeId, e);
 		}
-		org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Successfully calculated metrics for the team");
+		
 		return metricsList;
 
 	}
@@ -122,7 +128,7 @@ public class MetricsList extends TheBorg {
 	 * @return list of metrics objects
 	 */
 	public List<Metrics> getInitiativeMetricsForIndividual(int initiativeTypeId, List<Employee> partOfEmployeeList) {
-		DatabaseConnectionHelper dch = new DatabaseConnectionHelper();
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Metrics> metricsList = new ArrayList<>();
 		Map<Integer, String> metricsTypeMap = new HashMap<>();
 
@@ -193,6 +199,7 @@ public class MetricsList extends TheBorg {
 				}
 				metricsList.add(m);
 			}
+			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Successfully calculated metrics for the team");
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(MetricsList.class).error(
 					"Exception while trying to retrieve metrics for category individual and type ID " + initiativeTypeId, e);
