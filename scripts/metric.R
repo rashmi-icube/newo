@@ -8,9 +8,11 @@ TeamMetric=function(Function,Position,Zone){
   
   op=data.frame(metric_id=as.numeric(),score=as.numeric())
   
-  graph = startGraph("http://localhost:7474/db/data/")
+  graph = startGraph("http://localhost:7474/db/data/")  
   
   mydb = dbConnect(MySQL(), user='icube', password='icube123', dbname='owen', host='192.168.1.6', port=3306)
+  
+  #mydb = dbConnect(MySQL(), user='root', password='', dbname='owen', host='127.0.0.1', port=3306)
   
   querynode = paste("match (z:Zone)<-[:from_zone]-(a:Employee)-[:has_functionality]->(f:Function),
               a-[:is_positioned]->(p:Position) 
@@ -146,6 +148,8 @@ TeamMetric=function(Function,Position,Zone){
   
   op=rbind(op,data.frame(metric_id=10,score=sentimentscore))
   
+  dbDisconnect(mydb)
+  
   return(op)
   
 }
@@ -162,8 +166,8 @@ IndividualMetric=function(emp_id){
   
   graph = startGraph("http://localhost:7474/db/data/", username="", password="")
   
-  mydb = dbConnect(MySQL(), user='icube', password='icube123', dbname='owen')
-  
+  mydb = dbConnect(MySQL(), user='icube', password='icube123', dbname='owen', host='192.168.1.6', port=3306)
+    
   # expertise
   queryedge = paste("match (a:Employee {emp_id:",emp_id,"})-[r:learning]->(b:Employee)
                     return sum(r.weight)",sep="")
@@ -216,6 +220,7 @@ IndividualMetric=function(emp_id){
   
   op=rbind(op,data.frame(metric_id=5,score=sentimentscore))
   
+  dbDisconnect(mydb)
   
   return(op)
 }
