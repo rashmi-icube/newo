@@ -25,11 +25,14 @@ public class MetricsList extends TheBorg {
 	 * @return list of metrics objects
 	 */
 	public List<Metrics> getInitiativeMetricsForTeam(int initiativeTypeId, List<Filter> filterList) {
+		org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Entered getInitiativeMetricsForTeam method");
 		DatabaseConnectionHelper dch = new DatabaseConnectionHelper();
+		org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Completed creating an instance of DatabaseConnectionHelper");
 		List<Metrics> metricsList = new ArrayList<>();
 		Map<Integer, String> metricsTypeMap = new HashMap<>();
 
 		try {
+			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Calling procedure getMetricListForCategory");
 			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getMetricListForCategory(?)}");
 			cstmt.setString(1, "Team");
 			ResultSet rs = cstmt.executeQuery();
@@ -37,6 +40,7 @@ public class MetricsList extends TheBorg {
 				metricsTypeMap.put(rs.getInt(1), rs.getString(2));
 			}
 
+			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Calling procedure GetMetricForInitiative");
 			Map<Integer, String> primaryMetricMap = new HashMap<>();
 			cstmt = dch.mysqlCon.prepareCall("{call GetMetricForInitiative(?)}");
 			cstmt.setInt(1, initiativeTypeId);
@@ -46,10 +50,12 @@ public class MetricsList extends TheBorg {
 			}
 
 			// String rScriptPath = "//" + new java.io.File("").getAbsolutePath() + "/scripts/metric.r";
-			String rScriptPath = "\\C:\\Users\\fermion10\\Documents\\Neo4j\\scripts\\metric.r";
+			String rScriptPath = "C:\\Users\\fermion10\\Documents\\Neo4j\\scripts\\metric.r";
+			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Trying to load the RScript file at " + rScriptPath);
 			dch.rCon.eval("source(\"" + rScriptPath + "\")");
 			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Successfully loaded rScript: source(\"//" + rScriptPath);
 
+			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Filling up parameters for rscript function");
 			List<Integer> funcList = new ArrayList<>();
 			List<Integer> posList = new ArrayList<>();
 			List<Integer> zoneList = new ArrayList<>();
@@ -65,6 +71,7 @@ public class MetricsList extends TheBorg {
 			dch.rCon.assign("funcList", this.getIntArrayFromIntegerList(funcList));
 			dch.rCon.assign("posList", this.getIntArrayFromIntegerList(posList));
 			dch.rCon.assign("zoneList", this.getIntArrayFromIntegerList(zoneList));
+			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Calling the actual function in RScript TeamMetric");
 			REXP teamMetricScore = dch.rCon.parseAndEval("try(eval(TeamMetric(funcList, posList, zoneList)))");
 			if (teamMetricScore.inherits("try-error")) {
 				org.apache.log4j.Logger.getLogger(MetricsList.class).error("Error: " + teamMetricScore.asString());
@@ -73,6 +80,7 @@ public class MetricsList extends TheBorg {
 				org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Metrics calculation completed for team " + teamMetricScore.asList());
 			}
 
+			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Parsing R function results");
 			RList result = teamMetricScore.asList();
 			REXPDouble metricIdResult = (REXPDouble) result.get("metric_id");
 			int[] metricIdArray = metricIdResult.asIntegers();
@@ -101,7 +109,7 @@ public class MetricsList extends TheBorg {
 			org.apache.log4j.Logger.getLogger(MetricsList.class).error(
 					"Exception while trying to retrieve metrics for category team and type ID " + initiativeTypeId, e);
 		}
-
+		org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Successfully calculated metrics for the team");
 		return metricsList;
 
 	}
@@ -135,7 +143,8 @@ public class MetricsList extends TheBorg {
 			}
 
 			// String rScriptPath = "//" + new java.io.File("").getAbsolutePath() + "/scripts/metric.r";
-			String rScriptPath = "\\C:\\Users\\fermion10\\Documents\\Neo4j\\scripts\\metric.r";
+			String rScriptPath = "C:\\Users\\fermion10\\Documents\\Neo4j\\scripts\\metric.r";
+			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Trying to load the RScript file at " + rScriptPath);
 			dch.rCon.eval("source(\"" + rScriptPath + "\")");
 			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Successfully loaded rScript: source(\"//" + rScriptPath);
 
