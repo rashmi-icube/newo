@@ -10,7 +10,7 @@ TeamMetric=function(Function,Position,Zone){
   
   graph = startGraph("http://localhost:7474/db/data/")
   
-  mydb = dbConnect(MySQL(), user='icube', password='icube123', dbname='owen')
+  mydb = dbConnect(MySQL(), user='icube', password='icube123', dbname='owen', host='192.168.1.6', port=3306)
   
   querynode = paste("match (z:Zone)<-[:from_zone]-(a:Employee)-[:has_functionality]->(f:Function),
               a-[:is_positioned]->(p:Position) 
