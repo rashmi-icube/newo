@@ -62,7 +62,7 @@ public class Alert {
 	public Alert get(){
 		Alert a = new Alert();
 		
-		//call SQL procedure to get all alert details
+		//call SQL procedure/R Script to get all alert details
 		
 		//fill in alert object with details retrieved from SQL
 		
