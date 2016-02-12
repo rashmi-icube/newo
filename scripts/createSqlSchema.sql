@@ -1,3 +1,24 @@
+CREATE SCHEMA `owen_master` DEFAULT CHARACTER SET utf8 ;
+
+use owen_master;
+
+CREATE TABLE `company_master` (
+  `comp_id` int(11) NOT NULL AUTO_INCREMENT,
+  `comp_name` varchar(50) NOT NULL,
+  `neo_dblocation` varchar(266) NOT NULL,
+  `neo_dburl` varchar(266) NOT NULL,
+  `neo_port` int(11) NOT NULL,
+  `neo_username` varchar(50) NOT NULL,
+  `neo_passsword` varchar(50) NOT NULL,
+  `comp_sql_dbname` varchar(50) NOT NULL,
+  `sql_server` varchar(256) NOT NULL,
+  `sql_userid` varchar(50) NOT NULL,
+  `sql_password` varchar(50) NOT NULL,
+  `R_path` varchar(256) NOT NULL,
+  PRIMARY KEY (`comp_id`)
+);
+
+
 CREATE SCHEMA `owen` DEFAULT CHARACTER SET utf8 ;
 
 use owen;
@@ -246,7 +267,7 @@ CREATE TABLE `initiative_metric_value` (
   CONSTRAINT `initiative_metric_value_ibfk_1` FOREIGN KEY (`metric_id`) REFERENCES `metric_master` (`metric_id`)
 );
 
-INSERT INTO `initiative_metric_value` VALUES (1,1,6,1.78709741,'0001-10-15 00:00:00'),(2,1,7,3.166149766,'0001-10-15 00:00:00'),(3,1,8,0.611353089,'0001-10-15 00:00:00'),(4,1,9,3.334247759,'0001-10-15 00:00:00'),(5,1,10,0.934909136,'0001-10-15 00:00:00'),(6,1,6,0.944988876,'0001-11-15 00:00:00'),(7,1,7,1.742101153,'0001-11-15 00:00:00'),(8,1,8,1.024074741,'0001-11-15 00:00:00'),(9,1,9,4.176320712,'0001-11-15 00:00:00'),(10,1,10,1.259369861,'0001-11-15 00:00:00'),(11,1,6,0.780352978,'0001-12-15 00:00:00'),(12,1,7,1.424930259,'0001-12-15 00:00:00'),(13,1,8,4.233532353,'0001-12-15 00:00:00'),(14,1,9,2.874380166,'0001-12-15 00:00:00'),(15,1,10,4.1004556,'0001-12-15 00:00:00'),(16,2,6,1.78709741,'0001-10-15 00:00:00'),(17,2,7,3.166149766,'0001-10-15 00:00:00'),(18,2,8,0.611353089,'0001-10-15 00:00:00'),(19,2,9,3.334247759,'0001-10-15 00:00:00'),(20,2,10,0.934909136,'0001-10-15 00:00:00'),(21,2,6,0.944988876,'0001-11-15 00:00:00'),(22,2,7,1.742101153,'0001-11-15 00:00:00'),(23,2,8,1.024074741,'0001-11-15 00:00:00'),(24,2,9,4.176320712,'0001-11-15 00:00:00'),(25,2,10,1.259369861,'0001-11-15 00:00:00'),(26,2,6,0.780352978,'0001-12-15 00:00:00'),(27,2,7,1.424930259,'0001-12-15 00:00:00'),(28,2,8,4.233532353,'0001-12-15 00:00:00'),(29,2,9,2.874380166,'0001-12-15 00:00:00'),(30,2,10,4.1004556,'0001-12-15 00:00:00'),(31,3,6,1.78709741,'0001-10-15 00:00:00'),(32,3,7,3.166149766,'0001-10-15 00:00:00'),(33,3,8,0.611353089,'0001-10-15 00:00:00'),(34,3,9,3.334247759,'0001-10-15 00:00:00'),(35,3,10,0.934909136,'0001-10-15 00:00:00'),(36,3,6,0.944988876,'0001-11-15 00:00:00'),(37,3,7,1.742101153,'0001-11-15 00:00:00'),(38,3,8,1.024074741,'0001-11-15 00:00:00'),(39,3,9,4.176320712,'0001-11-15 00:00:00'),(40,3,10,1.259369861,'0001-11-15 00:00:00'),(41,3,6,0.780352978,'0001-12-15 00:00:00'),(42,3,7,1.424930259,'0001-12-15 00:00:00'),(43,3,8,4.233532353,'0001-12-15 00:00:00'),(44,3,9,2.874380166,'0001-12-15 00:00:00'),(45,3,10,4.1004556,'0001-12-15 00:00:00'),(46,4,6,1.78709741,'0001-10-15 00:00:00'),(47,4,7,3.166149766,'0001-10-15 00:00:00'),(48,4,8,0.611353089,'0001-10-15 00:00:00'),(49,4,9,3.334247759,'0001-10-15 00:00:00'),(50,4,10,0.934909136,'0001-10-15 00:00:00'),(51,4,6,0.944988876,'0001-11-15 00:00:00'),(52,4,7,1.742101153,'0001-11-15 00:00:00'),(53,4,8,1.024074741,'0001-11-15 00:00:00'),(54,4,9,4.176320712,'0001-11-15 00:00:00'),(55,4,10,1.259369861,'0001-11-15 00:00:00'),(56,4,6,0.780352978,'0001-12-15 00:00:00'),(57,4,7,1.424930259,'0001-12-15 00:00:00'),(58,4,8,4.233532353,'0001-12-15 00:00:00'),(59,4,9,2.874380166,'0001-12-15 00:00:00'),(60,4,10,4.1004556,'0001-12-15 00:00:00'),(61,5,6,1.78709741,'0001-10-15 00:00:00'),(62,5,7,3.166149766,'0001-10-15 00:00:00'),(63,5,8,0.611353089,'0001-10-15 00:00:00'),(64,5,9,3.334247759,'0001-10-15 00:00:00'),(65,5,10,0.934909136,'0001-10-15 00:00:00'),(66,5,6,0.944988876,'0001-11-15 00:00:00'),(67,5,7,1.742101153,'0001-11-15 00:00:00'),(68,5,8,1.024074741,'0001-11-15 00:00:00'),(69,5,9,4.176320712,'0001-11-15 00:00:00'),(70,5,10,1.259369861,'0001-11-15 00:00:00'),(71,5,6,0.780352978,'0001-12-15 00:00:00'),(72,5,7,1.424930259,'0001-12-15 00:00:00'),(73,5,8,4.233532353,'0001-12-15 00:00:00'),(74,5,9,2.874380166,'0001-12-15 00:00:00'),(75,5,10,4.1004556,'0001-12-15 00:00:00');
+INSERT INTO `initiative_metric_value` VALUES (1,1,6,15,'2016-02-08 00:01:00'),(2,2,6,10,'2016-02-08 00:01:00'),(3,3,6,62,'2016-02-08 00:01:00'),(4,4,6,55,'2016-02-08 00:01:00'),(5,5,6,43,'2016-02-08 00:01:00'),(6,11,6,32,'2016-02-10 00:01:00'),(7,12,6,44,'2016-02-08 00:01:00'),(8,13,6,67,'2016-02-08 00:01:00'),(9,14,6,46,'2016-02-08 00:01:00'),(10,15,6,69,'2016-02-08 00:01:00'),(11,1,7,48,'2016-02-08 00:01:00'),(12,2,7,68,'2016-02-08 00:01:00'),(13,3,7,42,'2016-02-08 00:01:00'),(14,4,7,42,'2016-02-08 00:01:00'),(15,5,7,28,'2016-02-08 00:01:00'),(16,11,7,21,'2016-02-10 00:01:00'),(17,12,7,21,'2016-02-08 00:01:00'),(18,13,7,63,'2016-02-08 00:01:00'),(19,14,7,48,'2016-02-08 00:01:00'),(20,15,7,65,'2016-02-08 00:01:00'),(21,1,8,42,'2016-02-08 00:01:00'),(22,2,8,16,'2016-02-08 00:01:00'),(23,3,8,64,'2016-02-08 00:01:00'),(24,4,8,82,'2016-02-08 00:01:00'),(25,5,8,88,'2016-02-08 00:01:00'),(26,11,8,81,'2016-02-10 00:01:00'),(27,12,8,55,'2016-02-08 00:01:00'),(28,13,8,12,'2016-02-08 00:01:00'),(29,14,8,68,'2016-02-08 00:01:00'),(30,15,8,16,'2016-02-08 00:01:00'),(31,1,9,36,'2016-02-08 00:01:00'),(32,2,9,81,'2016-02-08 00:01:00'),(33,3,9,70,'2016-02-08 00:01:00'),(34,4,9,99,'2016-02-08 00:01:00'),(35,5,9,83,'2016-02-08 00:01:00'),(36,11,9,61,'2016-02-10 00:01:00'),(37,12,9,88,'2016-02-08 00:01:00'),(38,13,9,13,'2016-02-08 00:01:00'),(39,14,9,10,'2016-02-08 00:01:00'),(40,15,9,54,'2016-02-08 00:01:00'),(41,1,10,72,'2016-02-08 00:01:00'),(42,2,10,64,'2016-02-08 00:01:00'),(43,3,10,69,'2016-02-08 00:01:00'),(44,4,10,85,'2016-02-08 00:01:00'),(45,5,10,71,'2016-02-08 00:01:00'),(46,11,10,61,'2016-02-10 00:01:00'),(47,12,10,37,'2016-02-08 00:01:00'),(48,13,10,39,'2016-02-08 00:01:00'),(49,14,10,72,'2016-02-08 00:01:00'),(50,15,10,97,'2016-02-08 00:01:00');
 
 
 /*create initiative type master table*/ 
@@ -303,6 +324,7 @@ CREATE TABLE `alert` (
   `people_count` int(11) NOT NULL,
   `alert_time` datetime NOT NULL,
   `alert` varchar(300) NOT NULL,
+  `status` varchar(10) NOT NULL,
   PRIMARY KEY (`alert_id`),
   KEY `cube_id` (`cube_id`),
   KEY `metric_id` (`metric_id`),
@@ -505,7 +527,7 @@ CREATE TABLE `neo_url` (
   PRIMARY KEY (`company_id`)
   );
   
-  INSERT INTO `owen`.`neo_url` (`db_location`, `db_url`, `port`,`userid`,`password`) VALUES ('c:/', 'localhost', '7474','icube','icube123');
+  INSERT INTO `owen`.`neo_url` (`db_location`, `db_url`, `port`,`userid`,`password`) VALUES ('c:/', 'localhost', '7474','neo4j','icube'),('c:/', 'localhost', '7474','neo4j','neo4j');
 
   
 DELIMITER //
@@ -534,6 +556,16 @@ SELECT survey_batch_id,survey_batch.freq_id,frequency_master.freq_name,start_dat
 on survey_batch.freq_id=frequency_master.freq_id;
 END //
 DELIMITER 
+
+DELIMITER //
+CREATE PROCEDURE getBatchListById(
+in batchid int)
+BEGIN
+SELECT survey_batch_id,survey_batch.freq_id,frequency_master.freq_name,start_date,end_date FROM survey_batch join frequency_master
+on survey_batch.freq_id=frequency_master.freq_id where survey_batch.survey_batch_id=batchid;
+END //
+DELIMITER 
+
 
 
 
@@ -571,17 +603,19 @@ DELIMITER
 
 
 
-
 DELIMITER //
 CREATE PROCEDURE getQuestionListForQuestion(
 in queid int)
 BEGIN
-select * from (SELECT question.que_id,question.question,question.que_type,question.survey_batch_id,question.startdate,question.enddate,count(distinct(me_response.emp_id))/(select count(emp_id) from employee) as resp  FROM question,me_response
-where question.que_id=me_response.que_id and question.que_id=queid group by question.que_id
-Union
-SELECT question.que_id,question.question,question.que_type,question.survey_batch_id,question.startdate,question.enddate,count(distinct(we_response.emp_id))/(select count(emp_id) from employee) as resp  FROM question,we_response
-where question.que_id=we_response.que_id and question.que_id=queid group by question.que_id) as t
-order by t.que_id;
+select * from (SELECT question.que_id,question.question,question.que_type,question.survey_batch_id,
+question.startdate,question.enddate,
+count(distinct(me_response.emp_id))/(select count(emp_id) from employee) as resp  FROM question LEft join me_response
+on question.que_id=me_response.que_id where  question.que_type=0 and question.que_id=queid group by question.que_id
+union
+SELECT question.que_id,question.question,question.que_type,question.survey_batch_id,
+question.startdate,question.enddate,
+count(distinct(we_response.emp_id))/(select count(emp_id) from employee) as resp  FROM question LEft join we_response
+on question.que_id=we_response.que_id where  question.que_type=1 and question.que_id=queid  group by question.que_id) as t order by t.que_id;
 END //
 DELIMITER 
 
@@ -644,4 +678,16 @@ DELIMITER
 
 
 
-
+DELIMITER //
+CREATE PROCEDURE getCubeIdFromDimension(
+in fun INT,
+in pos INT,
+in zon INT
+)
+BEGIN
+select cube_id from (select t2.cube_id,t2.Function,t2.Position,dim2.dimension_val_id as Zone from (select t1.cube_id,t1.Function,dim1.dimension_val_id as Position,t1.Zone from (SELECT cube_master.cube_id,dimension_value.dimension_val_id as Function,cube_master.Position,cube_master.Zone
+ FROM cube_master Left join dimension_value on cube_master.Function=dimension_value.dimension_val_name) as t1  
+ left join dimension_value as dim1 on t1.Position=dim1.dimension_val_name) as t2 
+ Left join  dimension_value as dim2 on t2.Zone=dim2.dimension_val_name) as t3 where t3.Function=fun and t3.Position=pos and t3.Zone=zon;
+END //
+DELIMITER 
