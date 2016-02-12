@@ -691,3 +691,25 @@ select cube_id from (select t2.cube_id,t2.Function,t2.Position,dim2.dimension_va
  Left join  dimension_value as dim2 on t2.Zone=dim2.dimension_val_name) as t3 where t3.Function=fun and t3.Position=pos and t3.Zone=zon;
 END //
 DELIMITER 
+
+
+DELIMITER //
+CREATE PROCEDURE getMetricValueListForTeamInitiative
+(IN initlist VARCHAR(1000))
+BEGIN
+SELECT *  FROM initiative_metric_value t1
+where FIND_IN_SET(t1.initiative_id,initlist) and t1.calc_time=(select max(t2.calc_time) from  initiative_metric_value  as t2
+where t2.initiative_id=t1.initiative_id and  t1.metric_id=t2.metric_id);
+END //
+DELIMITER 
+
+
+DELIMITER //
+CREATE PROCEDURE getMetricValueListForIndividualInitiative
+(IN emplist VARCHAR(1000))
+BEGIN
+SELECT *  FROM individual_metric_value as t1
+where FIND_IN_SET(t1.emp_id,emplist) and t1.calc_time=(select max(t2.calc_time) from  individual_metric_value as t2
+where t2.emp_id=t1.emp_id and  t1.metric_id=t2.metric_id);
+END //
+DELIMITER 
