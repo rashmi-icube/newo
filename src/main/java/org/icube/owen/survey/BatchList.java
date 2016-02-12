@@ -7,7 +7,9 @@ import java.sql.SQLException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.time.DateUtils;
 import org.icube.owen.ObjectFactory;
@@ -15,6 +17,25 @@ import org.icube.owen.TheBorg;
 import org.icube.owen.helper.DatabaseConnectionHelper;
 
 public class BatchList extends TheBorg {
+	
+	/**
+	 * Retrieves the Frequency labels to populate the Frequency drop down
+	 * @return - A frequency label map containing the frequency values
+	 */
+	public Map<Integer,String> getFrequencyLabelMap(){
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		Map<Integer, String> getFrequencyLabelMap = new HashMap<>();
+		try {
+			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getFrequencyList()}");
+			ResultSet rs = cstmt.executeQuery();
+			while (rs.next()) {
+				getFrequencyLabelMap.put(rs.getInt(1), rs.getString(2));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return getFrequencyLabelMap;
+	}
 
 	/**
 	 * Retrieves the list of Batches
