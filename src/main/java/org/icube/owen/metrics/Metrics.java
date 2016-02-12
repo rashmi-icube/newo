@@ -1,5 +1,7 @@
 package org.icube.owen.metrics;
 
+import java.sql.Date;
+
 import org.icube.owen.TheBorg;
 
 public class Metrics extends TheBorg {
@@ -9,6 +11,8 @@ public class Metrics extends TheBorg {
 	private int score;
 	private double average;
 	private boolean primary;
+	private Date dateOfCalculation;
+	private String direction; //can have values Positive/Negative/Neutral depending upon change from previous value
 
 	public String getName() {
 		return name;
@@ -48,6 +52,34 @@ public class Metrics extends TheBorg {
 
 	public void setPrimary(boolean primary) {
 		this.primary = primary;
+	}
+
+	/**
+	 * @return the dateOfCalculation
+	 */
+	public Date getDateOfCalculation() {
+		return dateOfCalculation;
+	}
+
+	/**
+	 * @param dateOfCalculation the dateOfCalculation to set
+	 */
+	public void setDateOfCalculation(Date dateOfCalculation) {
+		this.dateOfCalculation = dateOfCalculation;
+	}
+
+	/**
+	 * @return the direction
+	 */
+	public String getDirection() {
+		return direction;
+	}
+
+	/**
+	 * @param direction the direction to set
+	 */
+	public void setDirection(String direction) {
+		this.direction = direction;
 	}
 
 }

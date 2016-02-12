@@ -39,7 +39,9 @@ public class DashboardHelper {
 	// Focus Area - Top 3 active initiatives w/descending order of end date
 	public List<Initiative> getInitiativesUnderFocus(){
 		List<Initiative> initiativeList = new ArrayList<>();
-		// write neo4j query to get these 3 initiatives 
+		// write neo4j query to get these 3 initiatives
 		return initiativeList;
 	}
+	
+	
 }

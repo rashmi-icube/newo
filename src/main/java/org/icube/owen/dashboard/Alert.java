@@ -13,8 +13,9 @@ public class Alert {
 	private String alertMessage;
 	private String cubeName;
 	private Metrics alertMetric;
-	private int initiativeTypeId;
+	private int initiativeTypeId; // confirm if this attribute is required
 	private String alertStatus;
+	//add attribute int alertId
 	
 	public List<Filter> getFilterList() {
 		return filterList;

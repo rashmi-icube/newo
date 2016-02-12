@@ -18,6 +18,7 @@ import org.icube.owen.TheBorg;
 import org.icube.owen.employee.Employee;
 import org.icube.owen.filter.Filter;
 import org.icube.owen.helper.DatabaseConnectionHelper;
+import org.icube.owen.metrics.Metrics;
 
 public class Initiative extends TheBorg {
 
@@ -33,6 +34,7 @@ public class Initiative extends TheBorg {
 	private List<Filter> filterList;
 	private List<Employee> ownerOfList;
 	private List<Employee> partOfEmployeeList;
+	private List<Metrics> initiativeMetrics;
 
 	// TODO initiativeScore - metric value of the initiative based on the type + category
 
@@ -493,5 +495,19 @@ public class Initiative extends TheBorg {
 
 	public void setPartOfEmployeeList(List<Employee> partOfEmployeeList) {
 		this.partOfEmployeeList = partOfEmployeeList;
+	}
+
+	/**
+	 * @return the initiativeMetrics
+	 */
+	public List<Metrics> getInitiativeMetrics() {
+		return initiativeMetrics;
+	}
+
+	/**
+	 * @param initiativeMetrics the initiativeMetrics to set
+	 */
+	public void setInitiativeMetrics(List<Metrics> initiativeMetrics) {
+		this.initiativeMetrics = initiativeMetrics;
 	}
 }
