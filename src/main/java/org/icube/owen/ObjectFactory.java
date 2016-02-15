@@ -60,7 +60,7 @@ public class ObjectFactory {
 	}
 
 	public static void main(String[] args) {
-		
+
 		Initiative initiative = (Initiative) ObjectFactory.getInstance("org.icube.owen.initiative.Initiative");
 
 		System.out.println("Initiative type map : " + initiative.getInitiativeTypeMap("Team"));
@@ -74,8 +74,6 @@ public class ObjectFactory {
 		List<Employee> partOfEmployeeList = new ArrayList<>();
 		Employee e = (Employee) ObjectFactory.getInstance("org.icube.owen.employee.Employee");
 		partOfEmployeeList.add(e.get(16));
-		partOfEmployeeList.add(e.get(12));
-		partOfEmployeeList.add(e.get(11));
 
 		EmployeeList el = (EmployeeList) ObjectFactory.getInstance("org.icube.owen.employee.EmployeeList");
 		System.out.println("Employee smart list :" + el.getEmployeeSmartListForIndividual(partOfEmployeeList, 1));
@@ -140,7 +138,7 @@ public class ObjectFactory {
 		System.out.println(ml.getInitiativeMetricsForIndividual(1, partOfEmployeeList));
 		System.out.println(ml.getInitiativeMetricsForTeam(6, filterMasterList));
 
-		Initiative updatedinitiative = initiative.get(3);
+		Initiative updatedinitiative = initiative.get(16);
 		ownerOfList.clear();
 		ownerOfList.add(e.get(7));
 		ownerOfList.add(e.get(20));
@@ -151,12 +149,12 @@ public class ObjectFactory {
 		initiative.updateInitiative(updatedinitiative);
 		System.out.println(il.getInitiativeList());
 
-		initiative.delete(2);
+		initiative.delete(17);
 		System.out.println(il.getInitiativeListByStatus("Individual", "Active"));
 		System.out.println(il.getInitiativeListByType("Individual", 1));
 
-		initiative = initiative.get(3);
-		initiative.complete(3);
+		initiative = initiative.get(17);
+		initiative.complete(17);
 
 		InitiativeHelper ih = (InitiativeHelper) ObjectFactory.getInstance("org.icube.owen.initiative.InitiativeHelper");
 		System.out.println(ih.getInitiativeCount());
@@ -166,18 +164,18 @@ public class ObjectFactory {
 		il.getInitiativeListByStatus("Team", "Active");
 		il.getInitiativeListByStatus("Team", "Pending");
 		il.getInitiativeList();
-		
+
 		QuestionList ql = (QuestionList) ObjectFactory.getInstance("org.icube.owen.survey.QuestionList");
 		ql.getQuestionList();
 		ql.getQuestionListForBatch(1);
 		ql.getQuestionListByStatus(1, "Upcoming");
 		ql.getQuestionListByStatus(1, "Completed");
-		
+
 		Question q = (Question) ObjectFactory.getInstance("org.icube.owen.survey.Question");
 		q.getCurrentQuestion(1);
 		q.getQuestion(1);
 		q.getResponse(q.getQuestion(2));
-		
+
 		BatchList bl = (BatchList) ObjectFactory.getInstance("org.icube.owen.survey.BatchList");
 		bl.getBatchList();
 
