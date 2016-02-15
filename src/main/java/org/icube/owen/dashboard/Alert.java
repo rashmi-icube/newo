@@ -10,72 +10,93 @@ public class Alert {
 
 	private List<Filter> filterList;
 	private List<Employee> employeeList;
+	private int alertId;
 	private String alertMessage;
 	private String cubeName;
 	private Metrics alertMetric;
-	private int initiativeTypeId; // confirm if this attribute is required
+	private int initiativeTypeId;
 	private String alertStatus;
-	//add attribute int alertId
-	
+
 	public List<Filter> getFilterList() {
 		return filterList;
 	}
+
 	public void setFilterList(List<Filter> filterList) {
 		this.filterList = filterList;
 	}
+
 	public List<Employee> getEmployeeList() {
 		return employeeList;
 	}
+
 	public void setEmployeeList(List<Employee> employeeList) {
 		this.employeeList = employeeList;
 	}
+
+	public int getAlertId() {
+		return alertId;
+	}
+
+	public void setAlertId(int alertId) {
+		this.alertId = alertId;
+	}
+
 	public String getAlertMessage() {
 		return alertMessage;
 	}
+
 	public void setAlertMessage(String alertMessage) {
 		this.alertMessage = alertMessage;
 	}
+
 	public String getCubeName() {
 		return cubeName;
 	}
+
 	public void setCubeName(String cubeName) {
 		this.cubeName = cubeName;
 	}
+
 	public Metrics getAlertMetric() {
 		return alertMetric;
 	}
+
 	public void setAlertMetric(Metrics alertMetric) {
 		this.alertMetric = alertMetric;
 	}
+
 	public int getInitiativeTypeId() {
 		return initiativeTypeId;
 	}
+
 	public void setInitiativeTypeId(int initiativeTypeId) {
 		this.initiativeTypeId = initiativeTypeId;
 	}
+
 	public String getAlertStatus() {
 		return alertStatus;
 	}
+
 	public void setAlertStatus(String alertStatus) {
 		this.alertStatus = alertStatus;
 	}
-	
-	public Alert get(){
+
+	public Alert get() {
 		Alert a = new Alert();
-		
-		//call SQL procedure/R Script to get all alert details
-		
-		//fill in alert object with details retrieved from SQL
-		
+
+		// call SQL procedure/R Script to get all alert details
+
+		// fill in alert object with details retrieved from SQL
+
 		return a;
 	}
-	
-	public boolean changeStatus(Alert a , String status){
+
+	public boolean changeStatus(Alert a, String status) {
 		a.setAlertStatus(status);
-		//write sql/neo4j query to store the status
-		
+		// write sql/neo4j query to store the status
+
 		return true;
-		
+
 	}
-	
+
 }
