@@ -10,6 +10,7 @@ public class Alert {
 
 	private List<Filter> filterList;
 	private List<Employee> employeeList;
+	private int employeeCount;
 	private int alertId;
 	private String alertMessage;
 	private String cubeName;
@@ -31,6 +32,14 @@ public class Alert {
 
 	public void setEmployeeList(List<Employee> employeeList) {
 		this.employeeList = employeeList;
+	}
+
+	public int getEmployeeCount() {
+		return employeeCount;
+	}
+
+	public void setEmployeeCount(int employeeCount) {
+		this.employeeCount = employeeCount;
 	}
 
 	public int getAlertId() {
