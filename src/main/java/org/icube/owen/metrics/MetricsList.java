@@ -101,6 +101,7 @@ public class MetricsList extends TheBorg {
 			for (int id : metricsTypeMap.keySet()) {
 				Metrics m = new Metrics();
 				m.setCategory("Team");
+				m.setId(id);
 				m.setName(metricsTypeMap.get(id));
 				m.setScore(metricScoreMap.get(id));
 				if (primaryMetricMap.containsKey(id)) {
@@ -190,6 +191,7 @@ public class MetricsList extends TheBorg {
 			for (int id : metricsTypeMap.keySet()) {
 				Metrics m = new Metrics();
 				m.setCategory("Individual");
+				m.setId(id);
 				m.setName(metricsTypeMap.get(id));
 				m.setScore(metricScoreMap.get(id));
 				if (primaryMetricMap.containsKey(id)) {

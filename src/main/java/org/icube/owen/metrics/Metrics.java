@@ -6,6 +6,7 @@ import org.icube.owen.TheBorg;
 
 public class Metrics extends TheBorg {
 
+	private int id;
 	private String name;
 	private String category;
 	private int score;
@@ -13,6 +14,14 @@ public class Metrics extends TheBorg {
 	private boolean primary;
 	private Date dateOfCalculation;
 	private String direction; //can have values Positive/Negative/Neutral depending upon change from previous value
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
 
 	public String getName() {
 		return name;
