@@ -91,4 +91,13 @@ public class Metrics extends TheBorg {
 		this.direction = direction;
 	}
 
+	public String calculateMetricDimension(int currentScore, int previousScore){
+		if(currentScore > previousScore){
+			return "Positive";
+		} else if (currentScore < previousScore){
+			return "Negative";
+		} else {
+			return "Neutral";
+		}
+	}
 }
