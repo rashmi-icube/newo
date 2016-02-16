@@ -210,7 +210,7 @@ public class EmployeeList extends TheBorg {
 	 * @param res -  actual result from cypher
 	 * @param setScore - if the score should be set for the employee or not
 	 * @return employee object
-	 * @throws SQLException 
+	 * @throws SQLException - if employee details are not set
 	 */
 	protected Employee setEmployeeDetails(ResultSet res, boolean setScore) throws SQLException {
 		Employee e = new Employee();

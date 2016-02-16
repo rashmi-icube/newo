@@ -23,7 +23,7 @@ public class InitiativeHelper extends TheBorg {
 	 * @param res - A sql resultset containing the Initiative attributes and connections
 	 * @param i - An Initiative object
 	 * @return - List of Filter objects
-	 * @throws SQLException 
+	 * @throws SQLException - if partOf connections are not set
 	 */
 	@SuppressWarnings("unchecked")
 	public List<Filter> setPartOfConnections(ResultSet res, Initiative i) throws SQLException {
@@ -57,6 +57,7 @@ public class InitiativeHelper extends TheBorg {
 	 * 
 	 * @param resultMap - A map containing the Initiative attributes and connections
 	 * @return list of employee object who are owners of the initiative
+	 *  @throws SQLException - if error in getting employee list
 	 */
 	@SuppressWarnings("unchecked")
 	public List<Employee> getOwnerOfList(ResultSet resultMap) throws SQLException {
