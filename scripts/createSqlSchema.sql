@@ -181,11 +181,11 @@ CREATE TABLE `metric_master` (
   `metric_name` tinytext NOT NULL,
   `query` text,
   `Category` varchar(20) NOT NULL,
+  `alert_statement` varchar(256),
   PRIMARY KEY (`metric_id`)
 );
 
-INSERT INTO `metric_master` VALUES (1,'Expertise','','Individual'),(2,'Mentorship','','Individual'),(3,'Retention','','Individual'),(4,'Influence','','Individual'),(5,'Sentiment','','Individual'),(6,'Performance','','Team'),(7,'Social Cohesion','','Team'),(8,'Retention','','Team'),(9,'Innovation','','Team'),(10,'Sentiment','','Team');
-
+INSERT INTO `metric_master` VALUES (1,'Expertise','','Individual',NULL),(2,'Mentorship','','Individual',NULL),(3,'Retention','','Individual',NULL),(4,'Influence','','Individual',NULL),(5,'Sentiment','','Individual',NULL),(6,'Performance','','Team','%s %s %s\'s are indicating a decline in Performance'),(7,'Social Cohesion','','Team','%s %s %s\'s are indicating a decline in Social Cohesion'),(8,'Retention','','Team','%s %s %s\'s are indicating a decline in Retention'),(9,'Innovation','','Team','%s %s %s\'s are indicating a decline in Innovation'),(10,'Sentiment','','Team','%s %s %s\'s are indicating a decline in Sentiment');
 
 /*create cube master table*/
 
@@ -322,7 +322,8 @@ CREATE TABLE `alert` (
   `alert_id` int(11) NOT NULL AUTO_INCREMENT,
   `cube_id` int(11) NOT NULL,
   `metric_id` int(11) NOT NULL,
-  `score` double DEFAULT NULL,
+  `score` double NOT NULL,
+  `delta_score` double NOT NULL,
   `people_count` int(11) NOT NULL,
   `alert_time` datetime NOT NULL,
   `alert` varchar(300) NOT NULL,
@@ -334,7 +335,7 @@ CREATE TABLE `alert` (
   CONSTRAINT `alert_ibfk_2` FOREIGN KEY (`metric_id`) REFERENCES `metric_master` (`metric_id`)
 );
 
-INSERT INTO `alert` VALUES (1,1,8,56,2,'2016-02-15 00:01:00','Team XY has 2 people flagged for flight risk','Active'),(2,14,6,93,3,'2016-02-15 00:01:00','Team AB has 3 underperformers','Active'),(3,20,7,80,4,'2016-02-15 00:01:00','Team CD has low cohesion','Active'),(4,22,10,65,4,'2016-02-15 00:01:00','Team EF has 4 people with low sentiment','Active'),(5,30,8,88,3,'2016-02-15 00:01:00','Team XY has 3 people flagged for flight risk','Active');
+INSERT INTO `alert` VALUES (1,1,8,56,10,2,'2016-02-15 00:01:00','Team XY has 2 people flagged for flight risk','Active'),(2,14,6,60,20,3,'2016-02-15 00:01:00','Team AB has 3 underperformers','Active'),(3,20,7,80,10,4,'2016-02-15 00:01:00','Team CD has low cohesion','Active'),(4,22,10,65,25,4,'2016-02-15 00:01:00','Team EF has 4 people with low sentiment','Active'),(5,30,8,50,30,3,'2016-02-15 00:01:00','Team XY has 3 people flagged for flight risk','Active');
 
 
 /*create alert people table to store peolpe tagged in alert*/	
@@ -699,20 +700,147 @@ DELIMITER //
 CREATE PROCEDURE getMetricValueListForTeamInitiative
 (IN initlist VARCHAR(1000))
 BEGIN
-SELECT *  FROM initiative_metric_value t1
+select c.initiative_id,c.metric_id,c.current_score,p.previous_score,c.calc_time,metric_master.metric_name from 
+(SELECT t1.initiative_id,t1.metric_id,t1.metric_value as current_score,t1.calc_time  FROM initiative_metric_value t1
 where FIND_IN_SET(t1.initiative_id,initlist) and t1.calc_time=(select max(t2.calc_time) from  initiative_metric_value  as t2
-where t2.initiative_id=t1.initiative_id and  t1.metric_id=t2.metric_id);
+where t2.initiative_id=t1.initiative_id and  t1.metric_id=t2.metric_id)) as c,
+
+(SELECT t1.initiative_id,t1.metric_id,t1.metric_value as previous_score  FROM initiative_metric_value t1
+where FIND_IN_SET(t1.initiative_id,initlist) and t1.calc_time=(select max(t2.calc_time) from  initiative_metric_value  as t2
+where t2.initiative_id=t1.initiative_id and  t1.metric_id=t2.metric_id and t2.calc_time NOT in
+(select max(t3.calc_time) from  initiative_metric_value  as t3
+where t3.initiative_id=t2.initiative_id and  t2.metric_id=t3.metric_id)
+)) as p,metric_master
+ where c.initiative_id=p.initiative_id and  c.metric_id=p.metric_id and p.metric_id=metric_master.metric_id;
+
 END //
 DELIMITER 
+ 
+
 
 
 DELIMITER //
 CREATE PROCEDURE getMetricValueListForIndividualInitiative
 (IN emplist VARCHAR(1000))
 BEGIN
-SELECT *  FROM individual_metric_value as t1
+select c.emp_id,c.metric_id,c.current_score,p.previous_score,c.calc_time,metric_master.metric_name from (SELECT t1.emp_id,t1.metric_id,t1.metric_value as current_score,t1.calc_time  FROM individual_metric_value as t1
 where FIND_IN_SET(t1.emp_id,emplist) and t1.calc_time=(select max(t2.calc_time) from  individual_metric_value as t2
-where t2.emp_id=t1.emp_id and  t1.metric_id=t2.metric_id);
+where t2.emp_id=t1.emp_id and  t1.metric_id=t2.metric_id)) as c,
+
+(SELECT t1.emp_id,t1.metric_id,t1.metric_value as previous_score  FROM individual_metric_value as t1
+where FIND_IN_SET(t1.emp_id,emplist) and t1.calc_time=(select max(t2.calc_time) from  individual_metric_value as t2
+where t2.emp_id=t1.emp_id and  t1.metric_id=t2.metric_id and t2.calc_time NOT in 
+(select max(t3.calc_time) from  individual_metric_value as t3
+where t3.emp_id=t2.emp_id and  t2.metric_id=t3.metric_id))) as p,metric_master
+where c.emp_id=p.emp_id and c.metric_id=p.metric_id and p.metric_id=metric_master.metric_id;
+END //
+DELIMITER 
+
+
+DELIMITER //
+CREATE PROCEDURE getMetricValueListForOrganization()
+BEGIN
+select c.metric_id,c.Current_Score,c.Average_Score,p.Previous_Score,metric_master.metric_name,c.calc_time from 
+(select t1.metric_id,t1.metric_value as Current_Score,t1.metric_value as Average_Score,t1.calc_time as calc_time from initiative_metric_value as t1 where t1.initiative_id=-1
+order by t1.metric_val_id desc limit 5) as c,
+(select t2.metric_id,t2.metric_value as Previous_Score,t2.calc_time from initiative_metric_value as t2 where t2.initiative_id=-1
+order by t2.metric_val_id desc limit 5,5) as p,
+metric_master
+where c.metric_id=p.metric_id and p.metric_id=metric_master.metric_id;
+
+END //
+DELIMITER 
+
+
+
+DELIMITER //
+CREATE PROCEDURE getMetricValueListForDimension(
+in dimvalid int,
+in dimid int)
+BEGIN
+select c.metric_id,c.Current_Score,p.Previous_Score,a.Average_Score,metric_master.metric_name,c.calc_time from 
+(select t1.metric_id,t1.metric_value as Current_Score,t1.calc_time as calc_time from dimension_metric_value as t1
+where t1.dimension_val_id=dimvalid order by  t1.metric_val_id desc limit 5) as c,
+
+(select t2.metric_id,t2.metric_value as Previous_Score  from dimension_metric_value as t2
+where t2.dimension_val_id=dimvalid order by  t2.metric_val_id desc limit 5,5) as p,
+
+(select t3.metric_id,round(avg(t3.metric_value)) as Average_Score  from dimension_metric_value as t3
+where t3.dimension_val_id in (select dimension_value.dimension_val_id  from dimension_value where dimension_value.dimension_id=dimid) and calc_time=(select max(t4.calc_time) from dimension_metric_value as t4
+where t4.dimension_val_id=t3.dimension_val_id and t4.metric_id=t3.metric_id)
+group by t3.metric_id) as a,metric_master
+
+where c.metric_id=p.metric_id and p.metric_id=a.metric_id and a.metric_id=metric_master.metric_id;
+END //
+DELIMITER 
+
+
+DELIMITER //
+CREATE PROCEDURE getMetricValueForTimeSeries(
+in dimvalid int,
+in mid1 int,
+in mid2 int)
+BEGIN
+if (dimvalid is NOT NULL) then
+(select dimension_metric_value.metric_id,dimension_metric_value.metric_value as Score,dimension_metric_value.calc_time,metric_master.metric_name from dimension_metric_value,metric_master 
+where (dimension_metric_value.metric_id=mid1 or dimension_metric_value.metric_id=mid2) and dimension_metric_value.dimension_val_id=dimvalid and dimension_metric_value.metric_id=metric_master.metric_id);
+else 
+(select initiative_metric_value.metric_id,initiative_metric_value.metric_value as Score,initiative_metric_value.calc_time,metric_master.metric_name  from initiative_metric_value,metric_master
+where initiative_metric_value.initiative_id=-1 and (initiative_metric_value.metric_id=mid1 or initiative_metric_value.metric_id=mid2) and initiative_metric_value.metric_id=initiative_metric_value.metric_id);
+end if;
+END
+DELIMITER ;
+
+
+
+
+DELIMITER //
+CREATE PROCEDURE getAlertList()
+begin
+select a.alert_id,a.cube_id,c1.dimension_id_1,c1.dimension_name_1,c1.dimension_val_id_1,c1.dimension_val_name_1,
+c1.dimension_id_2,c1.dimension_name_2,c1.dimension_val_id_2,c1.dimension_val_name_2,
+c1.dimension_id_2,c1.dimension_name_2,c1.dimension_val_id_2,c1.dimension_val_name_2,
+a.metric_id,metric_master.metric_name,a.score,a.delta_score
+ from alert as a left Join
+(select c.cube_id,c.Function as dimension_val_name_1,d1.dimension_val_id as dimension_val_id_1,d1.dimension_id as dimension_id_1,dim1.dimension_name as dimension_name_1,
+c.Position as dimension_val_name_2,d2.dimension_val_id as dimension_val_id_2,d2.dimension_id as dimension_id_2,dim2.dimension_name as dimension_name_2,
+c.Zone as dimension_val_name_3,d3.dimension_val_id as dimension_val_id_3,d3.dimension_id as dimension_id_3,
+dim3.dimension_name as dimension_name_3
+from cube_master as c left join dimension_value as d1 on c.Function=d1.dimension_val_name 
+left join dimension_value as d2  on c.Position=d2.dimension_val_name 
+left join dimension_value as d3  on c.Position=d3.dimension_val_name 
+left join dimension_master as dim1 on d1.dimension_id=dim1.dimension_id
+left join dimension_master as dim2 on d2.dimension_id=dim2.dimension_id
+left join dimension_master as dim3 on d3.dimension_id=dim3.dimension_id) as c1
+on c1.cube_id=a.cube_id
+left join metric_master on a.metric_id=metric_master.metric_id
+where a.status='Active';
+end ; //
+delimiter ;
+
+
+
+DELIMITER //
+CREATE PROCEDURE deleteAlertStatus(
+in alertid INT
+)
+BEGIN
+update alert
+set status="Deleted"
+where alert_id=alertid;
+END //
+DELIMITER 
+
+
+
+DELIMITER //
+CREATE PROCEDURE getListOfPeopleForAlert(
+in alertid varchar(256)
+)
+BEGIN
+select alert_people.alert_id,alert_people.emp_id,employee.FirstName,employee.LastName from alert_people left join employee
+on alert_people.emp_id=employee.emp_id
+where FIND_IN_SET(alert_people.alert_id,alertid);
 END //
 DELIMITER 
 
