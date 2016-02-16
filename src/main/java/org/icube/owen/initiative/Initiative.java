@@ -25,7 +25,7 @@ public class Initiative extends TheBorg {
 	private int initiativeId;
 	private String initiativeName = "";
 	// TODO change initiativeType to integer initiativeTypeId
-	private String initiativeType = "";
+	private int initiativeTypeId;
 	private String initiativeCategory = "";
 	private String initiativeStatus = "";
 	private Date initiativeStartDate;
@@ -36,14 +36,12 @@ public class Initiative extends TheBorg {
 	private List<Employee> partOfEmployeeList;
 	private List<Metrics> initiativeMetrics;
 
-	// TODO initiativeScore - metric value of the initiative based on the type + category
-
 	/**
 	 * Sets the initiative properties based on the values given in the
 	 * parameters
 	 * 
 	 * @param initiativeName  - Name of the initiative
-	 * @param initiativeType - ID of the type of initiative
+	 * @param initiativeTypeId - ID of the type of initiative
 	 * @param initiativeCategory - team or individual
 	 * @param initiativeStartDate - start date of the initiative
 	 * @param initiativeEndDate - end date of the initiative
@@ -52,11 +50,11 @@ public class Initiative extends TheBorg {
 	 * @param ownerOfList - key people assigned to the initiative
 	 * @param partOfEmployeeList - applicable only for individual initiative should be null for team initiative list of employees for whom the initiative has been created
 	 */
-	public void setInitiativeProperties(String initiativeName, String initiativeType, String initiativeCategory, Date initiativeStartDate,
+	public void setInitiativeProperties(String initiativeName, int initiativeTypeId, String initiativeCategory, Date initiativeStartDate,
 			Date initiativeEndDate, String initiativeComment, List<Filter> filterList, List<Employee> ownerOfList, List<Employee> partOfEmployeeList) {
 		org.apache.log4j.Logger.getLogger(Initiative.class).debug("Setting initiative properties");
 		this.initiativeName = initiativeName;
-		this.initiativeType = initiativeType;
+		this.initiativeTypeId = initiativeTypeId;
 		this.initiativeCategory = initiativeCategory;
 		this.initiativeStartDate = initiativeStartDate;
 		this.initiativeEndDate = initiativeEndDate;
@@ -78,8 +76,8 @@ public class Initiative extends TheBorg {
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Creating the initiative");
 
 			String createInitQuery = "match (i:Init)  with CASE count(i) WHEN 0  THEN 1 ELSE max(i.Id)+1 END as uid "
-					+ "CREATE (i:Init {Id:uid,Status:'" + checkInitiativeStatus(initiativeStartDate) + "',Name:'" + initiativeName + "',Type:'"
-					+ initiativeType + "', Category:'" + initiativeCategory + "',StartDate:'" + initiativeStartDate.toString() + "',EndDate:'"
+					+ "CREATE (i:Init {Id:uid,Status:'" + checkInitiativeStatus(initiativeStartDate) + "',Name:'" + initiativeName + "',Type:"
+					+ initiativeTypeId + ", Category:'" + initiativeCategory + "',StartDate:'" + initiativeStartDate.toString() + "',EndDate:'"
 					+ initiativeEndDate.toString() + "',Comment:'" + initiativeComment + "'}) return i.Id as Id";
 
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Create initiative query : " + createInitQuery);
@@ -270,7 +268,7 @@ public class Initiative extends TheBorg {
 			ResultSet res = dch.neo4jCon.createStatement().executeQuery(query);
 			while (res.next()) {
 				i.setInitiativeName(res.getString("Name"));
-				i.setInitiativeType(res.getString("Type"));
+				i.setInitiativeTypeId(res.getInt("Type"));
 				i.setInitiativeStatus(res.getString("Status"));
 				i.setInitiativeCategory(res.getString("Category"));
 				SimpleDateFormat parserSDF = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzzz yyyy", Locale.ENGLISH);
@@ -358,7 +356,7 @@ public class Initiative extends TheBorg {
 			updatedInitiative.setOwner(updatedInitiativeId, updatedOwnerOfList);
 			String query = "match(a:Init {Id:" + updatedInitiativeId + "}) set a.Name = '" + updatedInitiative.getInitiativeName().toString()
 					+ "',a.Status = '" + checkInitiativeStatus(updatedInitiative.getInitiativeStartDate()) + "'," + "a.Type = '"
-					+ updatedInitiative.getInitiativeType().toString() + "',a.Category = '" + updatedInitiative.getInitiativeCategory() + "',"
+					+ updatedInitiative.getInitiativeTypeId() + "',a.Category = '" + updatedInitiative.getInitiativeCategory() + "',"
 					+ "a.Comment = '" + updatedInitiative.getInitiativeComment().toString() + "',a.EndDate = '"
 					+ updatedInitiative.getInitiativeEndDate().toString() + "'," + "a.StartDate = '"
 					+ updatedInitiative.getInitiativeStartDate().toString() + "' return a.Name as Name, " + "a.Type as Type,a.Category as Category, "
@@ -417,12 +415,12 @@ public class Initiative extends TheBorg {
 		this.initiativeName = initiativeName;
 	}
 
-	public String getInitiativeType() {
-		return initiativeType;
+	public int getInitiativeTypeId() {
+		return initiativeTypeId;
 	}
 
-	public void setInitiativeType(String initiativeType) {
-		this.initiativeType = initiativeType;
+	public void setInitiativeTypeId(int initiativeTypeId) {
+		this.initiativeTypeId = initiativeTypeId;
 	}
 
 	public Date getInitiativeStartDate() {

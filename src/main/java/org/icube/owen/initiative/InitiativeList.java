@@ -176,7 +176,7 @@ public class InitiativeList extends TheBorg {
 			i.setInitiativeEndDate(parserSDF.parse(res.getString("EndDate")));
 
 			i.setInitiativeComment(res.getString("Comments"));
-			i.setInitiativeType(res.getString("Type"));
+			i.setInitiativeTypeId(res.getInt("Type"));
 			i.setOwnerOfList(ih.getOwnerOfList(res));
 			if (i.getInitiativeCategory().equalsIgnoreCase("Team")) {
 				i.setFilterList(ih.setPartOfConnections(res, i));
