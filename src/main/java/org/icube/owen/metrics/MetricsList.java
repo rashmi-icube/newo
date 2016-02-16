@@ -2,6 +2,7 @@ package org.icube.owen.metrics;
 
 import java.sql.CallableStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,32 +27,15 @@ public class MetricsList extends TheBorg {
 	 * @return list of metrics objects
 	 */
 	public List<Metrics> getInitiativeMetricsForTeam(int initiativeTypeId, List<Filter> filterList) {
-		org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Entered getInitiativeMetricsForTeam method");
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Completed creating an instance of DatabaseConnectionHelper");
 		List<Metrics> metricsList = new ArrayList<>();
-		Map<Integer, String> metricsTypeMap = new HashMap<>();
 
 		try {
-			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Calling procedure getMetricListForCategory");
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getMetricListForCategory(?)}");
-			cstmt.setString(1, "Team");
-			ResultSet rs = cstmt.executeQuery();
-			while (rs.next()) {
-				metricsTypeMap.put(rs.getInt(1), rs.getString(2));
-			}
-
-			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Calling procedure GetMetricForInitiative");
-			Map<Integer, String> primaryMetricMap = new HashMap<>();
-			cstmt = dch.mysqlCon.prepareCall("{call GetMetricForInitiative(?)}");
-			cstmt.setInt(1, initiativeTypeId);
-			rs = cstmt.executeQuery();
-			while (rs.next()) {
-				primaryMetricMap.put(rs.getInt(1), rs.getString(2));
-			}
+			Map<Integer, String> metricListForCategory = getMetricListForCategory("Team");
+			Map<Integer, String> primaryMetricMap = getPrimaryMetricMap(initiativeTypeId);
 
 			String rScriptPath = "//" + new java.io.File("").getAbsolutePath() + "/scripts/metric.r";
-			//String rScriptPath = "C:\\\\Users\\\\fermion10\\\\Documents\\\\Neo4j\\\\scripts\\\\metric.r";
+			// String rScriptPath = "C:\\\\Users\\\\fermion10\\\\Documents\\\\Neo4j\\\\scripts\\\\metric.r";
 			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Trying to load the RScript file at " + rScriptPath);
 
 			String s = "source(\"" + rScriptPath + "\")";
@@ -59,7 +43,6 @@ public class MetricsList extends TheBorg {
 
 			dch.rCon.eval(s);
 			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Successfully loaded rScript: source(\"//" + rScriptPath);
-
 			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Filling up parameters for rscript function");
 			List<Integer> funcList = new ArrayList<>();
 			List<Integer> posList = new ArrayList<>();
@@ -98,25 +81,13 @@ public class MetricsList extends TheBorg {
 				metricScoreMap.put(metricIdArray[i], (int) (Math.round((Double) scoreArray[i])));
 			}
 
-			for (int id : metricsTypeMap.keySet()) {
-				Metrics m = new Metrics();
-				m.setCategory("Team");
-				m.setId(id);
-				m.setName(metricsTypeMap.get(id));
-				m.setScore(metricScoreMap.get(id));
-				if (primaryMetricMap.containsKey(id)) {
-					m.setPrimary(true);
-				} else {
-					m.setPrimary(false);
-				}
-				metricsList.add(m);
-			}
+			metricsList = getMetricsList("Team", metricListForCategory, primaryMetricMap, metricScoreMap);
 			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Successfully calculated metrics for the team");
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(MetricsList.class).error(
 					"Exception while trying to retrieve metrics for category team and type ID " + initiativeTypeId, e);
 		}
-		
+
 		return metricsList;
 
 	}
@@ -130,77 +101,33 @@ public class MetricsList extends TheBorg {
 	 */
 	public List<Metrics> getInitiativeMetricsForIndividual(int initiativeTypeId, List<Employee> partOfEmployeeList) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+
+		Map<Integer, Integer> metricScoreMap = new HashMap<>();
 		List<Metrics> metricsList = new ArrayList<>();
-		Map<Integer, String> metricsTypeMap = new HashMap<>();
 
 		try {
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getMetricListForCategory(?)}");
-			cstmt.setString(1, "Individual");
-			ResultSet rs = cstmt.executeQuery();
-			while (rs.next()) {
-				metricsTypeMap.put(rs.getInt(1), rs.getString(2));
-			}
-
-			Map<Integer, String> primaryMetricMap = new HashMap<>();
-			cstmt = dch.mysqlCon.prepareCall("{call GetMetricForInitiative(?)}");
-			cstmt.setInt(1, initiativeTypeId);
-			rs = cstmt.executeQuery();
-			while (rs.next()) {
-				primaryMetricMap.put(rs.getInt(1), rs.getString(2));
-			}
-
-			// String rScriptPath = "//" + new java.io.File("").getAbsolutePath() + "/scripts/metric.r";
-			String rScriptPath = "C:\\Users\\fermion10\\Documents\\Neo4j\\scripts\\metric.r";
-			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Trying to load the RScript file at " + rScriptPath);
-			dch.rCon.eval("source(\"" + rScriptPath + "\")");
-			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Successfully loaded rScript: source(\"//" + rScriptPath);
+			Map<Integer, String> metricListForCategory = getMetricListForCategory("Individual");
+			Map<Integer, String> primaryMetricMap = getPrimaryMetricMap(initiativeTypeId);
 
 			List<Integer> empIdList = new ArrayList<>();
 			for (Employee e : partOfEmployeeList) {
 				empIdList.add(e.getEmployeeId());
 			}
 
-			// TODO hpatel figure out how to pass multiple employee IDs
-			int temp = empIdList.get(0);
-			empIdList.clear();
-			empIdList.add(temp);
-
-			dch.rCon.assign("empIdList", this.getIntArrayFromIntegerList(empIdList));
-
-			REXP individualMetricScore = dch.rCon.parseAndEval("try(eval(IndividualMetric(empIdList)))");
-			if (individualMetricScore.inherits("try-error")) {
-				org.apache.log4j.Logger.getLogger(MetricsList.class).error("Error: " + individualMetricScore.asString());
-				return metricsList;
-			} else {
-				org.apache.log4j.Logger.getLogger(MetricsList.class).debug(
-						"Metrics calculation completed for individual " + individualMetricScore.asList());
-			}
-
-			RList result = individualMetricScore.asList();
-			REXPDouble metricIdResult = (REXPDouble) result.get("metric_id");
-			int[] metricIdArray = metricIdResult.asIntegers();
-			REXPDouble scoreResult = (REXPDouble) result.get("score");
-			double[] scoreArray = scoreResult.asDoubles();
-			Map<Integer, Integer> metricScoreMap = new HashMap<>();
-
-			// TODO hpatel change to integer directly without rounding once rscript is updated
-			for (int i = 0; i < metricIdArray.length; i++) {
-				metricScoreMap.put(metricIdArray[i], (int) (Math.round((Double) scoreArray[i])));
-			}
-
-			for (int id : metricsTypeMap.keySet()) {
-				Metrics m = new Metrics();
-				m.setCategory("Individual");
-				m.setId(id);
-				m.setName(metricsTypeMap.get(id));
-				m.setScore(metricScoreMap.get(id));
-				if (primaryMetricMap.containsKey(id)) {
-					m.setPrimary(true);
-				} else {
-					m.setPrimary(false);
+			try {
+				CallableStatement cs = dch.mysqlCon.prepareCall("{call getMetricValueListForIndividualInitiative(?)}");
+				int empId = empIdList.get(0);
+				cs.setInt(1, empId);
+				ResultSet rs = cs.executeQuery();
+				while (rs.next()) {
+					metricScoreMap.put(rs.getInt("metric_id"), rs.getInt("metric_value"));
 				}
-				metricsList.add(m);
+			} catch (SQLException e) {
+				e.printStackTrace();
 			}
+
+			metricsList = getMetricsList("Individual", metricListForCategory, primaryMetricMap, metricScoreMap);
+
 			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Successfully calculated metrics for the team");
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(MetricsList.class).error(
@@ -209,6 +136,49 @@ public class MetricsList extends TheBorg {
 
 		return metricsList;
 
+	}
+
+	public List<Metrics> getMetricsList(String category, Map<Integer, String> metricListForCategory, Map<Integer, String> primaryMetricMap,
+			Map<Integer, Integer> metricScoreMap) {
+		List<Metrics> metricsList = new ArrayList<>();
+		for (int id : metricListForCategory.keySet()) {
+			Metrics m = new Metrics();
+			m.setCategory(category);
+			m.setId(id);
+			m.setName(metricListForCategory.get(id));
+			m.setScore(metricScoreMap.get(id));
+			if (primaryMetricMap.containsKey(id)) {
+				m.setPrimary(true);
+			} else {
+				m.setPrimary(false);
+			}
+			metricsList.add(m);
+		}
+		return metricsList;
+	}
+
+	public Map<Integer, String> getPrimaryMetricMap(int initiativeTypeId) throws SQLException {
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		Map<Integer, String> primaryMetricMap = new HashMap<>();
+		CallableStatement cstmt = dch.mysqlCon.prepareCall("{call GetMetricForInitiative(?)}");
+		cstmt.setInt(1, initiativeTypeId);
+		ResultSet rs = cstmt.executeQuery();
+		while (rs.next()) {
+			primaryMetricMap.put(rs.getInt(1), rs.getString(2));
+		}
+		return primaryMetricMap;
+	}
+
+	public Map<Integer, String> getMetricListForCategory(String category) throws SQLException {
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		Map<Integer, String> metricListForCategory = new HashMap<>();
+		CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getMetricListForCategory(?)}");
+		cstmt.setString(1, category);
+		ResultSet rs = cstmt.executeQuery();
+		while (rs.next()) {
+			metricListForCategory.put(rs.getInt(1), rs.getString(2));
+		}
+		return metricListForCategory;
 	}
 
 	private static int[] getIntArrayFromIntegerList(List<Integer> integerList) {

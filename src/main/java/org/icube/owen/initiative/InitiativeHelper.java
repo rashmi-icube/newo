@@ -1,5 +1,6 @@
 package org.icube.owen.initiative;
 
+import java.sql.CallableStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -14,6 +15,7 @@ import org.icube.owen.employee.Employee;
 import org.icube.owen.filter.Filter;
 import org.icube.owen.filter.FilterList;
 import org.icube.owen.helper.DatabaseConnectionHelper;
+import org.icube.owen.metrics.Metrics;
 
 public class InitiativeHelper extends TheBorg {
 
@@ -109,6 +111,55 @@ public class InitiativeHelper extends TheBorg {
 			existingEmployeeList.add(e.get(employeeId));
 		}
 		return existingEmployeeList;
+	}
+	
+	public List<Metrics> setInitiativeMetrics(Initiative i) {
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		List<Metrics> metricsList = new ArrayList<>();
+		try {
+			if (i.getInitiativeCategory().equalsIgnoreCase("Individual")) {
+				CallableStatement cs = dch.mysqlCon.prepareCall("{call getMetricValueListForIndividualInitiative(?)}");
+				int empId = i.getPartOfEmployeeList().get(0).getEmployeeId();
+				cs.setInt(1, empId);
+				ResultSet rs = cs.executeQuery();
+				while(rs.next()){
+					Metrics m = new Metrics();
+					m.setId(rs.getInt("metric_id"));
+					m.setName(rs.getString("metric_name"));
+					m.setScore(rs.getInt("current_score"));
+					m.setCategory("Individual");
+					m.setDateOfCalculation(rs.getDate("calc_time"));
+					String direction = m.calculateMetricDirection(rs.getInt("current_score"),rs.getInt("previous_score"));
+					m.setDirection(direction);
+					metricsList.add(m);
+				}
+			} else if(i.getInitiativeCategory().equalsIgnoreCase("Team")){
+
+				CallableStatement cs = dch.mysqlCon.prepareCall("{call getMetricValueListForTeamInitiative(?)}");
+				int initId = i.getInitiativeId();
+				cs.setInt(1, initId);
+				ResultSet rs = cs.executeQuery();
+				while(rs.next()){
+					Metrics m = new Metrics();
+					m.setId(rs.getInt("metric_id"));
+					m.setName(rs.getString("metric_name"));
+					m.setCategory("Team");
+					m.setScore(rs.getInt("current_score"));
+					m.setDateOfCalculation(rs.getDate("calc_time"));
+					String direction = (m.calculateMetricDirection(rs.getInt("current_score"),rs.getInt("previous_score")));
+                    m.setDirection(direction);
+					metricsList.add(m);
+				}
+			
+			}
+			
+			
+		} catch (Exception e) {
+			org.apache.log4j.Logger.getLogger(InitiativeHelper.class).error(
+					"Exception while setting the metrics for initiative with ID " + i.getInitiativeId(), e);
+		}
+		return metricsList;
+
 	}
 
 }

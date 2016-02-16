@@ -1,6 +1,8 @@
 package org.icube.owen.initiative;
 
+import java.sql.CallableStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,6 +13,7 @@ import java.util.Map;
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
 import org.icube.owen.helper.DatabaseConnectionHelper;
+import org.icube.owen.metrics.Metrics;
 
 public class InitiativeList extends TheBorg {
 
@@ -58,7 +61,8 @@ public class InitiativeList extends TheBorg {
 						+ "i.StartDate as StartDate, i.EndDate as EndDate, case i.Category when 'Individual' then collect(distinct(a.emp_id)) "
 						+ "else collect(distinct(a.Id))  end as PartOfID,collect(distinct(a.Name))as PartOfName, labels(a) as Filters, "
 						+ "collect(distinct (o.emp_id)) as OwnersOf,i.Comment as Comments,i.Type as Type,i.Category as Category,i.Status as Status";
-				org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Query for retrieving initiative of type " + viewByValue + " : " + initiativeListQuery);
+				org.apache.log4j.Logger.getLogger(InitiativeList.class).debug(
+						"Query for retrieving initiative of type " + viewByValue + " : " + initiativeListQuery);
 
 			} else if (viewByCriteria.equalsIgnoreCase("Status")) {
 
@@ -67,7 +71,8 @@ public class InitiativeList extends TheBorg {
 						+ "i.StartDate as StartDate, i.EndDate as EndDate, case i.Category when 'Individual' then collect(distinct(a.emp_id)) "
 						+ "else collect(distinct(a.Id))  end as PartOfID,collect(distinct(a.Name))as PartOfName, labels(a) as Filters, "
 						+ "collect(distinct (o.emp_id)) as OwnersOf,i.Comment as Comments,i.Type as Type,i.Category as Category,i.Status as Status";
-				org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Query for retrieving initiative with status " + viewByValue  + " : " + initiativeListQuery);
+				org.apache.log4j.Logger.getLogger(InitiativeList.class).debug(
+						"Query for retrieving initiative with status " + viewByValue + " : " + initiativeListQuery);
 
 			}
 
@@ -162,6 +167,7 @@ public class InitiativeList extends TheBorg {
 	private void setInitiativeValues(ResultSet res, Initiative i) {
 		InitiativeHelper ih = new InitiativeHelper();
 		org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Setting initiative values");
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		try {
 			i.setInitiativeId(res.getInt("Id"));
 			i.setInitiativeName(res.getString("Name"));
@@ -180,7 +186,7 @@ public class InitiativeList extends TheBorg {
 			} else if (i.getInitiativeCategory().equalsIgnoreCase("Individual")) {
 				i.setPartOfEmployeeList(ih.setPartOfEmployeeList(res, i));
 			}
-
+			i.setInitiativeMetrics(ih.setInitiativeMetrics(i));
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(InitiativeList.class).error("Error in setting initiative values", e);
 
