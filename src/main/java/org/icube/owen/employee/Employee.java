@@ -15,7 +15,7 @@ public class Employee extends TheBorg {
 	private String lastName;
 	private String reportingManagerId;
 	private long score;
-	private boolean active;
+	private boolean active; //TODO hpatel to figure out where this field will be filled in from 
 
 	//TODO add employeeImage
 	

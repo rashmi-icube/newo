@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.icube.owen.dashboard.Alert;
 import org.icube.owen.dashboard.DashboardHelper;
 import org.icube.owen.employee.Employee;
 import org.icube.owen.employee.EmployeeList;
@@ -183,7 +184,11 @@ public class ObjectFactory {
 		dh.getFilterMetrics(functionFilter);
 		dh.getOrganizationalMetrics();
 		dh.getTimeSeriesGraph(6, 7, functionFilter);
+		dh.getAlertList();
 
+		Alert a = (Alert) ObjectFactory.getInstance("org.icube.owen.dashboard.Alert");
+		a = a.get(1);
+		a.delete();
 		// testRScript();
 
 	}

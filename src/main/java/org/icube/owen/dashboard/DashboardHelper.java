@@ -117,8 +117,18 @@ public class DashboardHelper extends TheBorg {
 	 * @return alert list
 	 */
 	public List<Alert> getAlertList() {
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Alert> alertList = new ArrayList<>();
-
+		try {
+			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getAlertList()}");
+			ResultSet rs = cstmt.executeQuery();
+			while (rs.next()) {
+				Alert a = new Alert();
+				alertList.add(a.fillAlertDetails(rs));
+			}
+		} catch (SQLException e) {
+			org.apache.log4j.Logger.getLogger(DashboardHelper.class).error("Exception while retrieving organization level metrics", e);
+		}
 		return alertList;
 	}
 }

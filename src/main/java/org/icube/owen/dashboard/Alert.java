@@ -1,12 +1,21 @@
 package org.icube.owen.dashboard;
 
+import java.sql.CallableStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.icube.owen.ObjectFactory;
+import org.icube.owen.TheBorg;
 import org.icube.owen.employee.Employee;
 import org.icube.owen.filter.Filter;
+import org.icube.owen.helper.DatabaseConnectionHelper;
 import org.icube.owen.metrics.Metrics;
 
-public class Alert {
+public class Alert extends TheBorg {
 
 	private int alertId;
 	private String alertMessage;
@@ -17,22 +26,100 @@ public class Alert {
 	private int initiativeTypeId;
 	private double deltaScore;
 	private int teamSize;
+
 	// private String cubeName;
 
-	public Alert get() {
-		Alert a = new Alert();
-
-		// call SQL procedure/R Script to get all alert details
-
-		// fill in alert object with details retrieved from SQL
-
+	/**
+	 * Get populated alert object based on the alertId
+	 * @param alertId - ID of the alert for which the data is required
+	 * @return alert object
+	 */
+	public Alert get(int alertId) {
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		Alert a = null;
+		try {
+			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getAlert(?)}");
+			cstmt.setInt(1, alertId);
+			ResultSet rs = cstmt.executeQuery();
+			while (rs.next()) {
+				a = fillAlertDetails(rs);
+			}
+		} catch (SQLException e) {
+			org.apache.log4j.Logger.getLogger(Alert.class).error("Exception while retrieving alert with ID : " + alertId, e);
+		}
 		return a;
 	}
 
-	public boolean changeStatus(Alert a, String status) {
-		a.setAlertStatus(status);
-		// write sql/neo4j query to store the status
+	/**
+	 * Helper method to fill alert object from database query
+	 * @param rs - result from the database query
+	 * @return alert object
+	 * @throws SQLException
+	 */
+	public Alert fillAlertDetails(ResultSet rs) throws SQLException {
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		String zone = "", function = "", position = "";
+		List<Filter> filterList = new ArrayList<>();
+		List<Employee> employeeList = new ArrayList<>();
+		Alert a = new Alert();
+		a.setAlertId(rs.getInt("alert_id"));
 
+		for (int i = 1; i <= 3; i++) {
+			Filter f = new Filter();
+			f.setFilterId(rs.getInt("dimension_id_" + i));
+			f.setFilterName(rs.getString("dimension_name_" + i));
+			Map<Integer, String> filterValuesMap = new HashMap<>();
+			filterValuesMap.put(rs.getInt("dimension_val_id_" + i), rs.getString("dimension_val_name_" + i));
+			f.setFilterValues(filterValuesMap);
+			filterList.add(f);
+
+			if (f.getFilterName().equalsIgnoreCase("zone")) {
+				zone = f.getFilterValues().values().iterator().next();
+			} else if (f.getFilterName().equalsIgnoreCase("function")) {
+				function = f.getFilterValues().values().iterator().next();
+			} else if (f.getFilterName().equalsIgnoreCase("position")) {
+				position = f.getFilterValues().values().iterator().next();
+			}
+		}
+
+		a.setFilterList(filterList);
+		a.setAlertMessage(String.format(rs.getString("alert_statement"), zone, function, position));
+		Metrics m = new Metrics();
+		m.setId(rs.getInt("metric_id"));
+		m.setName(rs.getString("metric_name"));
+		m.setScore(rs.getInt("score"));
+		m.setDateOfCalculation(rs.getDate("calc_time"));
+		m.setCategory(rs.getString("category"));
+		m.setDirection(rs.getDouble("delta_score") > 0 ? "Positive" : "Negative");
+		a.setAlertMetric(m);
+		a.setDeltaScore(rs.getDouble("delta_score"));
+		a.setTeamSize(rs.getInt("team_size"));
+		CallableStatement cstmt1 = dch.mysqlCon.prepareCall("{call getListOfPeopleForAlert(?)}");
+		cstmt1.setInt(1, rs.getInt("alert_id"));
+		ResultSet rs1 = cstmt1.executeQuery();
+		while (rs1.next()) {
+			Employee e = new Employee();
+			employeeList.add(e.get(rs1.getInt("emp_id")));
+		}
+		a.setEmployeeList(employeeList);
+		a.setAlertStatus(rs.getString("status"));
+		a.setInitiativeTypeId(rs.getInt("init_type_id"));
+		return a;
+	}
+
+	/**
+	 * Deletes the alert 
+	 * @return boolean value if the alert has been deleted or not
+	 */
+	public boolean delete() {
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		try {
+			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call deleteAlert(?)}");
+			cstmt.setInt(1, alertId);
+			cstmt.executeQuery();
+		} catch (SQLException e) {
+			org.apache.log4j.Logger.getLogger(Alert.class).error("Exception while deleting alert with ID : " + alertId, e);
+		}
 		return true;
 
 	}
