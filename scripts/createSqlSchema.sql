@@ -808,7 +808,7 @@ c.Zone as dimension_val_name_3,d3.dimension_val_id as dimension_val_id_3,d3.dime
 dim3.dimension_name as dimension_name_3
 from cube_master as c left join dimension_value as d1 on c.Function=d1.dimension_val_name 
 left join dimension_value as d2  on c.Position=d2.dimension_val_name 
-left join dimension_value as d3  on c.Position=d3.dimension_val_name 
+left join dimension_value as d3  on c.Zone=d3.dimension_val_name 
 left join dimension_master as dim1 on d1.dimension_id=dim1.dimension_id
 left join dimension_master as dim2 on d2.dimension_id=dim2.dimension_id
 left join dimension_master as dim3 on d3.dimension_id=dim3.dimension_id) as c1
@@ -837,7 +837,7 @@ c.Zone as dimension_val_name_3,d3.dimension_val_id as dimension_val_id_3,d3.dime
 dim3.dimension_name as dimension_name_3
 from cube_master as c left join dimension_value as d1 on c.Function=d1.dimension_val_name 
 left join dimension_value as d2  on c.Position=d2.dimension_val_name 
-left join dimension_value as d3  on c.Position=d3.dimension_val_name 
+left join dimension_value as d3  on c.Zone=d3.dimension_val_name 
 left join dimension_master as dim1 on d1.dimension_id=dim1.dimension_id
 left join dimension_master as dim2 on d2.dimension_id=dim2.dimension_id
 left join dimension_master as dim3 on d3.dimension_id=dim3.dimension_id) as c1
