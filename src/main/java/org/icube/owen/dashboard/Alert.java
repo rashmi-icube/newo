@@ -111,7 +111,7 @@ public class Alert extends TheBorg {
 	 * Deletes the alert 
 	 * @return boolean value if the alert has been deleted or not
 	 */
-	public boolean delete() {
+	public boolean delete(int alertId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		try {
 			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call deleteAlert(?)}");
