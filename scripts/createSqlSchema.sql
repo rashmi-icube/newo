@@ -789,7 +789,7 @@ else
 where initiative_metric_value.initiative_id=-1 and (initiative_metric_value.metric_id=mid1 or initiative_metric_value.metric_id=mid2) and initiative_metric_value.metric_id=initiative_metric_value.metric_id);
 end if;
 END
-DELIMITER ;
+// DELIMITER ;
 
 
 
@@ -800,7 +800,7 @@ begin
 select a.alert_id,a.cube_id,c1.dimension_id_1,c1.dimension_name_1,c1.dimension_val_id_1,c1.dimension_val_name_1,
 c1.dimension_id_2,c1.dimension_name_2,c1.dimension_val_id_2,c1.dimension_val_name_2,
 c1.dimension_id_2,c1.dimension_name_2,c1.dimension_val_id_2,c1.dimension_val_name_2,
-a.metric_id,metric_master.metric_name,a.score,a.delta_score
+a.metric_id,metric_master.metric_name,a.score,a.delta_score,a.alert_time as calc_time
  from alert as a left Join
 (select c.cube_id,c.Function as dimension_val_name_1,d1.dimension_val_id as dimension_val_id_1,d1.dimension_id as dimension_id_1,dim1.dimension_name as dimension_name_1,
 c.Position as dimension_val_name_2,d2.dimension_val_id as dimension_val_id_2,d2.dimension_id as dimension_id_2,dim2.dimension_name as dimension_name_2,
