@@ -57,7 +57,6 @@ public class InitiativeHelper extends TheBorg {
 	 * 
 	 * @param resultMap - A map containing the Initiative attributes and connections
 	 * @return list of employee object who are owners of the initiative
-	 * @throws SQLException 
 	 */
 	@SuppressWarnings("unchecked")
 	public List<Employee> getOwnerOfList(ResultSet resultMap) throws SQLException {
@@ -91,7 +90,6 @@ public class InitiativeHelper extends TheBorg {
 				initiativeCountMap.put("category", res.getString("category"));
 				initiativeCountMap.put("initiativeType", res.getString("initiativeType"));
 				initiativeCountMap.put("totalInitiatives", res.getInt("totalInitiatives"));
-
 				initiativeCountMapList.add(initiativeCountMap);
 			}
 		} catch (Exception e) {
@@ -113,6 +111,11 @@ public class InitiativeHelper extends TheBorg {
 		return existingEmployeeList;
 	}
 	
+	/**
+	 * Sets the values for Metrics object
+	 * @param i - Initiative object
+	 * @return - List of Metrics object
+	 */
 	public List<Metrics> setInitiativeMetrics(Initiative i) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Metrics> metricsList = new ArrayList<>();
@@ -154,7 +157,7 @@ public class InitiativeHelper extends TheBorg {
 			}
 			
 			
-		} catch (Exception e) {
+		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(InitiativeHelper.class).error(
 					"Exception while setting the metrics for initiative with ID " + i.getInitiativeId(), e);
 		}

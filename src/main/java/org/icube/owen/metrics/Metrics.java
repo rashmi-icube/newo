@@ -13,7 +13,7 @@ public class Metrics extends TheBorg {
 	private double average;
 	private boolean primary;
 	private Date dateOfCalculation;
-	private String direction; //can have values Positive/Negative/Neutral depending upon change from previous value
+	private String direction; // can have values Positive/Negative/Neutral depending upon change from previous value
 
 	public int getId() {
 		return id;
@@ -91,10 +91,16 @@ public class Metrics extends TheBorg {
 		this.direction = direction;
 	}
 
-	public String calculateMetricDirection(int currentScore, int previousScore){
-		if(currentScore > previousScore){
+	/**
+	 * Calculates the trend for the metric score
+	 * @param currentScore - current score of the metric
+	 * @param previousScore - previous score of the metric
+	 * @return - the direction of change from previous value
+	 */
+	public String calculateMetricDirection(int currentScore, int previousScore) {
+		if (currentScore > previousScore) {
 			return "Positive";
-		} else if (currentScore < previousScore){
+		} else if (currentScore < previousScore) {
 			return "Negative";
 		} else {
 			return "Neutral";

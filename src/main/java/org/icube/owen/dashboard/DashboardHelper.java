@@ -14,7 +14,7 @@ import org.icube.owen.filter.Filter;
 import org.icube.owen.helper.DatabaseConnectionHelper;
 import org.icube.owen.metrics.Metrics;
 
-public class DashboardHelper extends TheBorg{
+public class DashboardHelper extends TheBorg {
 
 	/**
 	 * Calculates the organizational metrics - for specific filter selection

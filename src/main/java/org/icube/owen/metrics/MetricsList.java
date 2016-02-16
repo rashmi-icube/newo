@@ -21,7 +21,6 @@ public class MetricsList extends TheBorg {
 
 	/**
 	 * Retrieves the metrics for the filters chosen while creating the initiative for teams 
-	 * 
 	 * @param filterList - list of filters applicable to the initiative 
 	 * @param initiativeTypeId - ID of the type of initiative
 	 * @return list of metrics objects
@@ -93,8 +92,7 @@ public class MetricsList extends TheBorg {
 	}
 
 	/**
-	 * Retrieves the metrics for the filters chosen while creating the initiative for individuals
-	 * 
+	 * Retrieves the metrics for the filters chosen while creating the initiative for individual
 	 * @param partOfEmployeeList - list of employees to be part of the initiative
 	 * @param initiativeTypeId - ID of the kind of initiative
 	 * @return list of metrics objects
@@ -122,8 +120,9 @@ public class MetricsList extends TheBorg {
 				while (rs.next()) {
 					metricScoreMap.put(rs.getInt("metric_id"), rs.getInt("metric_value"));
 				}
-			} catch (SQLException e) {
-				e.printStackTrace();
+			} catch (Exception e) {
+				org.apache.log4j.Logger.getLogger(MetricsList.class).error(
+						"Exception while trying to metrics list for category individual and type ID " + initiativeTypeId, e);
 			}
 
 			metricsList = getMetricsList("Individual", metricListForCategory, primaryMetricMap, metricScoreMap);
@@ -138,6 +137,14 @@ public class MetricsList extends TheBorg {
 
 	}
 
+	/**
+	 * Retrieves the List of Metrics object
+	 * @param category - Category of the Metrics(Team/Individual)
+	 * @param metricListForCategory - List of Metrics for the specific Category
+	 * @param primaryMetricMap - Map containing the primary Metric
+	 * @param metricScoreMap - Map containing the score for the Metric
+	 * @return - List of Metric Objects
+	 */
 	public List<Metrics> getMetricsList(String category, Map<Integer, String> metricListForCategory, Map<Integer, String> primaryMetricMap,
 			Map<Integer, Integer> metricScoreMap) {
 		List<Metrics> metricsList = new ArrayList<>();
@@ -157,26 +164,45 @@ public class MetricsList extends TheBorg {
 		return metricsList;
 	}
 
-	public Map<Integer, String> getPrimaryMetricMap(int initiativeTypeId) throws SQLException {
+	/**
+	 * Retrieves the primary metric for the Initiative
+	 * @param initiativeTypeId - Initiative type ID of the Initiative
+	 * @return - The primary metric map containing the ID and name of the primary metric
+	 */
+	public Map<Integer, String> getPrimaryMetricMap(int initiativeTypeId){
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Map<Integer, String> primaryMetricMap = new HashMap<>();
-		CallableStatement cstmt = dch.mysqlCon.prepareCall("{call GetMetricForInitiative(?)}");
-		cstmt.setInt(1, initiativeTypeId);
-		ResultSet rs = cstmt.executeQuery();
-		while (rs.next()) {
-			primaryMetricMap.put(rs.getInt(1), rs.getString(2));
+		try {
+			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call GetMetricForInitiative(?)}");
+			cstmt.setInt(1, initiativeTypeId);
+			ResultSet rs = cstmt.executeQuery();
+			while (rs.next()) {
+				primaryMetricMap.put(rs.getInt(1), rs.getString(2));
+			}
+		} catch (SQLException e) {
+			org.apache.log4j.Logger.getLogger(MetricsList.class).error("Exception while getting the metrics for initiative", e);
 		}
 		return primaryMetricMap;
 	}
 
-	public Map<Integer, String> getMetricListForCategory(String category) throws SQLException {
+	/**
+	 * Retrieves the metric list for the specific category
+	 * @param category - category for which the metric list is required
+	 * @return - A map containing the metrics for the specified category
+	 */
+	public Map<Integer, String> getMetricListForCategory(String category) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Map<Integer, String> metricListForCategory = new HashMap<>();
-		CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getMetricListForCategory(?)}");
-		cstmt.setString(1, category);
-		ResultSet rs = cstmt.executeQuery();
-		while (rs.next()) {
-			metricListForCategory.put(rs.getInt(1), rs.getString(2));
+		try {
+			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getMetricListForCategory(?)}");
+			cstmt.setString(1, category);
+			ResultSet rs = cstmt.executeQuery();
+			while (rs.next()) {
+				metricListForCategory.put(rs.getInt(1), rs.getString(2));
+			}
+		} catch (Exception e) {
+			org.apache.log4j.Logger.getLogger(MetricsList.class).error(
+					"Exception while getting the metrics list for initiative of category" + category, e);
 		}
 		return metricListForCategory;
 	}

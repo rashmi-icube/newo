@@ -5,6 +5,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
 import org.icube.owen.helper.DatabaseConnectionHelper;
@@ -39,7 +40,7 @@ public class QuestionList extends TheBorg {
 			}
 
 		} catch (SQLException e) {
-			e.printStackTrace();
+			org.apache.log4j.Logger.getLogger(QuestionList.class).error("Exception while retrieving the list of questions", e);
 		}
 		return questionList;
 	}
@@ -68,7 +69,7 @@ public class QuestionList extends TheBorg {
 				questionList.add(q);
 			}
 		} catch (SQLException e) {
-			e.printStackTrace();
+			org.apache.log4j.Logger.getLogger(QuestionList.class).error("Exception while retrieving the list of questions for batch ID" + batchId, e);
 		}
 
 		return questionList;
@@ -101,7 +102,7 @@ public class QuestionList extends TheBorg {
 				questionList.add(q);
 			}
 		} catch (SQLException e) {
-			e.printStackTrace();
+			org.apache.log4j.Logger.getLogger(QuestionList.class).error("Exception while retrieving the list of questions having status" + filter, e);
 		}
 
 		for (Question q1 : questionList) {

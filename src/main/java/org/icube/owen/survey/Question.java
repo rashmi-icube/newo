@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
 import org.icube.owen.helper.DatabaseConnectionHelper;
@@ -135,11 +136,17 @@ public class Question extends TheBorg {
 				q.setSurveyBatchId(rs.getInt("survey_batch_id"));
 			}
 		} catch (SQLException e) {
-			e.printStackTrace();
+			org.apache.log4j.Logger.getLogger(Question.class).error("Exception while retrieving Question with ID" + questionId, e);
 		}
 		return q;
 	}
 
+	/**
+	 * Retrieves the status of the question
+	 * @param startDate - Start date of the question
+	 * @param endDate - End date of the question
+	 * @return - the status of the question based on startDate and endDate
+	 */
 	public String getQuestionStatus(Date startDate, Date endDate) {
 		String status = "";
 
@@ -170,7 +177,7 @@ public class Question extends TheBorg {
 				responseMap.put(rs.getDate("date"), rs.getInt("responses"));
 			}
 		} catch (SQLException e) {
-			e.printStackTrace();
+			org.apache.log4j.Logger.getLogger(Question.class).error("Exception while retrieving response data", e);
 		}
 		return responseMap;
 
