@@ -1,8 +1,6 @@
 package org.icube.owen.initiative;
 
-import java.sql.CallableStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,7 +11,6 @@ import java.util.Map;
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
 import org.icube.owen.helper.DatabaseConnectionHelper;
-import org.icube.owen.metrics.Metrics;
 
 public class InitiativeList extends TheBorg {
 
@@ -167,7 +164,7 @@ public class InitiativeList extends TheBorg {
 	private void setInitiativeValues(ResultSet res, Initiative i) {
 		InitiativeHelper ih = new InitiativeHelper();
 		org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Setting initiative values");
-		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+
 		try {
 			i.setInitiativeId(res.getInt("Id"));
 			i.setInitiativeName(res.getString("Name"));

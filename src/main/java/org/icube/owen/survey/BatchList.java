@@ -32,7 +32,7 @@ public class BatchList extends TheBorg {
 				getFrequencyLabelMap.put(rs.getInt(1), rs.getString(2));
 			}
 		} catch (SQLException e) {
-			e.printStackTrace();
+			org.apache.log4j.Logger.getLogger(BatchList.class).error("Exception while retrieving frequency label map", e);
 		}
 		return getFrequencyLabelMap;
 	}
@@ -76,7 +76,7 @@ public class BatchList extends TheBorg {
 				batchList.add(b);
 			}
 		} catch (SQLException e) {
-			e.printStackTrace();
+			org.apache.log4j.Logger.getLogger(BatchList.class).error("Exception while retrieving batch list", e);
 		}
 		return batchList;
 

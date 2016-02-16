@@ -26,6 +26,12 @@ public class FilterList extends TheBorg {
 		org.apache.log4j.Logger.getLogger(FilterList.class).debug("filterName : " + filterName);
 		Filter f = new Filter();
 		f.setFilterName(filterName);
+		Map<Integer, String> filterLabelMap = getFilterLabelMap();
+		for (int filterId : filterLabelMap.keySet()) {
+			if (filterLabelMap.get(filterId).equalsIgnoreCase(filterName)) {
+				f.setFilterId(filterId);
+			}
+		}
 
 		try {
 			org.apache.log4j.Logger.getLogger(FilterList.class).debug("getFilterValues method started");

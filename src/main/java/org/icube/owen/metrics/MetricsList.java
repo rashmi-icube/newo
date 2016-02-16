@@ -56,9 +56,9 @@ public class MetricsList extends TheBorg {
 					zoneList.addAll(f.getFilterValues().keySet());
 				}
 			}
-			dch.rCon.assign("funcList", this.getIntArrayFromIntegerList(funcList));
-			dch.rCon.assign("posList", this.getIntArrayFromIntegerList(posList));
-			dch.rCon.assign("zoneList", this.getIntArrayFromIntegerList(zoneList));
+			dch.rCon.assign("funcList", getIntArrayFromIntegerList(funcList));
+			dch.rCon.assign("posList", getIntArrayFromIntegerList(posList));
+			dch.rCon.assign("zoneList", getIntArrayFromIntegerList(zoneList));
 			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Calling the actual function in RScript TeamMetric");
 			REXP teamMetricScore = dch.rCon.parseAndEval("try(eval(TeamMetric(funcList, posList, zoneList)))");
 			if (teamMetricScore.inherits("try-error")) {

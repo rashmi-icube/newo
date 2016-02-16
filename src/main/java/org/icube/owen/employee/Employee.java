@@ -17,6 +17,8 @@ public class Employee extends TheBorg {
 	private long score;
 	private boolean active;
 
+	//TODO add employeeImage
+	
 	public int getEmployeeId() {
 		return employeeId;
 	}

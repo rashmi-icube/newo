@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.icube.owen.dashboard.DashboardHelper;
 import org.icube.owen.employee.Employee;
 import org.icube.owen.employee.EmployeeList;
 import org.icube.owen.filter.Filter;
@@ -15,7 +16,6 @@ import org.icube.owen.helper.DatabaseConnectionHelper;
 import org.icube.owen.initiative.Initiative;
 import org.icube.owen.initiative.InitiativeHelper;
 import org.icube.owen.initiative.InitiativeList;
-import org.icube.owen.metrics.MetricsList;
 import org.icube.owen.survey.BatchList;
 import org.icube.owen.survey.Question;
 import org.icube.owen.survey.QuestionList;
@@ -68,7 +68,7 @@ public class ObjectFactory {
 		FilterList fl = (FilterList) ObjectFactory.getInstance("org.icube.owen.filter.FilterList");
 		List<Filter> filterMasterList = fl.getFilterValues();
 		System.out.println("All filter values : " + filterMasterList);
-		Filter functionFilter = fl.getFilterValues("Position");
+		Filter functionFilter = fl.getFilterValues("Function");
 		System.out.println("Function filter values : " + functionFilter);
 
 		List<Employee> partOfEmployeeList = new ArrayList<>();
@@ -132,11 +132,11 @@ public class ObjectFactory {
 		Initiative initObj = initiative.get(6);
 		initObj.getFilterList();
 
-		// System.out.println(initiative.get(8)); //team
+		System.out.println(initiative.get(8)); // team
 
-		MetricsList ml = (MetricsList) ObjectFactory.getInstance("org.icube.owen.metrics.MetricsList");
+		/*MetricsList ml = (MetricsList) ObjectFactory.getInstance("org.icube.owen.metrics.MetricsList");
 		System.out.println(ml.getInitiativeMetricsForIndividual(1, partOfEmployeeList));
-		System.out.println(ml.getInitiativeMetricsForTeam(6, filterMasterList));
+		System.out.println(ml.getInitiativeMetricsForTeam(6, filterMasterList));*/
 
 		Initiative updatedinitiative = initiative.get(16);
 		ownerOfList.clear();
@@ -178,6 +178,11 @@ public class ObjectFactory {
 
 		BatchList bl = (BatchList) ObjectFactory.getInstance("org.icube.owen.survey.BatchList");
 		bl.getBatchList();
+
+		DashboardHelper dh = (DashboardHelper) ObjectFactory.getInstance("org.icube.owen.dashboard.DashboardHelper");
+		dh.getFilterMetrics(functionFilter);
+		dh.getOrganizationalMetrics();
+		dh.getTimeSeriesGraph(6, 7, functionFilter);
 
 		// testRScript();
 

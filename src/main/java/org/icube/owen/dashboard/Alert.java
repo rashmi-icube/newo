@@ -8,38 +8,33 @@ import org.icube.owen.metrics.Metrics;
 
 public class Alert {
 
-	private List<Filter> filterList;
-	private List<Employee> employeeList;
-	private int employeeCount;
 	private int alertId;
 	private String alertMessage;
-	private String cubeName;
+	private String alertStatus;
+	private List<Filter> filterList;
+	private List<Employee> employeeList;
 	private Metrics alertMetric;
 	private int initiativeTypeId;
-	private String alertStatus;
+	private double deltaScore;
+	private int teamSize;
+	// private String cubeName;
 
-	public List<Filter> getFilterList() {
-		return filterList;
+	public Alert get() {
+		Alert a = new Alert();
+
+		// call SQL procedure/R Script to get all alert details
+
+		// fill in alert object with details retrieved from SQL
+
+		return a;
 	}
 
-	public void setFilterList(List<Filter> filterList) {
-		this.filterList = filterList;
-	}
+	public boolean changeStatus(Alert a, String status) {
+		a.setAlertStatus(status);
+		// write sql/neo4j query to store the status
 
-	public List<Employee> getEmployeeList() {
-		return employeeList;
-	}
+		return true;
 
-	public void setEmployeeList(List<Employee> employeeList) {
-		this.employeeList = employeeList;
-	}
-
-	public int getEmployeeCount() {
-		return employeeCount;
-	}
-
-	public void setEmployeeCount(int employeeCount) {
-		this.employeeCount = employeeCount;
 	}
 
 	public int getAlertId() {
@@ -58,12 +53,28 @@ public class Alert {
 		this.alertMessage = alertMessage;
 	}
 
-	public String getCubeName() {
-		return cubeName;
+	public String getAlertStatus() {
+		return alertStatus;
 	}
 
-	public void setCubeName(String cubeName) {
-		this.cubeName = cubeName;
+	public void setAlertStatus(String alertStatus) {
+		this.alertStatus = alertStatus;
+	}
+
+	public List<Filter> getFilterList() {
+		return filterList;
+	}
+
+	public void setFilterList(List<Filter> filterList) {
+		this.filterList = filterList;
+	}
+
+	public List<Employee> getEmployeeList() {
+		return employeeList;
+	}
+
+	public void setEmployeeList(List<Employee> employeeList) {
+		this.employeeList = employeeList;
 	}
 
 	public Metrics getAlertMetric() {
@@ -82,30 +93,20 @@ public class Alert {
 		this.initiativeTypeId = initiativeTypeId;
 	}
 
-	public String getAlertStatus() {
-		return alertStatus;
+	public double getDeltaScore() {
+		return deltaScore;
 	}
 
-	public void setAlertStatus(String alertStatus) {
-		this.alertStatus = alertStatus;
+	public void setDeltaScore(double deltaScore) {
+		this.deltaScore = deltaScore;
 	}
 
-	public Alert get() {
-		Alert a = new Alert();
-
-		// call SQL procedure/R Script to get all alert details
-
-		// fill in alert object with details retrieved from SQL
-
-		return a;
+	public int getTeamSize() {
+		return teamSize;
 	}
 
-	public boolean changeStatus(Alert a, String status) {
-		a.setAlertStatus(status);
-		// write sql/neo4j query to store the status
-
-		return true;
-
+	public void setTeamSize(int teamSize) {
+		this.teamSize = teamSize;
 	}
 
 }
