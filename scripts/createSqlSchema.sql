@@ -800,7 +800,7 @@ begin
 select a.alert_id,a.cube_id,c1.dimension_id_1,c1.dimension_name_1,c1.dimension_val_id_1,c1.dimension_val_name_1,
 c1.dimension_id_2,c1.dimension_name_2,c1.dimension_val_id_2,c1.dimension_val_name_2,
 c1.dimension_id_2,c1.dimension_name_2,c1.dimension_val_id_2,c1.dimension_val_name_2,
-a.metric_id,metric_master.metric_name,a.score,a.delta_score,a.alert_time as calc_time
+a.metric_id,metric_master.metric_name,a.score,a.delta_score,a.alert_time as calc_time,count(e.emp_id) as team_size
  from alert as a left Join
 (select c.cube_id,c.Function as dimension_val_name_1,d1.dimension_val_id as dimension_val_id_1,d1.dimension_id as dimension_id_1,dim1.dimension_name as dimension_name_1,
 c.Position as dimension_val_name_2,d2.dimension_val_id as dimension_val_id_2,d2.dimension_id as dimension_id_2,dim2.dimension_name as dimension_name_2,
@@ -814,9 +814,12 @@ left join dimension_master as dim2 on d2.dimension_id=dim2.dimension_id
 left join dimension_master as dim3 on d3.dimension_id=dim3.dimension_id) as c1
 on c1.cube_id=a.cube_id
 left join metric_master on a.metric_id=metric_master.metric_id
-where a.status='Active';
+left join employee as e on a.cube_id=e.cube_id
+where a.status='Active'
+group by a.alert_id;
 end ; //
 delimiter ;
+
 
 
 
