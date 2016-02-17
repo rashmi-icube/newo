@@ -33,7 +33,8 @@ TeamMetric=function(Function,Position,Zone){
     
     # don't know y need to disconnect and connect again
     dbDisconnect(mydb)
-    mydb = dbConnect(MySQL(), user='hpatel', password='hitesh16', dbname='owen')
+    #mydb = dbConnect(MySQL(), user='hpatel', password='hitesh16', dbname='owen')
+    mydb = dbConnect(MySQL(), user=mysqlusername, password=mysqlpasswod, dbname=mysqldbname, host=mysqlhost, port=mysqlport)
     
     
     query=paste("SELECT * FROM team_metric_value where cube_id=",cube_id," order by metric_val_id desc limit 5;",sep = "")
