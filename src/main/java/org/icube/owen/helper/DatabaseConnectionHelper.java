@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.util.Properties;
 
 import org.icube.owen.TheBorg;
+import org.icube.owen.metrics.MetricsList;
 import org.neo4j.jdbc.Driver;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
@@ -20,9 +21,10 @@ public class DatabaseConnectionHelper extends TheBorg {
 	private final static String mysqlurl = "jdbc:mysql://192.168.1.6:3306/owen";
 	private final static String user = "icube";
 	private final static String password = "icube123";
+
 	/*private final static String mysqlurl = "jdbc:mysql://localhost:3306/owen";
 	private final static String user = "root";
-	private final static String password = "";*/
+	private final static String password = "root";*/
 
 	public DatabaseConnectionHelper() {
 
@@ -63,6 +65,13 @@ public class DatabaseConnectionHelper extends TheBorg {
 			// R connection
 			rCon = new RConnection();
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Successfully connected to R");
+			// String rScriptPath = new java.io.File("").getAbsolutePath() + "\\scripts";
+			String rScriptPath = "C:\\\\Users\\\\fermion10\\\\Documents\\\\Neo4j\\\\scripts";
+			// String workingDir = "setwd(\"" + rScriptPath.replace("\\", "\\\\") + "\")";
+			String workingDir = "setwd(\"" + rScriptPath + "\")";
+			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Trying to load the RScript file at " + rScriptPath);
+			rCon.eval(workingDir);
+			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Successfully loaded rScript: source(\"//" + rScriptPath);
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error(
 					"An error occurred while attempting to get neo4j connection details", e);

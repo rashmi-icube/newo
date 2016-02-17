@@ -32,16 +32,9 @@ public class MetricsList extends TheBorg {
 		try {
 			Map<Integer, String> metricListForCategory = getMetricListForCategory("Team");
 			Map<Integer, String> primaryMetricMap = getPrimaryMetricMap(initiativeTypeId);
-
-			String rScriptPath = "//" + new java.io.File("").getAbsolutePath() + "/scripts/metric.r";
-			// String rScriptPath = "C:\\\\Users\\\\fermion10\\\\Documents\\\\Neo4j\\\\scripts\\\\metric.r";
-			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Trying to load the RScript file at " + rScriptPath);
-
-			String s = "source(\"" + rScriptPath + "\")";
+			String s = "source(\"metric.r\")";
 			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("R Path for eval " + s);
-
 			dch.rCon.eval(s);
-			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Successfully loaded rScript: source(\"//" + rScriptPath);
 			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Filling up parameters for rscript function");
 			List<Integer> funcList = new ArrayList<>();
 			List<Integer> posList = new ArrayList<>();
@@ -118,7 +111,7 @@ public class MetricsList extends TheBorg {
 				cs.setInt(1, empId);
 				ResultSet rs = cs.executeQuery();
 				while (rs.next()) {
-					metricScoreMap.put(rs.getInt("metric_id"), rs.getInt("metric_value"));
+					metricScoreMap.put(rs.getInt("metric_id"), rs.getInt("current_score"));
 				}
 			} catch (Exception e) {
 				org.apache.log4j.Logger.getLogger(MetricsList.class).error(
@@ -169,7 +162,7 @@ public class MetricsList extends TheBorg {
 	 * @param initiativeTypeId - Initiative type ID of the Initiative
 	 * @return - The primary metric map containing the ID and name of the primary metric
 	 */
-	public Map<Integer, String> getPrimaryMetricMap(int initiativeTypeId){
+	public Map<Integer, String> getPrimaryMetricMap(int initiativeTypeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Map<Integer, String> primaryMetricMap = new HashMap<>();
 		try {

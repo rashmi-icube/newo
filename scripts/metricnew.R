@@ -4,7 +4,7 @@ library(moments)
 library(RMySQL)
 library(reshape2)
 
-#setwd("C:\\Users\\Hitendra\\Desktop\\R metric Function")
+#setwd("C:\\Users\\tmehta\\workspace\\owen\\scripts")
 #Function=c(1)
 #Position=c(4)
 #Zone=c(8)

@@ -1,16 +1,16 @@
 
-mysqlusername='hpatel'
+mysqlusername='icube'
 
-mysqlpasswod="hitesh16"
+mysqlpasswod="icube123"
 
 mysqldbname='owen'
 
-mysqlhost="192.168.1.13"
+mysqlhost="192.168.1.6"
 
 mysqlport=3306
 
-neopath="http://192.168.1.13:7474/db/data/"
+neopath="http://localhost:7474/db/data/"
 
-neousername="neo4j"
+neousername=""
 
-neopassword="hitesh16"
+neopassword=""

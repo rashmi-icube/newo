@@ -109,6 +109,7 @@ public class Alert extends TheBorg {
 
 	/**
 	 * Deletes the alert 
+	 * @param alertId - ID of the alert to be deleted
 	 * @return boolean value if the alert has been deleted or not
 	 */
 	public boolean delete(int alertId) {
