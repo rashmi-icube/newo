@@ -4,6 +4,11 @@ library(moments)
 library(RMySQL)
 library(reshape2)
 
+#setwd("C:\\Users\\Hitendra\\Desktop\\R metric Function")
+#Function=c(1)
+#Position=c(4)
+#Zone=c(8)
+
 source('config.R')
 
 TeamMetric=function(Function,Position,Zone){
@@ -53,7 +58,7 @@ TeamMetric=function(Function,Position,Zone){
   
   # Query to get nodes of current Team
   querynode = paste("match (z:Zone)<-[:from_zone]-(a:Employee)-[:has_functionality]->(f:Function),
-              a-[:is_positioned]->(p:Position) 
+                    a-[:is_positioned]->(p:Position) 
                     where f.Id in [",paste(Function,collapse=","),"] and p.Id in [",paste(Position,collapse=","),"] and z.Id in [",paste(Zone,collapse=","),"]
                     return a.emp_id",sep="")
   
@@ -71,8 +76,8 @@ TeamMetric=function(Function,Position,Zone){
   
   # filte edge for current team and learning relation from Master
   edgelist=edgelist1[edgelist1$from %in% vertexlist$a.emp_id &
-                        edgelist1$to %in% vertexlist$a.emp_id & 
-                        edgelist1$relation=="learning",c("from","to","weight")]
+                       edgelist1$to %in% vertexlist$a.emp_id & 
+                       edgelist1$relation=="learning",c("from","to","weight")]
   
   # create graph for current team and learning relation
   g <- graph.data.frame(edgelist, directed=TRUE, vertices=vertexlist)
@@ -90,10 +95,10 @@ TeamMetric=function(Function,Position,Zone){
   if(skew>3){
     skew=3
   }else{
-      if(skew<(-3)){
-        skew=(-3)
-      }
+    if(skew<(-3)){
+      skew=(-3)
     }
+  }
   
   # scale it 0 to 1
   skew=1-((skew+3)/6)
