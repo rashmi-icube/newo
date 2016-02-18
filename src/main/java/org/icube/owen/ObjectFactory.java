@@ -51,7 +51,6 @@ public class ObjectFactory {
 		}
 	}
 
-	// TODO make this function private
 	static DatabaseConnectionHelper dch;
 
 	static public DatabaseConnectionHelper getDBHelper() {

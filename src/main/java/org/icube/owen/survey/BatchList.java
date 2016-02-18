@@ -17,12 +17,12 @@ import org.icube.owen.TheBorg;
 import org.icube.owen.helper.DatabaseConnectionHelper;
 
 public class BatchList extends TheBorg {
-	
+
 	/**
 	 * Retrieves the Frequency labels to populate the Frequency drop down
 	 * @return - A frequency label map containing the frequency values
 	 */
-	public Map<Integer,String> getFrequencyLabelMap(){
+	public Map<Integer, String> getFrequencyLabelMap() {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Map<Integer, String> getFrequencyLabelMap = new HashMap<>();
 		try {
@@ -94,7 +94,6 @@ public class BatchList extends TheBorg {
 		boolean isChanged = false;
 
 		// Should trigger the updation of all future dates for the questions part of the batch
-		// TODO check if UI does this validation
 		if (batch.getBatchFrequency().equals(changedFrequency)) {
 			org.apache.log4j.Logger.getLogger(BatchList.class).debug("Do nothing... Old frequency same as changed frequency : " + changedFrequency);
 			return isChanged;
