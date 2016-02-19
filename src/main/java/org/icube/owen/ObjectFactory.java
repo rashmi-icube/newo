@@ -189,50 +189,6 @@ public class ObjectFactory {
 		Alert a = (Alert) ObjectFactory.getInstance("org.icube.owen.dashboard.Alert");
 		a = a.get(1);
 		a.delete(1);
-		// testRScript();
-
-	}
-
-	/**
-	 * library(Rserve)
-	 * Rserve(args = "--no-save")
-	 */
-	public static void testRScript() {
-		try {
-
-			DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-
-			// source the Palindrom function
-			// dch.rCon.eval("source(\"/Users/apple/Documents/workspace/owen/scripts/rscript.r\")");
-			dch.rCon.eval("source(\"C:/Users/tmehta/workspace/owen/scripts/rscript.r\")");
-			// call the function. Return true
-			REXP is_aba_palindrome = dch.rCon.eval("palindrome('aba')");
-			System.out.println(is_aba_palindrome.asInteger()); // prints 1 => true
-
-			// call the function. return false
-			REXP is_abc_palindrome = dch.rCon.eval("palindrome('abc')");
-			System.out.println(is_abc_palindrome.asInteger()); // prints 0 => false
-
-			// dch.rCon.eval("source(\"/Users/apple/Documents/workspace/owen/scripts/performanceTeam.r\")");
-			dch.rCon.eval("source(\"C:/Users/tmehta/workspace/owen/scripts/performanceTeam.r\")");
-			int[] funcParam = { 1 };
-			int[] zoneParam = { 8 };
-			int[] posParam = { 4 };
-
-			dch.rCon.assign("funcParam", funcParam);
-			dch.rCon.assign("zoneParam", zoneParam);
-			dch.rCon.assign("posParam", posParam);
-
-			REXP performance = dch.rCon.parseAndEval("try(eval(Performance(funcParam ,posParam ,zoneParam)))");
-			if (performance.inherits("try-error")) {
-				System.err.println("Error: " + performance.asDouble());
-			} else {
-				System.out.println(performance.asDouble()); // prints 0 => false
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 
 	}
 }
