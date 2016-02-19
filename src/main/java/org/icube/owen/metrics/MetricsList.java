@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
 import org.icube.owen.employee.Employee;
@@ -25,11 +24,10 @@ public class MetricsList extends TheBorg {
 	 * @param initiativeTypeId - ID of the type of initiative
 	 * @return list of metrics objects
 	 */
-	//TODO hpatel, ravi : figure out what to do when ALL is selected for dimensions 
+	// TODO hpatel, ravi : figure out what to do when ALL is selected for dimensions
 	public List<Metrics> getInitiativeMetricsForTeam(int initiativeTypeId, List<Filter> filterList) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Metrics> metricsList = new ArrayList<>();
-
 		try {
 			Map<Integer, String> metricListForCategory = getMetricListForCategory("Team");
 			Map<Integer, String> primaryMetricMap = getPrimaryMetricMap(initiativeTypeId);
@@ -67,14 +65,14 @@ public class MetricsList extends TheBorg {
 			int[] metricIdArray = metricIdResult.asIntegers();
 			REXPDouble scoreResult = (REXPDouble) result.get("score");
 			double[] scoreArray = scoreResult.asDoubles();
-			Map<Integer, Integer> metricScoreMap = new HashMap<>();
+			Map<Integer, Integer> currentScoreMap = new HashMap<>();
+			Map<Integer, Integer> previousScoreMap = new HashMap<>();
 
-			// TODO hpatel change to integer directly without rounding once rscript is updated
 			for (int i = 0; i < metricIdArray.length; i++) {
-				metricScoreMap.put(metricIdArray[i], (int) (Math.round((Double) scoreArray[i])));
+				currentScoreMap.put(metricIdArray[i], (int) (scoreArray[i]));
 			}
 
-			metricsList = getMetricsList("Team", metricListForCategory, primaryMetricMap, metricScoreMap);
+			metricsList = getMetricsList("Team", metricListForCategory, primaryMetricMap, previousScoreMap, currentScoreMap);
 			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Successfully calculated metrics for the team");
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(MetricsList.class).error(
@@ -82,7 +80,6 @@ public class MetricsList extends TheBorg {
 		}
 
 		return metricsList;
-
 	}
 
 	/**
@@ -93,9 +90,9 @@ public class MetricsList extends TheBorg {
 	 */
 	public List<Metrics> getInitiativeMetricsForIndividual(int initiativeTypeId, List<Employee> partOfEmployeeList) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-
-		Map<Integer, Integer> metricScoreMap = new HashMap<>();
 		List<Metrics> metricsList = new ArrayList<>();
+		Map<Integer, Integer> currentScoreMap = new HashMap<>();
+		Map<Integer, Integer> previousScoreMap = new HashMap<>();
 
 		try {
 			Map<Integer, String> metricListForCategory = getMetricListForCategory("Individual");
@@ -112,15 +109,15 @@ public class MetricsList extends TheBorg {
 				cs.setInt(1, empId);
 				ResultSet rs = cs.executeQuery();
 				while (rs.next()) {
-					metricScoreMap.put(rs.getInt("metric_id"), rs.getInt("current_score"));
+					previousScoreMap.put(rs.getInt("metric_id"), rs.getInt("previous_score"));
+					currentScoreMap.put(rs.getInt("metric_id"), rs.getInt("current_score"));
+
 				}
 			} catch (Exception e) {
 				org.apache.log4j.Logger.getLogger(MetricsList.class).error(
 						"Exception while trying to metrics list for category individual and type ID " + initiativeTypeId, e);
 			}
-
-			metricsList = getMetricsList("Individual", metricListForCategory, primaryMetricMap, metricScoreMap);
-
+			metricsList = getMetricsList("Individual", metricListForCategory, primaryMetricMap, previousScoreMap, currentScoreMap);
 			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Successfully calculated metrics for the team");
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(MetricsList.class).error(
@@ -140,20 +137,27 @@ public class MetricsList extends TheBorg {
 	 * @return - List of Metric Objects
 	 */
 	public List<Metrics> getMetricsList(String category, Map<Integer, String> metricListForCategory, Map<Integer, String> primaryMetricMap,
-			Map<Integer, Integer> metricScoreMap) {
+			Map<Integer, Integer> previousScoreMap, Map<Integer, Integer> currentScoreMap) {
 		List<Metrics> metricsList = new ArrayList<>();
 		for (int id : metricListForCategory.keySet()) {
 			Metrics m = new Metrics();
 			m.setCategory(category);
 			m.setId(id);
 			m.setName(metricListForCategory.get(id));
-			m.setScore(metricScoreMap.get(id));
+			m.setScore(currentScoreMap.get(id));
+			if (category == "Individual") {
+				String direction = m.calculateMetricDirection(currentScoreMap.get(id), previousScoreMap.get(id));
+				m.setDirection(direction);
+			}
+			// TODO HPatel : To get the previous score for team from r-script
+			else if (category == "Team") {
+				m.setDirection("Neutral");
+			}
 			if (primaryMetricMap.containsKey(id)) {
 				m.setPrimary(true);
 			} else {
 				m.setPrimary(false);
 			}
-			//TODO Swarna : Check if direction attribute is being filled 
 			metricsList.add(m);
 		}
 		return metricsList;
