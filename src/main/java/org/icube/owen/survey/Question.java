@@ -8,6 +8,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.time.DateUtils;
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
 import org.icube.owen.helper.DatabaseConnectionHelper;
@@ -166,6 +167,9 @@ public class Question extends TheBorg {
 	 * @param q - a Question object for which the response data is required
 	 * @return - A map containing the responses and the date
 	 */
+	
+	//TODO Vikas : what if there hasn't been any response to the question - should give 0 for the dates that the question has been active for 
+	//TODO hpatel: same question as above....
 	public Map<Date, Integer> getResponse(Question q) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Map<Date, Integer> responseMap = new HashMap<>();
@@ -173,8 +177,14 @@ public class Question extends TheBorg {
 			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getResponseData(?)}");
 			cstmt.setInt(1, q.getQuestionId());
 			ResultSet rs = cstmt.executeQuery();
-			while (rs.next()) {
-				responseMap.put(rs.getDate("date"), rs.getInt("responses"));
+			if (rs.next()) {
+				while (rs.next()) {
+					responseMap.put(rs.getDate("date"), rs.getInt("responses"));
+				}
+			} else {
+				for (Date d = q.getStartDate(); d.before(Date.from(Instant.now())); d = BatchList.convertJavaDateToSqlDate(DateUtils.addDays(d, 1))) {
+					responseMap.put(d, 0);
+				}
 			}
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(Question.class).error("Exception while retrieving response data", e);

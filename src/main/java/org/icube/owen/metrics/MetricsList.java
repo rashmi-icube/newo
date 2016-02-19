@@ -25,6 +25,7 @@ public class MetricsList extends TheBorg {
 	 * @param initiativeTypeId - ID of the type of initiative
 	 * @return list of metrics objects
 	 */
+	//TODO hpatel, ravi : figure out what to do when ALL is selected for dimensions 
 	public List<Metrics> getInitiativeMetricsForTeam(int initiativeTypeId, List<Filter> filterList) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Metrics> metricsList = new ArrayList<>();
@@ -152,6 +153,7 @@ public class MetricsList extends TheBorg {
 			} else {
 				m.setPrimary(false);
 			}
+			//TODO Swarna : Check if direction attribute is being filled 
 			metricsList.add(m);
 		}
 		return metricsList;

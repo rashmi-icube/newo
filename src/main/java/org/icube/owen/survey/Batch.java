@@ -7,6 +7,7 @@ import org.icube.owen.TheBorg;
 
 public class Batch extends TheBorg {
 
+	// TODO hpatel... keep updating the batch dates to be in the current time frame batch id 1
 	private int batchId;
 	private Date startDate;
 	private Date endDate;

@@ -216,8 +216,27 @@ public class BatchList extends TheBorg {
 		return previousEndDate;
 	}
 
-	private static java.sql.Date convertJavaDateToSqlDate(java.util.Date date) {
+	public static java.sql.Date convertJavaDateToSqlDate(java.util.Date date) {
 		return new java.sql.Date(date.getTime());
+	}
+	
+	/**
+	 * Gets the current batch based on the comparison of the dates
+	 * @return current batch
+	 */
+	//TODO Rashmi : Figure out a better way to do this... 
+	public Batch getCurrentBatch() {
+		List<Batch> batchList = getBatchList();
+		Batch currentBatch = batchList.get(0);
+
+		/*for(Batch b : batchList){
+			if((b.getStartDate().compareTo(Date.from(Instant.now())) <= 0) && (b.getEndDate().after(Date.from(Instant.now())))){
+				currentBatch = b;
+			}
+		}*/
+
+		return currentBatch;
+
 	}
 
 }
