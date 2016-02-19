@@ -4,10 +4,7 @@ import java.sql.CallableStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
 import org.icube.owen.filter.Filter;
@@ -85,31 +82,29 @@ public class DashboardHelper extends TheBorg {
 	 * @param filter - filter selection 
 	 * @return list of maps with data for the time series graph
 	 */
-	public List<Map<String, Object>> getTimeSeriesGraph(int metricId1, int metricId2, Filter filter) {
-		List<Map<String, Object>> timeSeriesGraphMapList = new ArrayList<>();
-
+	public List<Metrics> getTimeSeriesGraph(int metricId1, int metricId2, Filter filter) {
+		List<Metrics> metricsList = new ArrayList<>();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		try {
 
 			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getMetricValueForTimeSeries(?, ?, ?)}");
-			cstmt.setInt(1, metricId1);
-			cstmt.setInt(2, metricId2);
-			cstmt.setInt(3, filter.getFilterValues().keySet().iterator().next().intValue());
+			cstmt.setInt(1, filter.getFilterValues().keySet().iterator().next().intValue());
+			cstmt.setInt(2, metricId1);
+			cstmt.setInt(3, metricId2);
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
-				Map<String, Object> timeSeriesGraph = new HashMap<>();
-				timeSeriesGraph.put("metricId", rs.getInt("metric_id"));
-				timeSeriesGraph.put("metricName", rs.getString("metric_name"));
-				timeSeriesGraph.put("score", rs.getInt("Score"));
-				timeSeriesGraph.put("dateOfCalculation", rs.getDate("calc_time"));
-
-				timeSeriesGraphMapList.add(timeSeriesGraph);
+				Metrics m = new Metrics();
+				m.setName(rs.getString("metric_name"));
+				m.setId(rs.getInt("metric_id"));
+				m.setScore(rs.getInt("Score"));
+				m.setDateOfCalculation(rs.getDate("calc_time"));
+				metricsList.add(m);
 			}
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(DashboardHelper.class).error("Exception while retrieving organization level metrics", e);
 		}
 
-		return timeSeriesGraphMapList;
+		return metricsList;
 	}
 
 	/**
