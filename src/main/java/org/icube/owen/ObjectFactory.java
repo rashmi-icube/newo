@@ -21,7 +21,6 @@ import org.icube.owen.metrics.MetricsList;
 import org.icube.owen.survey.BatchList;
 import org.icube.owen.survey.Question;
 import org.icube.owen.survey.QuestionList;
-import org.rosuda.REngine.REXP;
 
 public class ObjectFactory {
 
@@ -188,7 +187,7 @@ public class ObjectFactory {
 
 		Alert a = (Alert) ObjectFactory.getInstance("org.icube.owen.dashboard.Alert");
 		a = a.get(1);
-		a.delete(1);
+		a.delete(2);
 
 	}
 }
