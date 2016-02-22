@@ -39,6 +39,7 @@ public class FilterList extends TheBorg {
 			org.apache.log4j.Logger.getLogger(FilterList.class).debug("query : " + query);
 			ResultSet res = dch.neo4jCon.createStatement().executeQuery(query);
 			Map<Integer, String> filterValuesMap = new HashMap<>();
+			filterValuesMap.put(0, "All");
 			while (res.next()) {
 				filterValuesMap.put(res.getInt("Id"), res.getString("Name"));
 				org.apache.log4j.Logger.getLogger(FilterList.class).debug("filterValuesMap : " + filterValuesMap.toString());
@@ -67,21 +68,19 @@ public class FilterList extends TheBorg {
 			org.apache.log4j.Logger.getLogger(FilterList.class).debug("filterName : " + filterName);
 			Filter f = new Filter();
 			f.setFilterName(filterName);
-
+			// TODO hpatel: fill filterIds
 			try {
 				org.apache.log4j.Logger.getLogger(FilterList.class).debug("getFilterValues method started");
 				String query = "match (n:" + filterName + ") return n.Name as Name,n.Id as Id";
 				org.apache.log4j.Logger.getLogger(FilterList.class).debug("query : " + query);
 				ResultSet res = dch.neo4jCon.createStatement().executeQuery(query);
 				Map<Integer, String> filterValuesMap = new HashMap<>();
+				filterValuesMap.put(0, "All");
 				while (res.next()) {
 					filterValuesMap.put(res.getInt("Id"), res.getString("Name"));
-					org.apache.log4j.Logger.getLogger(FilterList.class).debug("filterValuesMap : " + filterValuesMap.toString());
-
 				}
 				f.setFilterValues(filterValuesMap);
-
-				org.apache.log4j.Logger.getLogger(FilterList.class).debug("Filter : " + f.toString());
+				org.apache.log4j.Logger.getLogger(FilterList.class).debug(f.getFilterName() + " - " + f.getFilterValues().toString());
 				allFiltersList.add(f);
 
 			} catch (Exception e) {
@@ -100,7 +99,6 @@ public class FilterList extends TheBorg {
 	public Map<Integer, String> getFilterLabelMap() {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Map<Integer, String> filterLabelMap = new HashMap<>();
-		filterLabelMap.put(0, "All");
 		try {
 			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getDimensionList()}");
 			ResultSet rs = cstmt.executeQuery();

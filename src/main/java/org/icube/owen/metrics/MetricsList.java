@@ -30,7 +30,11 @@ public class MetricsList extends TheBorg {
 		List<Metrics> metricsList = new ArrayList<>();
 		try {
 			Map<Integer, String> metricListForCategory = getMetricListForCategory("Team");
-			Map<Integer, String> primaryMetricMap = getPrimaryMetricMap(initiativeTypeId);
+			Map<Integer, String> primaryMetricMap = new HashMap<>();
+			if(initiativeTypeId > 0){
+				primaryMetricMap = getPrimaryMetricMap(initiativeTypeId);
+			}
+			
 			String s = "source(\"metric.r\")";
 			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("R Path for eval " + s);
 			dch.rCon.eval(s);
@@ -206,7 +210,7 @@ public class MetricsList extends TheBorg {
 		return metricListForCategory;
 	}
 
-	private static int[] getIntArrayFromIntegerList(List<Integer> integerList) {
+	public static int[] getIntArrayFromIntegerList(List<Integer> integerList) {
 		int[] result = new int[integerList.size()];
 		for (int i = 0; i <= integerList.size() - 1; i++) {
 			result[i] = integerList.get(i);
