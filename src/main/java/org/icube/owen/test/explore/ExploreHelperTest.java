@@ -1,7 +1,6 @@
 package org.icube.owen.test.explore;
 
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertEquals;
 
 import java.util.Arrays;
 import java.util.List;
