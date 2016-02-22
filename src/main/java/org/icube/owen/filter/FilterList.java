@@ -97,10 +97,10 @@ public class FilterList extends TheBorg {
 	 * 
 	 * @return filterLabelMap - A map of filter labels
 	 */
-
 	public Map<Integer, String> getFilterLabelMap() {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Map<Integer, String> filterLabelMap = new HashMap<>();
+		filterLabelMap.put(0, "All");
 		try {
 			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getDimensionList()}");
 			ResultSet rs = cstmt.executeQuery();
