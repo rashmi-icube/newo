@@ -1,10 +1,14 @@
 package org.icube.owen.dashboard;
 
 import java.sql.CallableStatement;
+import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
 import org.icube.owen.filter.Filter;
@@ -74,66 +78,76 @@ public class DashboardHelper extends TheBorg {
 		return orgMetricsList;
 	}
 
+	
 	/**
 	 * Returns all the details for the time series graph to be displayed on the HR dashboard
-	 * 
-	 * @param metricId1 - metric ID of the first metric type
-	 * @param metricId2 - metric ID of the second metric type
-	 * @param filter - filter selection 
-	 * @return list of Metric objects with data for the time series graph
+	 * @param filter - filter selection
+	 * @return Map of metric Id and List of map of calculation date and metric score for the time series graph
 	 */
-	public List<Metrics> getTimeSeriesGraph(int metricId1, int metricId2, Filter filter) {
-		List<Metrics> metricsList = new ArrayList<>();
+	public Map<Integer, List<Map<Date, Integer>>> getTimeSeriesGraph(Filter filter) {
+		Map<Integer, List<Map<Date, Integer>>> result = new HashMap<>();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		try {
 
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getMetricValueForTimeSeries(?, ?, ?)}");
+			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getDimensionMetricTimeSeries(?)}");
 			cstmt.setInt(1, filter.getFilterValues().keySet().iterator().next().intValue());
-			cstmt.setInt(2, metricId1);
-			cstmt.setInt(3, metricId2);
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
-				Metrics m = new Metrics();
-				m.setName(rs.getString("metric_name"));
-				m.setId(rs.getInt("metric_id"));
-				m.setScore(rs.getInt("Score"));
-				m.setDateOfCalculation(rs.getDate("calc_time"));
-				metricsList.add(m);
+				if (result.containsKey(rs.getInt("metric_id"))) {
+					List<Map<Date, Integer>> metricScoreMapList = new ArrayList<>();
+					Map<Date, Integer> metricScoreMap = new HashMap<>();
+					metricScoreMapList = result.get(rs.getInt("metric_id"));
+					metricScoreMap.put(rs.getDate("calc_time"), rs.getInt("Score"));
+					metricScoreMapList.add(metricScoreMap);
+					result.put(rs.getInt("metric_id"), metricScoreMapList);
+				} else {
+					Map<Date, Integer> metricScoreMap = new HashMap<>();
+					List<Map<Date, Integer>> metricScoreMapList = new ArrayList<>();
+					metricScoreMap.put(rs.getDate("calc_time"), rs.getInt("Score"));
+					metricScoreMapList.add(metricScoreMap);
+					result.put(rs.getInt("metric_id"), metricScoreMapList);
+				}
 			}
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(DashboardHelper.class).error("Exception while retrieving metrics", e);
 		}
 
-		return metricsList;
+		return result;
 	}
-	
+
 	/**
 	 * Returns all the details for the time series graph for Organization to be displayed on the HR dashboard
-	 * @return list of Metric objects with data for the time series graph
+	 * @return Map of metric Id and List of map of calculation date and metric score for the time series graph
 	 */
-	public List<Metrics> getOrganizationTimeSeriesGraph(){
-		List<Metrics> metricsList = new ArrayList<>();
+
+	public Map<Integer, List<Map<Date, Integer>>> getOrganizationTimeSeriesGraph() {
+		Map<Integer, List<Map<Date, Integer>>> result = new HashMap<>();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		try {
-
 			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getOrganizationMetricTimeSeries()}");
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
-				Metrics m = new Metrics();
-				m.setName(rs.getString("metric_name"));
-				m.setId(rs.getInt("metric_id"));
-				m.setScore(rs.getInt("Score"));
-				m.setDateOfCalculation(rs.getDate("calc_time"));
-				metricsList.add(m);
+				if (result.containsKey(rs.getInt("metric_id"))) {
+					List<Map<Date, Integer>> metricScoreMapList = new ArrayList<>();
+					Map<Date, Integer> metricScoreMap = new HashMap<>();
+					metricScoreMapList = result.get(rs.getInt("metric_id"));
+					metricScoreMap.put(rs.getDate("calc_time"), rs.getInt("Score"));
+					metricScoreMapList.add(metricScoreMap);
+					result.put(rs.getInt("metric_id"), metricScoreMapList);
+				} else {
+					Map<Date, Integer> metricScoreMap = new HashMap<>();
+					List<Map<Date, Integer>> metricScoreMapList = new ArrayList<>();
+					metricScoreMap.put(rs.getDate("calc_time"), rs.getInt("Score"));
+					metricScoreMapList.add(metricScoreMap);
+					result.put(rs.getInt("metric_id"), metricScoreMapList);
+				}
 			}
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(DashboardHelper.class).error("Exception while retrieving organization level metrics", e);
 		}
+		return result;
 
-		return metricsList;
-		
 	}
-	
 
 	/**
 	 * Retrieves the list of alerts

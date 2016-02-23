@@ -2,7 +2,9 @@ package org.icube.owen.test.dashboard;
 
 import static org.junit.Assert.assertTrue;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.dashboard.Alert;
@@ -17,6 +19,7 @@ public class DashboardHelperTest {
 	FilterList fl = (FilterList) ObjectFactory.getInstance("org.icube.owen.filter.FilterList");
 	List<Filter> filterMasterList = fl.getFilterValues();
 	Filter functionFilter = fl.getFilterValues("Function");
+	
 	
 	@Test
 	public void testGetFilterMetrics(){
@@ -39,18 +42,20 @@ public class DashboardHelperTest {
 	
 	@Test
 	public void testGetTimeSeriesGraph(){
-		List<Metrics> metricsList = dh.getTimeSeriesGraph(6, 7, functionFilter);
-		for (Metrics m : metricsList){
-			assertTrue(m.getId() > 0);
-		}
+		Map<Integer, String> filterValuesMap = new HashMap<>();
+		filterValuesMap.put(11, "INTG4");
+        Filter f = new Filter();
+        f.setFilterName("Position");
+        f.setFilterId(2);
+        f.setFilterValues(filterValuesMap);
+		dh.getTimeSeriesGraph(f);
+		
 	}
 	
 	@Test
 	public void testGetOrganizationTimeSeriesGraph(){
-		List<Metrics> metricsList = dh.getOrganizationTimeSeriesGraph();
-		for (Metrics m : metricsList){
-			assertTrue(m.getId() > 0);
-		}
+		 dh.getOrganizationTimeSeriesGraph();
+		
 	}
 	
 	@Test
