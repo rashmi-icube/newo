@@ -1,6 +1,7 @@
 package org.icube.owen.explore;
 
 import java.sql.CallableStatement;
+import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -74,13 +75,13 @@ public class ExploreHelper extends TheBorg {
 	 * @param teamListMap - Map with the (teamName, filterList) pair, can have as many teams as desired by the UI
 	 * @return metricsMapList - Map with (teamName, metricList) pair
 	 */
-	public Map<String, List<Metrics>> getTeamTimeSeriesGraph(Map<String, List<Filter>> teamListMap) {
+	public Map<String, Map<Integer, List<Map<Date, Integer>>>> getTeamTimeSeriesGraph(Map<String, List<Filter>> teamListMap) {
 
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		Map<String, List<Metrics>> result = new HashMap<>();
+		Map<String, Map<Integer, List<Map<Date, Integer>>>> result = new HashMap<>();
 
 		for (String teamName : teamListMap.keySet()) {
-			List<Metrics> metricList = new ArrayList<>();
+			Map<Integer, List<Map<Date, Integer>>> metricsList = new HashMap<>();
 			List<Filter> filterList = teamListMap.get(teamName);
 			parseTeamMap(filterList);
 			try {
@@ -88,13 +89,14 @@ public class ExploreHelper extends TheBorg {
 					// if all selections are ALL then it is a organizational team metric
 					CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getOrganizationMetricTimeSeries()}");
 					ResultSet rs = cstmt.executeQuery();
-					metricList = fillMetricsData(rs);
+					metricsList = getTimeSeriesMap(rs);
+
 				} else if (countAll == 2) {
 					// if two of the filters are ALL then it is a dimension metric
 					CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getDimensionMetricTimeSeries(?)}");
 					cstmt.setInt(1, dimensionValueId);
 					ResultSet rs = cstmt.executeQuery();
-					metricList = fillMetricsData(rs);
+					metricsList = getTimeSeriesMap(rs);
 				} else if (countAll == 0) {
 					// if none of the filters is ALL then it is a cube metric
 					CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getTeamMetricTimeseries(?,?,?)}");
@@ -102,7 +104,7 @@ public class ExploreHelper extends TheBorg {
 					cstmt.setInt(2, posId);
 					cstmt.setInt(3, zoneId);
 					ResultSet rs = cstmt.executeQuery();
-					metricList = fillMetricsData(rs);
+					metricsList = getTimeSeriesMap(rs);
 
 				} else {
 					org.apache.log4j.Logger.getLogger(ExploreHelper.class).info(
@@ -115,7 +117,7 @@ public class ExploreHelper extends TheBorg {
 				org.apache.log4j.Logger.getLogger(ExploreHelper.class).error("Exception while getting team metrics data : " + teamListMap.toString(),
 						e);
 			}
-			result.put(teamName, metricList);
+			result.put(teamName, metricsList);
 		}
 
 		return result;
@@ -169,27 +171,13 @@ public class ExploreHelper extends TheBorg {
 	 * @return map of employee linked to a list of metrics
 	 */
 	public Map<Employee, List<Metrics>> getIndividualMetricsData(List<Employee> employeeList) {
-		Map<Employee, List<Metrics>> result = getIndividualsData(employeeList, "getIndividualMetricValue");
-		return result;
-	}
 
-	/**
-	 * Retrieves the individual time series graph data
-	 * @param employeeList - list of employees selected
-	 * @return map of employee linked to a list of metrics
-	 */
-	public Map<Employee, List<Metrics>> getIndividualTimeSeriesGraph(List<Employee> employeeList) {
-		Map<Employee, List<Metrics>> result = getIndividualsData(employeeList, "getIndividualMetricTimeSeries");
-		return result;
-	}
-
-	private Map<Employee, List<Metrics>> getIndividualsData(List<Employee> employeeList, String sqlProcedureName) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Map<Employee, List<Metrics>> result = new HashMap<>();
 		try {
 			for (Employee e : employeeList) {
 				List<Metrics> metricsList = new ArrayList<>();
-				CallableStatement cstmt = dch.mysqlCon.prepareCall("{call " + sqlProcedureName + "(?)}");
+				CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getIndividualMetricValue(?)}");
 				cstmt.setInt(1, e.getEmployeeId());
 				ResultSet rs = cstmt.executeQuery();
 				metricsList = fillMetricsData(rs);
@@ -199,6 +187,54 @@ public class ExploreHelper extends TheBorg {
 			org.apache.log4j.Logger.getLogger(BatchList.class).error("Exception while retrieving individual metrics data", e);
 		}
 		return result;
+
 	}
 
+	/**
+	 * Retrieves the individual time series graph data
+	 * @param employeeList - list of employees selected
+	 * @return map of employee linked to a list of metrics
+	 */
+	public Map<Employee, Map<Integer, List<Map<Date, Integer>>>> getIndividualTimeSeriesGraph(List<Employee> employeeList) {
+
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		Map<Employee, Map<Integer, List<Map<Date, Integer>>>> result = new HashMap<>();
+
+		try {
+			for (Employee e : employeeList) {
+				Map<Integer, List<Map<Date, Integer>>> metricsList = new HashMap<>();
+				CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getIndividualMetricTimeSeries(?)}");
+				cstmt.setInt(1, e.getEmployeeId());
+				ResultSet rs = cstmt.executeQuery();
+				metricsList = getTimeSeriesMap(rs);
+				result.put(e, metricsList);
+			}
+		} catch (SQLException e) {
+			org.apache.log4j.Logger.getLogger(BatchList.class).error("Exception while retrieving individual metrics data", e);
+		}
+		return result;
+
+	}
+
+	private Map<Integer, List<Map<Date, Integer>>> getTimeSeriesMap(ResultSet rs) throws SQLException {
+		Map<Integer, List<Map<Date, Integer>>> result = new HashMap<>();
+		
+		while (rs.next()) {
+			if (result.containsKey(rs.getInt("metric_id"))) {
+				List<Map<Date, Integer>> metricScoreMapList = new ArrayList<>();
+				Map<Date, Integer> metricScoreMap = new HashMap<>();
+				metricScoreMapList = result.get(rs.getInt("metric_id"));
+				metricScoreMap.put(rs.getDate("calc_time"), rs.getInt("Score"));
+				metricScoreMapList.add(metricScoreMap);
+				result.put(rs.getInt("metric_id"), metricScoreMapList);
+			} else {
+				List<Map<Date, Integer>> metricScoreMapList = new ArrayList<>();
+				Map<Date, Integer> metricScoreMap = new HashMap<>();
+				metricScoreMap.put(rs.getDate("calc_time"), rs.getInt("Score"));
+				metricScoreMapList.add(metricScoreMap);
+				result.put(rs.getInt("metric_id"), metricScoreMapList);
+			}
+		}
+		return result;
+	}
 }

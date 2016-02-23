@@ -3,6 +3,7 @@ package org.icube.owen.test.explore;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.sql.Date;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -30,8 +31,11 @@ public class ExploreHelperTest {
 	@Test
 	public void testGetIndividualTimeSeriesGraph() {
 		Employee empObj = (Employee) ObjectFactory.getInstance("org.icube.owen.employee.Employee");
-		Map<Employee, List<Metrics>> result = eh.getIndividualTimeSeriesGraph(Arrays.asList(empObj.get(1), empObj.get(2)));
-		individualDataTest(result);
+		Map<Employee, Map<Integer, List<Map<Date, Integer>>>> result = eh.getIndividualTimeSeriesGraph(Arrays.asList(empObj.get(1), empObj.get(2)));
+		for (Employee e : result.keySet()) {
+			checkTimeSeriesData(result.get(e));
+		}
+
 	}
 
 	private void individualDataTest(Map<Employee, List<Metrics>> result) {
@@ -49,6 +53,17 @@ public class ExploreHelperTest {
 			assertTrue(!m.getName().isEmpty());
 			assertTrue(m.getScore() >= 0);
 			assertTrue(m.getDateOfCalculation() != null);
+		}
+	}
+
+	private void checkTimeSeriesData(Map<Integer, List<Map<Date, Integer>>> timeSeriesMap) {
+		for (int metricId : timeSeriesMap.keySet()) {
+			assertNotNull(timeSeriesMap.get(metricId));
+			List<Map<Date, Integer>> timeSeriesDataList = timeSeriesMap.get(metricId);
+			assertNotNull(timeSeriesDataList);
+			for (int i = 0; i < timeSeriesDataList.size(); i++) {
+				assertNotNull(timeSeriesDataList.get(i));
+			}
 		}
 	}
 
@@ -118,29 +133,29 @@ public class ExploreHelperTest {
 		}
 		teamListMap.put("team2", filterList);
 
-		Map<String, List<Metrics>> teamMetricsData = eh.getTeamTimeSeriesGraph(teamListMap); // no filter is selected as ALL
+		Map<String, Map<Integer, List<Map<Date, Integer>>>> teamMetricsData = eh.getTeamTimeSeriesGraph(teamListMap); // no filter is selected as ALL
 		for (String name : teamMetricsData.keySet()) {
-			checkMetricsList(teamMetricsData.get(name));
+			checkTimeSeriesData(teamMetricsData.get(name));
 		}
 
 		filterList.get(0).getFilterValues().clear();
 		filterList.get(0).getFilterValues().put(0, "All");
 		teamMetricsData = eh.getTeamTimeSeriesGraph(teamListMap); // 1 filter has selected as ALL
 		for (String name : teamMetricsData.keySet()) {
-			checkMetricsList(teamMetricsData.get(name));
+			checkTimeSeriesData(teamMetricsData.get(name));
 		}
 		filterList.get(1).getFilterValues().clear();
 		filterList.get(1).getFilterValues().put(0, "All");
 		teamMetricsData = eh.getTeamTimeSeriesGraph(teamListMap); // 2 filters have selected as ALL
 		for (String name : teamMetricsData.keySet()) {
-			checkMetricsList(teamMetricsData.get(name));
+			checkTimeSeriesData(teamMetricsData.get(name));
 		}
 
 		filterList.get(2).getFilterValues().clear();
 		filterList.get(2).getFilterValues().put(0, "All");
 		teamMetricsData = eh.getTeamTimeSeriesGraph(teamListMap); // 3 filters have selected as ALL
 		for (String name : teamMetricsData.keySet()) {
-			checkMetricsList(teamMetricsData.get(name));
+			checkTimeSeriesData(teamMetricsData.get(name));
 		}
 
 	}
