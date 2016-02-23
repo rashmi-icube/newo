@@ -1,7 +1,9 @@
 package org.icube.owen.test.dashboard;
 
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.sql.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,14 +50,29 @@ public class DashboardHelperTest {
         f.setFilterName("Position");
         f.setFilterId(2);
         f.setFilterValues(filterValuesMap);
-		dh.getTimeSeriesGraph(f);
+        Map<Integer, List<Map<Date, Integer>>> result = dh.getTimeSeriesGraph(f);
+        for (int metricId : result.keySet()) {
+            assertNotNull(result.get(metricId));
+            List<Map<Date, Integer>> timeSeriesDataList = result.get(metricId);
+            assertNotNull(timeSeriesDataList);
+            for (int i = 0; i < timeSeriesDataList.size(); i++) {
+                assertNotNull(timeSeriesDataList.get(i));
+            }
+        }
 		
 	}
 	
 	@Test
 	public void testGetOrganizationTimeSeriesGraph(){
-		 dh.getOrganizationTimeSeriesGraph();
-		
+		Map<Integer, List<Map<Date, Integer>>> result = dh.getOrganizationTimeSeriesGraph();
+		 for (int metricId : result.keySet()) {
+	            assertNotNull(result.get(metricId));
+	            List<Map<Date, Integer>> timeSeriesDataList = result.get(metricId);
+	            assertNotNull(timeSeriesDataList);
+	            for (int i = 0; i < timeSeriesDataList.size(); i++) {
+	                assertNotNull(timeSeriesDataList.get(i));
+	            }
+	        }
 	}
 	
 	@Test
