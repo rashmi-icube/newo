@@ -91,7 +91,7 @@ public class DashboardHelper extends TheBorg {
 			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getDimensionMetricTimeSeries(?)}");
 			cstmt.setInt(1, filter.getFilterValues().keySet().iterator().next().intValue());
 			ResultSet rs = cstmt.executeQuery();
-			getTimeSeriesMap(result, rs);
+			result = getTimeSeriesMap(rs);
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(DashboardHelper.class).error("Exception while retrieving metrics", e);
 		}
@@ -99,25 +99,26 @@ public class DashboardHelper extends TheBorg {
 		return result;
 	}
 
-	private void getTimeSeriesMap(Map<Integer, List<Map<Date, Integer>>> result, ResultSet rs) throws SQLException {
-		List<Map<Date, Integer>> metricScoreMapList = new ArrayList<>();
-		Map<Date, Integer> metricScoreMap = new HashMap<>();
+	private Map<Integer, List<Map<Date, Integer>>> getTimeSeriesMap(ResultSet rs) throws SQLException {
+		Map<Integer, List<Map<Date, Integer>>> result = new HashMap<>();
+		
 		while (rs.next()) {
 			if (result.containsKey(rs.getInt("metric_id"))) {
-				metricScoreMapList.clear();
-				metricScoreMap.clear();
+				List<Map<Date, Integer>> metricScoreMapList = new ArrayList<>();
+				Map<Date, Integer> metricScoreMap = new HashMap<>();
 				metricScoreMapList = result.get(rs.getInt("metric_id"));
 				metricScoreMap.put(rs.getDate("calc_time"), rs.getInt("Score"));
 				metricScoreMapList.add(metricScoreMap);
 				result.put(rs.getInt("metric_id"), metricScoreMapList);
 			} else {
-				metricScoreMap.clear();
-				metricScoreMapList.clear();
+				List<Map<Date, Integer>> metricScoreMapList = new ArrayList<>();
+				Map<Date, Integer> metricScoreMap = new HashMap<>();
 				metricScoreMap.put(rs.getDate("calc_time"), rs.getInt("Score"));
 				metricScoreMapList.add(metricScoreMap);
 				result.put(rs.getInt("metric_id"), metricScoreMapList);
 			}
 		}
+		return result;
 	}
 
 	/**
@@ -131,7 +132,7 @@ public class DashboardHelper extends TheBorg {
 		try {
 			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getOrganizationMetricTimeSeries()}");
 			ResultSet rs = cstmt.executeQuery();
-			getTimeSeriesMap(result, rs);
+			result = getTimeSeriesMap(rs);
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(DashboardHelper.class).error("Exception while retrieving organization level metrics", e);
 		}
