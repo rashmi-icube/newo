@@ -31,10 +31,10 @@ public class MetricsList extends TheBorg {
 		try {
 			Map<Integer, String> metricListForCategory = getMetricListForCategory("Team");
 			Map<Integer, String> primaryMetricMap = new HashMap<>();
-			if(initiativeTypeId > 0){
+			if (initiativeTypeId > 0) {
 				primaryMetricMap = getPrimaryMetricMap(initiativeTypeId);
 			}
-			
+
 			String s = "source(\"metric.r\")";
 			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("R Path for eval " + s);
 			dch.rCon.eval(s);
@@ -137,7 +137,8 @@ public class MetricsList extends TheBorg {
 	 * @param category - Category of the Metrics(Team/Individual)
 	 * @param metricListForCategory - List of Metrics for the specific Category
 	 * @param primaryMetricMap - Map containing the primary Metric
-	 * @param metricScoreMap - Map containing the score for the Metric
+	 * @param previousScoreMap - Map containing the previous score for the Metric
+	 * @param currentScoreMap - Map containing the current score for the Metric
 	 * @return - List of Metric Objects
 	 */
 	public List<Metrics> getMetricsList(String category, Map<Integer, String> metricListForCategory, Map<Integer, String> primaryMetricMap,

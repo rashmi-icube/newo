@@ -54,7 +54,6 @@ public class Alert extends TheBorg {
 	 * Helper method to fill alert object from database query
 	 * @param rs - result from the database query
 	 * @return alert object
-	 * @throws SQLException
 	 */
 	public Alert fillAlertDetails(ResultSet rs) throws SQLException {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
