@@ -18,17 +18,21 @@ import org.icube.owen.metrics.MetricsList;
 import org.icube.owen.survey.BatchList;
 
 public class ExploreHelper extends TheBorg {
-	// TODO Ravi : What is the point of creating class objects from ObjectFactory
 
 	private int countAll = 0, dimensionId = 0, funcId = 0, posId = 0, zoneId = 0;
 
-	public Map<String, List<Metrics>> getTeamMetricsData(Map<String, List<Filter>> teamMap) {
+	/**
+	 * Retrieve data for metrics 
+	 * @param teamListMap - Map with the <teamName, filterList> pair, can have as many teams as desired by the UI
+	 * @return metricsMapList - Map with <teamName, metricList> pair
+	 */
+	public Map<String, List<Metrics>> getTeamMetricsData(Map<String, List<Filter>> teamListMap) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Map<String, List<Metrics>> result = new HashMap<>();
 
-		for (String teamName : teamMap.keySet()) {
+		for (String teamName : teamListMap.keySet()) {
 			List<Metrics> metricList = new ArrayList<>();
-			List<Filter> filterList = teamMap.get(teamName);
+			List<Filter> filterList = teamListMap.get(teamName);
 			parseTeamMap(filterList);
 			try {
 				if (countAll == 3) {
@@ -57,21 +61,27 @@ public class ExploreHelper extends TheBorg {
 					metricList = ml.getInitiativeMetricsForTeam(0, filterList);
 				}
 			} catch (SQLException e) {
-				org.apache.log4j.Logger.getLogger(ExploreHelper.class).error("Exception while getting team metrics data : " + teamMap.toString(), e);
+				org.apache.log4j.Logger.getLogger(ExploreHelper.class).error("Exception while getting team metrics data : " + teamListMap.toString(),
+						e);
 			}
 			result.put(teamName, metricList);
 		}
 		return result;
 	}
 
-	public Map<String, List<Metrics>> getTeamTimeSeriesGraph(Map<String, List<Filter>> teamMap) {
+	/**
+	 * Retrieve data for the time series graph 
+	 * @param teamListMap - Map with the <teamName, filterList> pair, can have as many teams as desired by the UI
+	 * @return metricsMapList - Map with <teamName, metricList> pair
+	 */
+	public Map<String, List<Metrics>> getTeamTimeSeriesGraph(Map<String, List<Filter>> teamListMap) {
 
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Map<String, List<Metrics>> result = new HashMap<>();
 
-		for (String teamName : teamMap.keySet()) {
+		for (String teamName : teamListMap.keySet()) {
 			List<Metrics> metricList = new ArrayList<>();
-			List<Filter> filterList = teamMap.get(teamName);
+			List<Filter> filterList = teamListMap.get(teamName);
 			parseTeamMap(filterList);
 			try {
 				if (countAll == 3) {
@@ -87,7 +97,7 @@ public class ExploreHelper extends TheBorg {
 					metricList = fillMetricsData(rs);
 				} else if (countAll == 0) {
 					// if none of the filters is ALL then it is a cube metric
-					CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getTeamMetricTimeseries(?)}");
+					CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getTeamMetricTimeseries(?,?,?)}");
 					cstmt.setInt(1, funcId);
 					cstmt.setInt(2, posId);
 					cstmt.setInt(3, zoneId);
@@ -95,10 +105,15 @@ public class ExploreHelper extends TheBorg {
 					metricList = fillMetricsData(rs);
 
 				} else {
-					// TODO else nothing ... decide what to send
+					org.apache.log4j.Logger.getLogger(ExploreHelper.class).info(
+							"No time series graph to be displayed for the selection : " + filterList.get(0).getFilterName() + " - "
+									+ filterList.get(0).getFilterValues().toString() + " ; " + filterList.get(1).getFilterName() + " - "
+									+ filterList.get(1).getFilterValues().toString() + " ; " + filterList.get(2).getFilterName() + " - "
+									+ filterList.get(2).getFilterValues().toString() + " ; ");
 				}
 			} catch (SQLException e) {
-				org.apache.log4j.Logger.getLogger(ExploreHelper.class).error("Exception while getting team metrics data : " + teamMap.toString(), e);
+				org.apache.log4j.Logger.getLogger(ExploreHelper.class).error("Exception while getting team metrics data : " + teamListMap.toString(),
+						e);
 			}
 			result.put(teamName, metricList);
 		}
@@ -121,6 +136,11 @@ public class ExploreHelper extends TheBorg {
 	}
 
 	private void parseTeamMap(List<Filter> filterList) {
+		countAll = 0;
+		dimensionId = 0;
+		funcId = 0;
+		posId = 0;
+		zoneId = 0;
 		for (Filter filter : filterList) {
 			if (filter.getFilterValues().containsKey(0)) {
 				countAll++;
@@ -153,6 +173,11 @@ public class ExploreHelper extends TheBorg {
 		return result;
 	}
 
+	/**
+	 * Retrieves the individual time series graph data
+	 * @param employeeList - list of employees selected
+	 * @return map of employee linked to a list of metrics
+	 */
 	public Map<Employee, List<Metrics>> getIndividualTimeSeriesGraph(List<Employee> employeeList) {
 		Map<Employee, List<Metrics>> result = getIndividualsData(employeeList, "getIndividualMetricTimeSeries");
 		return result;
