@@ -80,7 +80,7 @@ public class DashboardHelper extends TheBorg {
 	 * @param metricId1 - metric ID of the first metric type
 	 * @param metricId2 - metric ID of the second metric type
 	 * @param filter - filter selection 
-	 * @return list of maps with data for the time series graph
+	 * @return list of Metric objects with data for the time series graph
 	 */
 	public List<Metrics> getTimeSeriesGraph(int metricId1, int metricId2, Filter filter) {
 		List<Metrics> metricsList = new ArrayList<>();
@@ -101,11 +101,39 @@ public class DashboardHelper extends TheBorg {
 				metricsList.add(m);
 			}
 		} catch (SQLException e) {
-			org.apache.log4j.Logger.getLogger(DashboardHelper.class).error("Exception while retrieving organization level metrics", e);
+			org.apache.log4j.Logger.getLogger(DashboardHelper.class).error("Exception while retrieving metrics", e);
 		}
 
 		return metricsList;
 	}
+	
+	/**
+	 * Returns all the details for the time series graph for Organization to be displayed on the HR dashboard
+	 * @return list of Metric objects with data for the time series graph
+	 */
+	public List<Metrics> getOrganizationTimeSeriesGraph(){
+		List<Metrics> metricsList = new ArrayList<>();
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		try {
+
+			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getOrganizationMetricTimeSeries()}");
+			ResultSet rs = cstmt.executeQuery();
+			while (rs.next()) {
+				Metrics m = new Metrics();
+				m.setName(rs.getString("metric_name"));
+				m.setId(rs.getInt("metric_id"));
+				m.setScore(rs.getInt("Score"));
+				m.setDateOfCalculation(rs.getDate("calc_time"));
+				metricsList.add(m);
+			}
+		} catch (SQLException e) {
+			org.apache.log4j.Logger.getLogger(DashboardHelper.class).error("Exception while retrieving organization level metrics", e);
+		}
+
+		return metricsList;
+		
+	}
+	
 
 	/**
 	 * Retrieves the list of alerts
