@@ -24,6 +24,8 @@ import org.icube.owen.survey.QuestionList;
 
 public class ObjectFactory {
 
+	// TODO Ravi : What is the point of creating class objects from ObjectFactory
+	
 	/**
 	 * Get the instance of class given in the parameter
 	 * 
