@@ -19,12 +19,12 @@ import org.icube.owen.survey.BatchList;
 
 public class ExploreHelper extends TheBorg {
 
-	private int countAll = 0, dimensionId = 0, funcId = 0, posId = 0, zoneId = 0;
+	private int countAll = 0, dimensionValueId = 0, funcId = 0, posId = 0, zoneId = 0;
 
 	/**
 	 * Retrieve data for metrics 
-	 * @param teamListMap - Map with the <teamName, filterList> pair, can have as many teams as desired by the UI
-	 * @return metricsMapList - Map with <teamName, metricList> pair
+	 * @param teamListMap - Map with the (teamName, filterList) pair, can have as many teams as desired by the UI
+	 * @return metricsMapList - Map with (teamName, metricList) pair
 	 */
 	public Map<String, List<Metrics>> getTeamMetricsData(Map<String, List<Filter>> teamListMap) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
@@ -43,7 +43,7 @@ public class ExploreHelper extends TheBorg {
 				} else if (countAll == 2) {
 					// if two of the filters are ALL then it is a dimension metric
 					CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getDimensionMetricValue(?)}");
-					cstmt.setInt(1, dimensionId);
+					cstmt.setInt(1, dimensionValueId);
 					ResultSet rs = cstmt.executeQuery();
 					metricList = fillMetricsData(rs);
 				} else if (countAll == 0) {
@@ -71,8 +71,8 @@ public class ExploreHelper extends TheBorg {
 
 	/**
 	 * Retrieve data for the time series graph 
-	 * @param teamListMap - Map with the <teamName, filterList> pair, can have as many teams as desired by the UI
-	 * @return metricsMapList - Map with <teamName, metricList> pair
+	 * @param teamListMap - Map with the (teamName, filterList) pair, can have as many teams as desired by the UI
+	 * @return metricsMapList - Map with (teamName, metricList) pair
 	 */
 	public Map<String, List<Metrics>> getTeamTimeSeriesGraph(Map<String, List<Filter>> teamListMap) {
 
@@ -92,7 +92,7 @@ public class ExploreHelper extends TheBorg {
 				} else if (countAll == 2) {
 					// if two of the filters are ALL then it is a dimension metric
 					CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getDimensionMetricTimeSeries(?)}");
-					cstmt.setInt(1, dimensionId);
+					cstmt.setInt(1, dimensionValueId);
 					ResultSet rs = cstmt.executeQuery();
 					metricList = fillMetricsData(rs);
 				} else if (countAll == 0) {
@@ -137,7 +137,7 @@ public class ExploreHelper extends TheBorg {
 
 	private void parseTeamMap(List<Filter> filterList) {
 		countAll = 0;
-		dimensionId = 0;
+		dimensionValueId = 0;
 		funcId = 0;
 		posId = 0;
 		zoneId = 0;
@@ -157,7 +157,7 @@ public class ExploreHelper extends TheBorg {
 			// check for if only two filter values are 0
 			for (int filterValueId : filter.getFilterValues().keySet()) {
 				if (filterValueId > 0) {
-					dimensionId = filterValueId;
+					dimensionValueId = filterValueId;
 				}
 			}
 		}
