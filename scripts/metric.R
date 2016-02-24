@@ -18,37 +18,32 @@ TeamMetric=function(Function,Position,Zone){
   
   #mydb = dbConnect(MySQL(), user='hpatel', password='hitesh16', dbname='owen', host='192.168.1.13', port=3306)
   
+  if(Function==0 || Position==0 || Zone==0){
+    mydb = dbConnect(MySQL(), user=mysqlusername, password=mysqlpasswod, dbname=mysqldbname, host=mysqlhost, port=mysqlport)
+    if(Function==0){
+      query="SELECT dimension_val_id FROM dimension_value where dimension_id=1;"
+      res <- dbSendQuery(mydb,query)
+      Func=fetch(res,-1)
+      Function=Func$dimension_val_id
+    }
+    if(Position==0){
+      query="SELECT dimension_val_id FROM dimension_value where dimension_id=2;"
+      res <- dbSendQuery(mydb,query)
+      Pos=fetch(res,-1)
+      Position=Pos$dimension_val_id
+    }
+    if(Zone==0){
+      query="SELECT dimension_val_id FROM dimension_value where dimension_id=3;"
+      res <- dbSendQuery(mydb,query)
+      Zon=fetch(res,-1)
+      Zone=Zon$dimension_val_id
+    }
+    dbDisconnect(mydb)
+  }
+  
+  #op data frame
   mydb = dbConnect(MySQL(), user=mysqlusername, password=mysqlpasswod, dbname=mysqldbname, host=mysqlhost, port=mysqlport)
   
-  
-  if(length(Function)==1 & length(Position)==1 & length(Zone==1)){
-    
-    # to get cube_id
-    query=paste("call getCubeIdFromDimension(",Function,",",Position,",",Zone,");",sep = "")
-    
-    res <- dbSendQuery(mydb,query)
-    # cube_id
-    cube_id <- fetch(res,-1)
-    cube_id=cube_id[1,1]
-    
-    # don't know y need to disconnect and connect again
-    dbDisconnect(mydb)
-    #mydb = dbConnect(MySQL(), user='hpatel', password='hitesh16', dbname='owen')
-    mydb = dbConnect(MySQL(), user=mysqlusername, password=mysqlpasswod, dbname=mysqldbname, host=mysqlhost, port=mysqlport)
-    
-    
-    query=paste("SELECT * FROM team_metric_value where cube_id=",cube_id," order by metric_val_id desc limit 5;",sep = "")
-    
-    res <- dbSendQuery(mydb,query)
-    # cube_id
-    op <- fetch(res,-1)
-    op=op[,c("metric_id","metric_value")]
-    names(op)=c("metric_id","op")
-    
-    dbDisconnect(mydb)
-    return(op)
-  }
-  #op data frame
   op=data.frame(metric_id=as.numeric(),score=as.numeric())
   
   # graph DB connection
