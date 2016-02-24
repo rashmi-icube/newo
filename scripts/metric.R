@@ -301,6 +301,10 @@ TeamMetric=function(Function,Position,Zone){
   
   dbDisconnect(mydb)
   
+  currtime=format(Sys.time(), "%Y-%m-%d %H:%M:%S")
+  
+  op$calc_time=currtime
+  
   return(op)
   
 }
