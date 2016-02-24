@@ -12,6 +12,7 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
 import org.icube.owen.helper.DatabaseConnectionHelper;
+import org.icube.owen.helper.UtilHelper;
 
 public class Question extends TheBorg {
 
@@ -167,9 +168,6 @@ public class Question extends TheBorg {
 	 * @param q - a Question object for which the response data is required
 	 * @return - A map containing the responses and the date
 	 */
-	
-	//TODO Vikas : what if there hasn't been any response to the question - should give 0 for the dates that the question has been active for 
-	//TODO hpatel: same question as above....
 	public Map<Date, Integer> getResponse(Question q) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Map<Date, Integer> responseMap = new HashMap<>();
@@ -182,7 +180,7 @@ public class Question extends TheBorg {
 					responseMap.put(rs.getDate("date"), rs.getInt("responses"));
 				}
 			} else {
-				for (Date d = q.getStartDate(); d.before(Date.from(Instant.now())); d = BatchList.convertJavaDateToSqlDate(DateUtils.addDays(d, 1))) {
+				for (Date d = q.getStartDate(); d.before(Date.from(Instant.now())); d = UtilHelper.convertJavaDateToSqlDate(DateUtils.addDays(d, 1))) {
 					responseMap.put(d, 0);
 				}
 			}

@@ -1,19 +1,24 @@
 package org.icube.owen.metrics;
 
 import java.sql.CallableStatement;
+import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
 import org.icube.owen.employee.Employee;
 import org.icube.owen.filter.Filter;
 import org.icube.owen.helper.DatabaseConnectionHelper;
+import org.icube.owen.helper.UtilHelper;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPDouble;
+import org.rosuda.REngine.REXPString;
 import org.rosuda.REngine.RList;
 
 public class MetricsList extends TheBorg {
@@ -24,7 +29,6 @@ public class MetricsList extends TheBorg {
 	 * @param initiativeTypeId - ID of the type of initiative
 	 * @return list of metrics objects
 	 */
-	// TODO hpatel, ravi : figure out what to do when ALL is selected for dimensions
 	public List<Metrics> getInitiativeMetricsForTeam(int initiativeTypeId, List<Filter> filterList) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Metrics> metricsList = new ArrayList<>();
@@ -51,14 +55,14 @@ public class MetricsList extends TheBorg {
 					zoneList.addAll(f.getFilterValues().keySet());
 				}
 			}
-			dch.rCon.assign("funcList", getIntArrayFromIntegerList(funcList));
-			dch.rCon.assign("posList", getIntArrayFromIntegerList(posList));
-			dch.rCon.assign("zoneList", getIntArrayFromIntegerList(zoneList));
+			dch.rCon.assign("funcList", UtilHelper.getIntArrayFromIntegerList(funcList));
+			dch.rCon.assign("posList", UtilHelper.getIntArrayFromIntegerList(posList));
+			dch.rCon.assign("zoneList", UtilHelper.getIntArrayFromIntegerList(zoneList));
 			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Calling the actual function in RScript TeamMetric");
 			REXP teamMetricScore = dch.rCon.parseAndEval("try(eval(TeamMetric(funcList, posList, zoneList)))");
 			if (teamMetricScore.inherits("try-error")) {
 				org.apache.log4j.Logger.getLogger(MetricsList.class).error("Error: " + teamMetricScore.asString());
-				return metricsList;
+				throw new Exception("Error: " + teamMetricScore.asString());
 			} else {
 				org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Metrics calculation completed for team " + teamMetricScore.asList());
 			}
@@ -69,14 +73,19 @@ public class MetricsList extends TheBorg {
 			int[] metricIdArray = metricIdResult.asIntegers();
 			REXPDouble scoreResult = (REXPDouble) result.get("score");
 			double[] scoreArray = scoreResult.asDoubles();
+			REXPString dateOfCalculation = (REXPString) result.get("calc_time");
+			String[] dateOfCalculationArray = dateOfCalculation.asStrings();
 			Map<Integer, Integer> currentScoreMap = new HashMap<>();
 			Map<Integer, Integer> previousScoreMap = new HashMap<>();
+			Map<Integer, Date> dateOfCalcMap = new HashMap<>();
 
 			for (int i = 0; i < metricIdArray.length; i++) {
 				currentScoreMap.put(metricIdArray[i], (int) (scoreArray[i]));
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+				dateOfCalcMap.put(metricIdArray[i], UtilHelper.convertJavaDateToSqlDate((java.util.Date) (sdf.parse(dateOfCalculationArray[i]))));
 			}
 
-			metricsList = getMetricsList("Team", metricListForCategory, primaryMetricMap, previousScoreMap, currentScoreMap);
+			metricsList = getMetricsList("Team", metricListForCategory, primaryMetricMap, previousScoreMap, currentScoreMap, dateOfCalcMap);
 			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Successfully calculated metrics for the team");
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(MetricsList.class).error(
@@ -97,6 +106,7 @@ public class MetricsList extends TheBorg {
 		List<Metrics> metricsList = new ArrayList<>();
 		Map<Integer, Integer> currentScoreMap = new HashMap<>();
 		Map<Integer, Integer> previousScoreMap = new HashMap<>();
+		Map<Integer, Date> dateOfCalcMap = new HashMap<>();
 
 		try {
 			Map<Integer, String> metricListForCategory = getMetricListForCategory("Individual");
@@ -121,7 +131,7 @@ public class MetricsList extends TheBorg {
 				org.apache.log4j.Logger.getLogger(MetricsList.class).error(
 						"Exception while trying to metrics list for category individual and type ID " + initiativeTypeId, e);
 			}
-			metricsList = getMetricsList("Individual", metricListForCategory, primaryMetricMap, previousScoreMap, currentScoreMap);
+			metricsList = getMetricsList("Individual", metricListForCategory, primaryMetricMap, previousScoreMap, currentScoreMap, dateOfCalcMap);
 			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Successfully calculated metrics for the team");
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(MetricsList.class).error(
@@ -142,7 +152,7 @@ public class MetricsList extends TheBorg {
 	 * @return - List of Metric Objects
 	 */
 	public List<Metrics> getMetricsList(String category, Map<Integer, String> metricListForCategory, Map<Integer, String> primaryMetricMap,
-			Map<Integer, Integer> previousScoreMap, Map<Integer, Integer> currentScoreMap) {
+			Map<Integer, Integer> previousScoreMap, Map<Integer, Integer> currentScoreMap, Map<Integer, Date> dateOfCalculationMap) {
 		List<Metrics> metricsList = new ArrayList<>();
 		for (int id : metricListForCategory.keySet()) {
 			Metrics m = new Metrics();
@@ -153,9 +163,8 @@ public class MetricsList extends TheBorg {
 			if (category == "Individual") {
 				String direction = m.calculateMetricDirection(currentScoreMap.get(id), previousScoreMap.get(id));
 				m.setDirection(direction);
-			}
-			// TODO HPatel : To get the previous score for team from r-script
-			else if (category == "Team") {
+			} else if (category == "Team") {
+				// when metrics come from R the direction will always be neutral
 				m.setDirection("Neutral");
 			}
 			if (primaryMetricMap.containsKey(id)) {
@@ -163,6 +172,7 @@ public class MetricsList extends TheBorg {
 			} else {
 				m.setPrimary(false);
 			}
+			m.setDateOfCalculation(dateOfCalculationMap.get(id));
 			metricsList.add(m);
 		}
 		return metricsList;
@@ -209,14 +219,6 @@ public class MetricsList extends TheBorg {
 					"Exception while getting the metrics list for initiative of category" + category, e);
 		}
 		return metricListForCategory;
-	}
-
-	public static int[] getIntArrayFromIntegerList(List<Integer> integerList) {
-		int[] result = new int[integerList.size()];
-		for (int i = 0; i <= integerList.size() - 1; i++) {
-			result[i] = integerList.get(i);
-		}
-		return result;
 	}
 
 }
