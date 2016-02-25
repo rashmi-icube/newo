@@ -6,11 +6,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.time.DateUtils;
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
+import org.icube.owen.employee.Employee;
+import org.icube.owen.filter.Filter;
 import org.icube.owen.helper.DatabaseConnectionHelper;
 import org.icube.owen.helper.UtilHelper;
 
@@ -23,6 +26,7 @@ public class Question extends TheBorg {
 	private double responsePercentage;
 	private int questionId;
 	private int surveyBatchId;
+	private int relationshipTypeId;
 
 	public Date getStartDate() {
 		return startDate;
@@ -32,88 +36,60 @@ public class Question extends TheBorg {
 		this.startDate = startDate;
 	}
 
-	/**
-	 * @return the endDate
-	 */
 	public Date getEndDate() {
 		return endDate;
 	}
 
-	/**
-	 * @param endDate the endDate to set
-	 */
 	public void setEndDate(Date endDate) {
 		this.endDate = endDate;
 	}
 
-	/**
-	 * @return the questionText
-	 */
 	public String getQuestionText() {
 		return questionText;
 	}
 
-	/**
-	 * @param questionText the questionText to set
-	 */
 	public void setQuestionText(String questionText) {
 		this.questionText = questionText;
 	}
 
-	/**
-	 * @return the questionType
-	 */
 	public QuestionType getQuestionType() {
 		return questionType;
 	}
 
-	/**
-	 * @param questionType the questionType to set
-	 */
 	public void setQuestionType(QuestionType questionType) {
 		this.questionType = questionType;
 	}
 
-	/**
-	 * @return the responsePercentage
-	 */
 	public double getResponsePercentage() {
 		return responsePercentage;
 	}
 
-	/**
-	 * @param responsePercentage the responsePercentage to set
-	 */
 	public void setResponsePercentage(double responsePercentage) {
 		this.responsePercentage = responsePercentage;
 	}
 
-	/**
-	 * @return the questionId
-	 */
 	public int getQuestionId() {
 		return questionId;
 	}
 
-	/**
-	 * @param questionId the questionId to set
-	 */
 	public void setQuestionId(int questionId) {
 		this.questionId = questionId;
 	}
 
-	/**
-	 * @return the surveyBatchId
-	 */
 	public int getSurveyBatchId() {
 		return surveyBatchId;
 	}
 
-	/**
-	 * @param surveyBatchId the surveyBatchId to set
-	 */
 	public void setSurveyBatchId(int surveyBatchId) {
 		this.surveyBatchId = surveyBatchId;
+	}
+
+	public int getRelationshipTypeId() {
+		return relationshipTypeId;
+	}
+
+	public void setRelationshipTypeId(int relationshipTypeId) {
+		this.relationshipTypeId = relationshipTypeId;
 	}
 
 	/**
@@ -211,5 +187,30 @@ public class Question extends TheBorg {
 			}
 		}
 		return q;
+	}
+
+	public Question getEmployeeQuestion(Employee e, int companyId) {
+		Question q = new Question();
+
+		// check whether connection to company db exists
+		// send employeeId, requestedDate(now) to SQL ... receive a single questionId
+		// return question object from the questionId
+
+		return q;
+	}
+
+	public Map<Employee, Integer> getSmartListForQuestion(Employee e, Question q) {
+
+		Map<Employee, Integer> employeeScoreMap = new HashMap<>();
+
+		return employeeScoreMap;
+	}
+
+	public Map<Employee, Integer> getSmartListForQuestionByFilters(Employee e, Question q, List<Filter> filterList) {
+		Map<Employee, Integer> employeeScoreMap = new HashMap<>();
+
+		return employeeScoreMap;
+
+
 	}
 }
