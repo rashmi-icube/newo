@@ -23,13 +23,23 @@ public class DashboardHelperTest {
 	Filter functionFilter = fl.getFilterValues("Function");
 	
 	
+	
 	@Test
 	public void testGetFilterMetrics(){
-		List<Metrics> metricsList = dh.getFilterMetrics(functionFilter);
+		Map<Integer, String> filterValuesMap = new HashMap<>();
+		filterValuesMap.put(1, "HR");
+        Filter f = new Filter();
+        f.setFilterName("Function");
+        f.setFilterId(1);
+        f.setFilterValues(filterValuesMap);
+		List<Metrics> metricsList = dh.getFilterMetrics(f);
 		for (Metrics m : metricsList){
-			assertTrue(m.getId() > 0);
-			assertTrue(!m.getDirection().isEmpty());
-			assertTrue(!m.getCategory().isEmpty());
+			assertNotNull(m.getId());
+			assertNotNull(m.getDirection());
+			assertNotNull(m.getCategory());
+			assertNotNull(m.getName());
+			assertNotNull(m.getDateOfCalculation());
+			assertNotNull(m.getScore());
 		}
 	}
 	

@@ -15,6 +15,7 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
 import org.icube.owen.helper.DatabaseConnectionHelper;
+import org.icube.owen.helper.UtilHelper;
 
 public class BatchList extends TheBorg {
 
@@ -48,7 +49,7 @@ public class BatchList extends TheBorg {
 
 		try {
 
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getBatchListById(?)}");
+			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getBatch(?)}");
 			cstmt.setInt(1, 1);
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
@@ -57,14 +58,14 @@ public class BatchList extends TheBorg {
 				b.setStartDate(rs.getDate("start_date"));
 				b.setEndDate(rs.getDate("end_date"));
 				b.setBatchId(rs.getInt("survey_batch_id"));
-				CallableStatement cstmt1 = dch.mysqlCon.prepareCall("{call getQuestionListForBatch(?)}");
+				CallableStatement cstmt1 = dch.mysqlCon.prepareCall("{call getBatchQuestionList(?)}");
 				cstmt1.setInt(1, rs.getInt("survey_batch_id"));
 				ResultSet rs1 = cstmt1.executeQuery();
 				List<Question> questionList = new ArrayList<Question>();
 				while (rs1.next()) {
 					Question q = new Question();
-					q.setEndDate(rs1.getDate("enddate"));
-					q.setStartDate(rs1.getDate("startdate"));
+					q.setEndDate(rs1.getDate("end_date"));
+					q.setStartDate(rs1.getDate("start_date"));
 					q.setQuestionText(rs1.getString("question"));
 					q.setQuestionId(rs1.getInt("que_id"));
 					q.setResponsePercentage(rs1.getDouble("resp"));
@@ -140,6 +141,7 @@ public class BatchList extends TheBorg {
 			cstmt.setDate(4, (java.sql.Date) previousEndDate);
 			cstmt.executeQuery();
 			org.apache.log4j.Logger.getLogger(BatchList.class).debug("Successfully changed frequency for batch " + batch.getBatchId());
+			isChanged = true;
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(BatchList.class).error("Exception while updating batch ID : " + batch.getBatchId(), e);
 		}
@@ -154,14 +156,15 @@ public class BatchList extends TheBorg {
 
 		case WEEKLY: // 7
 			if (isCurrent) {
-				Date endDate = convertJavaDateToSqlDate(DateUtils.addDays(q.getStartDate(), 6));
-				Date actualEndDate = endDate.before(Date.from(Instant.now())) ? convertJavaDateToSqlDate(Date.from(Instant.now())) : endDate;
+				Date endDate = UtilHelper.convertJavaDateToSqlDate(DateUtils.addDays(q.getStartDate(), 6));
+				Date actualEndDate = endDate.before(Date.from(Instant.now())) ? UtilHelper.convertJavaDateToSqlDate(Date.from(Instant.now()))
+						: endDate;
 				q.setEndDate(actualEndDate);
 				previousEndDate = actualEndDate;
 			} else {
-				Date startDate = convertJavaDateToSqlDate(DateUtils.addDays(previousEndDate, 1));
+				Date startDate = UtilHelper.convertJavaDateToSqlDate(DateUtils.addDays(previousEndDate, 1));
 				q.setStartDate(startDate);
-				Date endDate = convertJavaDateToSqlDate(DateUtils.addDays(startDate, 6));
+				Date endDate = UtilHelper.convertJavaDateToSqlDate(DateUtils.addDays(startDate, 6));
 				q.setEndDate(endDate);
 				previousEndDate = endDate;
 			}
@@ -169,43 +172,46 @@ public class BatchList extends TheBorg {
 			break;
 		case BIWEEKLY: // 14
 			if (isCurrent) {
-				Date endDate = convertJavaDateToSqlDate(DateUtils.addDays(q.getStartDate(), 13));
-				Date actualEndDate = endDate.before(Date.from(Instant.now())) ? convertJavaDateToSqlDate(Date.from(Instant.now())) : endDate;
+				Date endDate = UtilHelper.convertJavaDateToSqlDate(DateUtils.addDays(q.getStartDate(), 13));
+				Date actualEndDate = endDate.before(Date.from(Instant.now())) ? UtilHelper.convertJavaDateToSqlDate(Date.from(Instant.now()))
+						: endDate;
 				q.setEndDate(actualEndDate);
 				previousEndDate = actualEndDate;
 
 			} else {
-				Date startDate = convertJavaDateToSqlDate(DateUtils.addDays(previousEndDate, 1));
+				Date startDate = UtilHelper.convertJavaDateToSqlDate(DateUtils.addDays(previousEndDate, 1));
 				q.setStartDate(startDate);
-				Date endDate = convertJavaDateToSqlDate(DateUtils.addDays(startDate, 13));
+				Date endDate = UtilHelper.convertJavaDateToSqlDate(DateUtils.addDays(startDate, 13));
 				q.setEndDate(endDate);
 				previousEndDate = endDate;
 			}
 			break;
 		case MONTHLY: // 1 month
 			if (isCurrent) {
-				Date endDate = convertJavaDateToSqlDate(DateUtils.addDays(DateUtils.addMonths(q.getStartDate(), 1), -1));
-				Date actualEndDate = endDate.before(Date.from(Instant.now())) ? convertJavaDateToSqlDate(Date.from(Instant.now())) : endDate;
+				Date endDate = UtilHelper.convertJavaDateToSqlDate(DateUtils.addDays(DateUtils.addMonths(q.getStartDate(), 1), -1));
+				Date actualEndDate = endDate.before(Date.from(Instant.now())) ? UtilHelper.convertJavaDateToSqlDate(Date.from(Instant.now()))
+						: endDate;
 				q.setEndDate(actualEndDate);
 				previousEndDate = actualEndDate;
 			} else {
-				Date startDate = convertJavaDateToSqlDate(DateUtils.addDays(previousEndDate, 1));
+				Date startDate = UtilHelper.convertJavaDateToSqlDate(DateUtils.addDays(previousEndDate, 1));
 				q.setStartDate(startDate);
-				Date endDate = convertJavaDateToSqlDate(DateUtils.addDays(DateUtils.addMonths(q.getStartDate(), 1), -1));
+				Date endDate = UtilHelper.convertJavaDateToSqlDate(DateUtils.addDays(DateUtils.addMonths(q.getStartDate(), 1), -1));
 				q.setEndDate(endDate);
 				previousEndDate = endDate;
 			}
 			break;
 		case QUARTERLY: // 3 months
 			if (isCurrent) {
-				Date endDate = convertJavaDateToSqlDate(DateUtils.addDays(DateUtils.addMonths(q.getStartDate(), 3), -1));
-				Date actualEndDate = endDate.before(Date.from(Instant.now())) ? convertJavaDateToSqlDate(Date.from(Instant.now())) : endDate;
+				Date endDate = UtilHelper.convertJavaDateToSqlDate(DateUtils.addDays(DateUtils.addMonths(q.getStartDate(), 3), -1));
+				Date actualEndDate = endDate.before(Date.from(Instant.now())) ? UtilHelper.convertJavaDateToSqlDate(Date.from(Instant.now()))
+						: endDate;
 				q.setEndDate(actualEndDate);
 				previousEndDate = actualEndDate;
 			} else {
-				Date startDate = convertJavaDateToSqlDate(DateUtils.addDays(previousEndDate, 1));
+				Date startDate = UtilHelper.convertJavaDateToSqlDate(DateUtils.addDays(previousEndDate, 1));
 				q.setStartDate(startDate);
-				Date endDate = convertJavaDateToSqlDate(DateUtils.addDays(DateUtils.addMonths(q.getStartDate(), 3), -1));
+				Date endDate = UtilHelper.convertJavaDateToSqlDate(DateUtils.addDays(DateUtils.addMonths(q.getStartDate(), 3), -1));
 				q.setEndDate(endDate);
 				previousEndDate = endDate;
 			}
@@ -216,15 +222,11 @@ public class BatchList extends TheBorg {
 		return previousEndDate;
 	}
 
-	public static java.sql.Date convertJavaDateToSqlDate(java.util.Date date) {
-		return new java.sql.Date(date.getTime());
-	}
-	
 	/**
 	 * Gets the current batch based on the comparison of the dates
 	 * @return current batch
 	 */
-	//TODO Rashmi : Figure out a better way to do this... 
+	// TODO Rashmi : Figure out a better way to do this...
 	public Batch getCurrentBatch() {
 		List<Batch> batchList = getBatchList();
 		Batch currentBatch = batchList.get(0);

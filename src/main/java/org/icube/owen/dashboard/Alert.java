@@ -18,7 +18,7 @@ import org.icube.owen.metrics.Metrics;
 public class Alert extends TheBorg {
 
 	private int alertId;
-	private String alertMessage;
+	private String alertMessage; //TODO split into two strings for underlined + non-underlined
 	private String alertStatus;
 	private List<Filter> filterList;
 	private List<Employee> employeeList;

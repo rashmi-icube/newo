@@ -99,7 +99,7 @@ public class ExploreHelper extends TheBorg {
 					metricsList = getTimeSeriesMap(rs);
 				} else if (countAll == 0) {
 					// if none of the filters is ALL then it is a cube metric
-					CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getTeamMetricTimeseries(?,?,?)}");
+					CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getTeamMetricTimeSeries(?,?,?)}");
 					cstmt.setInt(1, funcId);
 					cstmt.setInt(2, posId);
 					cstmt.setInt(3, zoneId);

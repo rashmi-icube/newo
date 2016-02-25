@@ -142,14 +142,14 @@ public class Initiative extends TheBorg {
 			ArrayList<String> funcParam = (ArrayList<String>) params.get("Function");
 			ArrayList<String> zoneParam = (ArrayList<String>) params.get("Zone");
 			ArrayList<String> posParam = (ArrayList<String>) params.get("Position");
-			if (funcParam.contains("all") || funcParam.contains("All")) {
+			if (funcParam.contains(0)) {
 				funcQuery = "Match (i:Init),(f:Function) WHERE i.Id = " + initiativeId + " Create f-[:part_of]->i ";
 			} else {
 				funcQuery = "Match (i:Init),(f:Function) where i.Id = " + initiativeId + " and f.Id in " + funcParam.toString()
 						+ " Create f-[:part_of]->i ";
 			}
 
-			if (zoneParam.contains("all") || zoneParam.contains("All")) {
+			if (zoneParam.contains(0)) {
 				zoneQuery = "Match (i:Init),(z:Zone) where i.Id = " + initiativeId + " create z-[:part_of]->i";
 
 			} else {
@@ -157,7 +157,7 @@ public class Initiative extends TheBorg {
 						+ " create z-[:part_of]->i";
 			}
 
-			if (posParam.contains("all") || posParam.contains("All")) {
+			if (posParam.contains(0)) {
 				posQuery = "Match (i:Init),(p:Position) where i.Id = " + initiativeId + " Create p-[:part_of]->i";
 
 			} else {
@@ -300,7 +300,7 @@ public class Initiative extends TheBorg {
 		Map<Integer, String> initiativeTypeMap = new HashMap<>();
 		try {
 
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call Initiativetypelist(?)}");
+			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getInitiativeTypeList(?)}");
 			cstmt.setString(1, category);
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
