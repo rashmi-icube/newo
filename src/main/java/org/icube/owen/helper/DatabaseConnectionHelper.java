@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Map;
 import java.util.Properties;
 
 import org.icube.owen.TheBorg;
@@ -15,24 +16,44 @@ import org.rosuda.REngine.Rserve.RserveException;
 
 public class DatabaseConnectionHelper extends TheBorg {
 
-	public Connection mysqlCon;
+	public Connection mysqlCon; // will get rid of this once login comes into HR page
+	public Connection masterCon;
+	public Map<Integer, Connection> companyConnectionPool;
 	public Connection neo4jCon;
 	public RConnection rCon;
-	private final static String mysqlurl = "jdbc:mysql://192.168.1.6:3306/owen";
+	/*private final static String mysqlurl = "jdbc:mysql://192.168.1.6:3306/owen";
 	private final static String user = "icube";
-	private final static String password = "icube123";
+	private final static String password = "icube123";*/
 
-	/*private final static String mysqlurl = "jdbc:mysql://localhost:3306/owen";
+	private final static String mysqlurl = "jdbc:mysql://localhost:3306/owen";
 	private final static String user = "root";
-	private final static String password = "root";*/
+	private final static String password = "";
+
+	private final static String MASTER_URL = "jdbc:mysql://localhost:3306/owen_master";
+	private final static String MASTER_USER = "root";
+	private final static String MASTER_PASSWORD = "";
 
 	public DatabaseConnectionHelper() {
 
+		// TODO check if an active connection is available return active connection don't create a new mysql connection
 		// mysql connection
 		try {
+
 			Class.forName("com.mysql.jdbc.Driver");
 			mysqlCon = DriverManager.getConnection(mysqlurl, user, password);
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Successfully connected to MySql with owen database");
+
+		} catch (SQLException e) {
+			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("An error occurred. Maybe user/password is invalid", e);
+		} catch (ClassNotFoundException e) {
+			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("JDBC Class not found", e);
+		}
+
+		// master sql connection
+		try {
+			Class.forName("com.mysql.jdbc.Driver");
+			mysqlCon = DriverManager.getConnection(MASTER_URL, MASTER_USER, MASTER_PASSWORD);
+			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Successfully connected to MySql with owen master database");
 
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("An error occurred. Maybe user/password is invalid", e);
@@ -69,7 +90,7 @@ public class DatabaseConnectionHelper extends TheBorg {
 			String rScriptPath = "C:\\\\Users\\\\fermion10\\\\Documents\\\\Neo4j\\\\scripts";
 			// String workingDir = "setwd(\"" + rScriptPath.replace("\\", "\\\\") + "\")";
 			String workingDir = "setwd(\"" + rScriptPath + "\")";
-			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Trying to load the RScript file at " + rScriptPath);
+						org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Trying to load the RScript file at " + rScriptPath);
 			rCon.eval(workingDir);
 			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Successfully loaded rScript: source(\"//" + rScriptPath);
 		} catch (SQLException e) {
@@ -110,5 +131,26 @@ public class DatabaseConnectionHelper extends TheBorg {
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("An error occurred while attempting to close db connections", e);
 		}
+	}
+	
+	public Connection getCompanyConnection(int companyId, String url, String username, String password) {
+		Connection conn = null;
+		if (!companyConnectionPool.isEmpty() && companyConnectionPool.containsKey(companyId)) {
+			conn = companyConnectionPool.get(companyId);
+		} else {
+			try {
+				Class.forName("com.mysql.jdbc.Driver");
+				conn = DriverManager.getConnection(url, username, password);
+				companyConnectionPool.put(companyId, conn);
+				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug(
+						"Successfully connected to company db with companyId : " + companyId);
+			} catch (SQLException e) {
+				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("An error occurred. Maybe user/password is invalid", e);
+			} catch (ClassNotFoundException e) {
+				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("JDBC Class not found", e);
+			}
+		}
+
+		return conn;
 	}
 }
