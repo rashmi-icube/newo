@@ -43,20 +43,22 @@ public class EmployeeList extends TheBorg {
 			ArrayList<String> zoneParam = (ArrayList<String>) params.get("Zone");
 			ArrayList<String> posParam = (ArrayList<String>) params.get("Position");
 
-			if (funcParam.contains("all") || funcParam.contains("All")) {
+			if (funcParam.contains(0)) {
 				funcQuery = "";
 			} else {
 				funcQuery = "f.Id in " + funcParam.toString();
 
 			}
 
-			if (zoneParam.contains("all") || zoneParam.contains("All")) {
+			if (zoneParam.contains(0)) {
+
 				zoneQuery = "";
 			} else {
 				zoneQuery = "z.Id in " + zoneParam.toString();
 			}
 
-			if (posParam.contains("all") || posParam.contains("All")) {
+			if (posParam.contains(0)) {
+
 				posQuery = "";
 			} else {
 				posQuery = "p.Id in " + posParam.toString();
@@ -180,8 +182,8 @@ public class EmployeeList extends TheBorg {
 	 * Get a list of all employee objects
 	 * @return employeeList
 	 */
-	
-	//TODO make a copy of this function to get the master list accepting the companyId as an argument
+
+	// TODO make a copy of this function to get the master list accepting the companyId as an argument
 	public List<Employee> getEmployeeMasterList() {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Employee> employeeList = new ArrayList<>();

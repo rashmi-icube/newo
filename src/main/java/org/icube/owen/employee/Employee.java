@@ -16,8 +16,7 @@ public class Employee extends TheBorg {
 	private String reportingManagerId;
 	private long score;
 	private boolean active = true; // TODO ravi, hpatel :  to figure out where this field will be filled in from
-	
-	//TODO add companyId 
+	private int companyId;
 	//TODO add method to give employee image
 	
 	public int getEmployeeId() {
@@ -74,6 +73,14 @@ public class Employee extends TheBorg {
 
 	public void setActive(boolean active) {
 		this.active = active;
+	}
+
+	public int getCompanyId() {
+		return companyId;
+	}
+
+	public void setCompanyId(int companyId) {
+		this.companyId = companyId;
 	}
 
 	/**

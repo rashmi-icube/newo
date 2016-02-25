@@ -1,6 +1,7 @@
 package org.icube.owen.survey;
 
 import java.sql.CallableStatement;
+import java.sql.Connection;
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -190,24 +191,52 @@ public class Question extends TheBorg {
 		return q;
 	}
 
-	public List<Question> getEmployeeQuestionList(int employeeId, int companyId) {
+	/**
+	 * Retrieves the list of questions for the employee
+	 * @param companyId - Company ID of the employee
+	 * @param employeeId - Employee ID
+	 * @return a list of Question objects
+	 */
+	public List<Question> getEmployeeQuestionList(int companyId, int employeeId) {
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Question> questionList = new ArrayList<>();
+		Connection conn;
+		try {
+			// check whether connection to company db exists using the company Id
+			if (dch.companyConnectionPool.containsKey(companyId)) {
 
-		// check whether connection to company db exists
-		// send employeeId, requestedDate(now) to SQL ... receive a single questionId
-		// return question object from the questionId
+				conn = dch.companyConnectionPool.get(companyId);
+
+			} else {
+				// TODO : when will this scenario occur??
+				conn = dch.getCompanyConnection(companyId, "jdbc:mysql://localhost:3306/owen", "root", "root");
+			}
+			CallableStatement cstmt = conn.prepareCall("{call getEmpQuestionList(?,?)}");
+			cstmt.setInt(1, employeeId);
+			java.sql.Date date = new java.sql.Date(Date.from(Instant.now()).getTime());
+			cstmt.setDate(2, date);
+			ResultSet rs = cstmt.executeQuery();
+			// TODO : resultset should return only questionId's or entire Question details??
+			while (rs.next()) {
+				Question q = new Question();
+				q = q.getQuestion(rs.getInt("que_id"));
+				questionList.add(q);
+			}
+		} catch (SQLException e1) {
+			org.apache.log4j.Logger.getLogger(Question.class).error("Exception while retrieving the questionList", e1);
+		}
 
 		return questionList;
 	}
 
-	public Map<Integer, Employee> getSmartListForQuestion(int employeeId, int companyId, Question q) {
+	public Map<Integer, Employee> getSmartListForQuestion(int companyId, int employeeId, Question q) {
 
 		Map<Integer, Employee> employeeScoreMap = new HashMap<>();
 
 		return employeeScoreMap;
 	}
 
-	public Map<Integer, Employee> getSmartListForQuestionByFilters(int employeeId, int companyId, Question q, List<Filter> filterList) {
+	public Map<Integer, Employee> getSmartListForQuestionByFilters(int companyId, int employeeId, Question q, List<Filter> filterList) {
 		Map<Integer, Employee> employeeScoreMap = new HashMap<>();
 		// order doesn't matter for employee list
 		return employeeScoreMap;

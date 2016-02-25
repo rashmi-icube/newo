@@ -1,8 +1,11 @@
 package org.icube.owen.test.survey;
 
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.sql.Date;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.icube.owen.ObjectFactory;
@@ -40,6 +43,13 @@ public class QuestionTest {
 	public void testGetQuestionStatus(){
 		String status = q.getQuestionStatus(q.getQuestion(1).getStartDate(),q.getQuestion(1).getEndDate());
 		assertTrue(!status.isEmpty());
+	}
+	
+	@Test
+	public void testGetEmployeeQuestionList(){
+		List<Question> ql = new ArrayList<Question>();
+		ql = q.getEmployeeQuestionList(1,30);
+		assertNotNull(ql);
 	}
 
 }
