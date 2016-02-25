@@ -11,7 +11,7 @@ public class AlertTest {
 	
 	@Test
 	public void testGet(){
-		Alert alert = a.get(2);
+		Alert alert = a.get(4);
 		assertTrue(alert.getAlertId() > 0);
 		assertTrue(!alert.getEmployeeList().isEmpty());
 		assertTrue(!alert.getAlertMessage().isEmpty());

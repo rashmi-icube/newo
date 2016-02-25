@@ -122,7 +122,7 @@ public class InitiativeHelper extends TheBorg {
 		List<Metrics> metricsList = new ArrayList<>();
 		try {
 			if (i.getInitiativeCategory().equalsIgnoreCase("Individual")) {
-				CallableStatement cs = dch.mysqlCon.prepareCall("{call getMetricValueListForIndividualInitiative(?)}");
+				CallableStatement cs = dch.mysqlCon.prepareCall("{call getIndividualInitiativeMetricValueAggregate(?)}");
 				int empId = i.getPartOfEmployeeList().get(0).getEmployeeId();
 				cs.setInt(1, empId);
 				ResultSet rs = cs.executeQuery();
@@ -139,7 +139,7 @@ public class InitiativeHelper extends TheBorg {
 				}
 			} else if(i.getInitiativeCategory().equalsIgnoreCase("Team")){
 
-				CallableStatement cs = dch.mysqlCon.prepareCall("{call getMetricValueListForTeamInitiative(?)}");
+				CallableStatement cs = dch.mysqlCon.prepareCall("{call getTeamInitiativeMetricValueAggregate(?)}");
 				int initId = i.getInitiativeId();
 				cs.setInt(1, initId);
 				ResultSet rs = cs.executeQuery();

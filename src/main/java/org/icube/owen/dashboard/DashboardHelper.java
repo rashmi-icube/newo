@@ -27,7 +27,7 @@ public class DashboardHelper extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		try {
 
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getMetricValueListForDimension(?, ?)}");
+			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getDimensionMetricValueAggregate(?, ?)}");
 			cstmt.setInt(1, filter.getFilterValues().keySet().iterator().next().intValue());
 			cstmt.setInt(2, filter.getFilterId());
 			ResultSet rs = cstmt.executeQuery();
@@ -36,9 +36,9 @@ public class DashboardHelper extends TheBorg {
 				m.setId(rs.getInt("metric_id"));
 				m.setName(rs.getString("metric_name"));
 				m.setCategory("Team");
-				m.setScore(rs.getInt("Current_Score"));
-				m.setDirection(m.calculateMetricDirection(rs.getInt("Current_Score"), rs.getInt("Previous_Score")));
-				m.setAverage(rs.getInt("Average_Score"));
+				m.setScore(rs.getInt("current_score"));
+				m.setDirection(m.calculateMetricDirection(rs.getInt("current_score"), rs.getInt("previous_score")));
+				m.setAverage(rs.getInt("average_score"));
 				m.setDateOfCalculation(rs.getDate("calc_time"));
 				orgMetricsList.add(m);
 			}
@@ -58,16 +58,16 @@ public class DashboardHelper extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		try {
 
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getMetricValueListForOrganization()}");
+			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getOrganizationMetricValueAggregate()}");
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
 				Metrics m = new Metrics();
 				m.setId(rs.getInt("metric_id"));
 				m.setName(rs.getString("metric_name"));
 				m.setCategory("Team");
-				m.setScore(rs.getInt("Current_Score"));
-				m.setDirection(m.calculateMetricDirection(rs.getInt("Current_Score"), rs.getInt("Previous_Score")));
-				m.setAverage(rs.getInt("Average_Score"));
+				m.setScore(rs.getInt("current_score"));
+				m.setDirection(m.calculateMetricDirection(rs.getInt("current_score"), rs.getInt("previous_score")));
+				m.setAverage(rs.getInt("average_score"));
 				m.setDateOfCalculation(rs.getDate("calc_time"));
 				orgMetricsList.add(m);
 			}

@@ -49,7 +49,7 @@ public class BatchList extends TheBorg {
 
 		try {
 
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getBatchListById(?)}");
+			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getBatch(?)}");
 			cstmt.setInt(1, 1);
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
@@ -58,14 +58,14 @@ public class BatchList extends TheBorg {
 				b.setStartDate(rs.getDate("start_date"));
 				b.setEndDate(rs.getDate("end_date"));
 				b.setBatchId(rs.getInt("survey_batch_id"));
-				CallableStatement cstmt1 = dch.mysqlCon.prepareCall("{call getQuestionListForBatch(?)}");
+				CallableStatement cstmt1 = dch.mysqlCon.prepareCall("{call getBatchQuestionList(?)}");
 				cstmt1.setInt(1, rs.getInt("survey_batch_id"));
 				ResultSet rs1 = cstmt1.executeQuery();
 				List<Question> questionList = new ArrayList<Question>();
 				while (rs1.next()) {
 					Question q = new Question();
-					q.setEndDate(rs1.getDate("enddate"));
-					q.setStartDate(rs1.getDate("startdate"));
+					q.setEndDate(rs1.getDate("end_date"));
+					q.setStartDate(rs1.getDate("start_date"));
 					q.setQuestionText(rs1.getString("question"));
 					q.setQuestionId(rs1.getInt("que_id"));
 					q.setResponsePercentage(rs1.getDouble("resp"));
@@ -141,6 +141,7 @@ public class BatchList extends TheBorg {
 			cstmt.setDate(4, (java.sql.Date) previousEndDate);
 			cstmt.executeQuery();
 			org.apache.log4j.Logger.getLogger(BatchList.class).debug("Successfully changed frequency for batch " + batch.getBatchId());
+			isChanged = true;
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(BatchList.class).error("Exception while updating batch ID : " + batch.getBatchId(), e);
 		}

@@ -33,8 +33,8 @@ public class QuestionList extends TheBorg {
 				q.setQuestionText(rs.getString("question"));
 				q.setQuestionType(QuestionType.values()[rs.getInt("que_type")]);
 				q.setSurveyBatchId(rs.getInt("survey_batch_id"));
-				q.setStartDate(rs.getDate("startdate"));
-				q.setEndDate(rs.getDate("enddate"));
+				q.setStartDate(rs.getDate("start_date"));
+				q.setEndDate(rs.getDate("end_date"));
 				q.setResponsePercentage(rs.getDouble("resp"));
 				questionList.add(q);
 			}
@@ -54,13 +54,13 @@ public class QuestionList extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Question> questionList = new ArrayList<Question>();
 		try {
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getQuestionListForBatch(?)}");
+			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getBatchQuestionList(?)}");
 			cstmt.setInt(1, batchId);
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
 				Question q = new Question();
-				q.setEndDate(rs.getDate("enddate"));
-				q.setStartDate(rs.getDate("startdate"));
+				q.setEndDate(rs.getDate("end_date"));
+				q.setStartDate(rs.getDate("start_date"));
 				q.setQuestionText(rs.getString("question"));
 				q.setQuestionId(rs.getInt("que_id"));
 				q.setResponsePercentage(rs.getDouble("resp"));
@@ -87,13 +87,13 @@ public class QuestionList extends TheBorg {
 		List<Question> QuestionListByStatus = new ArrayList<Question>();
 
 		try {
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getQuestionListForBatch(?)}");
+			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getBatchQuestionList(?)}");
 			cstmt.setInt(1, batchId);
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
 				Question q = new Question();
-				q.setEndDate(rs.getDate("enddate"));
-				q.setStartDate(rs.getDate("startdate"));
+				q.setEndDate(rs.getDate("end_date"));
+				q.setStartDate(rs.getDate("start_date"));
 				q.setQuestionText(rs.getString("question"));
 				q.setQuestionId(rs.getInt("que_id"));
 				q.setResponsePercentage(rs.getDouble("resp"));

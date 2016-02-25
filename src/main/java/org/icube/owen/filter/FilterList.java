@@ -10,6 +10,7 @@ import java.util.Map;
 
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
+import org.icube.owen.explore.ExploreHelper;
 import org.icube.owen.helper.DatabaseConnectionHelper;
 
 public class FilterList extends TheBorg {
@@ -32,22 +33,21 @@ public class FilterList extends TheBorg {
 				f.setFilterId(filterId);
 			}
 		}
-
 		try {
+			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getDimensionValue(?)}");
+			cstmt.setInt(1, f.getFilterId());
+			ResultSet rs = cstmt.executeQuery();
 			org.apache.log4j.Logger.getLogger(FilterList.class).debug("getFilterValues method started");
-			String query = "match (n:" + filterName + ") return n.Name as Name,n.Id as Id";
-			org.apache.log4j.Logger.getLogger(FilterList.class).debug("query : " + query);
-			ResultSet res = dch.neo4jCon.createStatement().executeQuery(query);
 			Map<Integer, String> filterValuesMap = new HashMap<>();
 			filterValuesMap.put(0, "All");
-			while (res.next()) {
-				filterValuesMap.put(res.getInt("Id"), res.getString("Name"));
+			while (rs.next()) {
+				filterValuesMap.put(rs.getInt("dimension_val_id"), rs.getString("dimension_val_name"));
 				org.apache.log4j.Logger.getLogger(FilterList.class).debug("filterValuesMap : " + filterValuesMap.toString());
 			}
 			f.setFilterValues(filterValuesMap);
 			org.apache.log4j.Logger.getLogger(FilterList.class).debug("Filter : " + f.toString());
 
-		} catch (Exception e) {
+		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(FilterList.class).error("Exception in  getFilterValues for filter : " + filterName, e);
 
 		}
@@ -63,30 +63,34 @@ public class FilterList extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 
 		List<Filter> allFiltersList = new ArrayList<>();
+
 		Map<Integer, String> filterLabelMap = getFilterLabelMap();
-		for (String filterName : filterLabelMap.values()) {
-			org.apache.log4j.Logger.getLogger(FilterList.class).debug("filterName : " + filterName);
-			Filter f = new Filter();
-			f.setFilterName(filterName);
-			// TODO hpatel: fill filterIds
-			try {
-				org.apache.log4j.Logger.getLogger(FilterList.class).debug("getFilterValues method started");
-				String query = "match (n:" + filterName + ") return n.Name as Name,n.Id as Id";
-				org.apache.log4j.Logger.getLogger(FilterList.class).debug("query : " + query);
-				ResultSet res = dch.neo4jCon.createStatement().executeQuery(query);
+		try {
+			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getDimensionValueList()}");
+			ResultSet rs = cstmt.executeQuery();
+			for (int filterId : filterLabelMap.keySet()) {
+				Filter f = new Filter();
+				String filterName = filterLabelMap.get(filterId);
+				org.apache.log4j.Logger.getLogger(FilterList.class).debug("filterName : " + filterName);
+
+				f.setFilterId(filterId);
+				f.setFilterName(filterName);
 				Map<Integer, String> filterValuesMap = new HashMap<>();
 				filterValuesMap.put(0, "All");
-				while (res.next()) {
-					filterValuesMap.put(res.getInt("Id"), res.getString("Name"));
+				while (rs.next()) {
+					if (filterId == rs.getInt("dimension_id")) {
+						filterValuesMap.put(rs.getInt("dimension_val_id"), rs.getString("dimension_val_name"));
+					}
 				}
+
 				f.setFilterValues(filterValuesMap);
 				org.apache.log4j.Logger.getLogger(FilterList.class).debug(f.getFilterName() + " - " + f.getFilterValues().toString());
 				allFiltersList.add(f);
-
-			} catch (Exception e) {
-				org.apache.log4j.Logger.getLogger(FilterList.class).error("Exception in  getFilterValues for filter : " + filterName, e);
+				rs.first();
 
 			}
+		} catch (SQLException e) {
+			org.apache.log4j.Logger.getLogger(ExploreHelper.class).error("Exception while getting dimension value list : ", e);
 		}
 		return allFiltersList;
 	}
@@ -103,7 +107,7 @@ public class FilterList extends TheBorg {
 			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getDimensionList()}");
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
-				filterLabelMap.put(rs.getInt(1), rs.getString(2));
+				filterLabelMap.put(rs.getInt("dimension_id"), rs.getString("dimension_name"));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();

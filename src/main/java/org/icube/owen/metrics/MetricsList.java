@@ -118,7 +118,7 @@ public class MetricsList extends TheBorg {
 			}
 
 			try {
-				CallableStatement cs = dch.mysqlCon.prepareCall("{call getMetricValueListForIndividualInitiative(?)}");
+				CallableStatement cs = dch.mysqlCon.prepareCall("{call getIndividualInitiativeMetricValueAggregate(?)}");
 				int empId = empIdList.get(0);
 				cs.setInt(1, empId);
 				ResultSet rs = cs.executeQuery();
@@ -187,14 +187,14 @@ public class MetricsList extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Map<Integer, String> primaryMetricMap = new HashMap<>();
 		try {
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call GetMetricForInitiative(?)}");
+			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getInitiativePrimaryMetric(?)}");
 			cstmt.setInt(1, initiativeTypeId);
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
-				primaryMetricMap.put(rs.getInt(1), rs.getString(2));
+				primaryMetricMap.put(rs.getInt("metric_id"), rs.getString("metric_name"));
 			}
 		} catch (SQLException e) {
-			org.apache.log4j.Logger.getLogger(MetricsList.class).error("Exception while getting the metrics for initiative", e);
+			org.apache.log4j.Logger.getLogger(MetricsList.class).error("Exception while getting the primary metrics for initiative", e);
 		}
 		return primaryMetricMap;
 	}
@@ -212,7 +212,7 @@ public class MetricsList extends TheBorg {
 			cstmt.setString(1, category);
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
-				metricListForCategory.put(rs.getInt(1), rs.getString(2));
+				metricListForCategory.put(rs.getInt("metric_id"), rs.getString("metric_name"));
 			}
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(MetricsList.class).error(

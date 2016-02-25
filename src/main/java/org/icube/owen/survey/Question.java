@@ -125,12 +125,12 @@ public class Question extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Question q = new Question();
 		try {
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getQuestionListForQuestion(?)}");
+			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getQuestion(?)}");
 			cstmt.setInt(1, questionId);
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
-				q.setEndDate(rs.getDate("enddate"));
-				q.setStartDate(rs.getDate("startdate"));
+				q.setEndDate(rs.getDate("end_date"));
+				q.setStartDate(rs.getDate("start_date"));
 				q.setQuestionText(rs.getString("question"));
 				q.setQuestionId(rs.getInt("que_id"));
 				q.setResponsePercentage(rs.getDouble("resp"));
