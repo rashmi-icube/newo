@@ -5,6 +5,7 @@ import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -189,28 +190,27 @@ public class Question extends TheBorg {
 		return q;
 	}
 
-	public Question getEmployeeQuestion(Employee e, int companyId) {
-		Question q = new Question();
+	public List<Question> getEmployeeQuestionList(int employeeId, int companyId) {
+		List<Question> questionList = new ArrayList<>();
 
 		// check whether connection to company db exists
 		// send employeeId, requestedDate(now) to SQL ... receive a single questionId
 		// return question object from the questionId
 
-		return q;
+		return questionList;
 	}
 
-	public Map<Employee, Integer> getSmartListForQuestion(Employee e, Question q) {
+	public Map<Integer, Employee> getSmartListForQuestion(int employeeId, int companyId, Question q) {
 
-		Map<Employee, Integer> employeeScoreMap = new HashMap<>();
+		Map<Integer, Employee> employeeScoreMap = new HashMap<>();
 
 		return employeeScoreMap;
 	}
 
-	public Map<Employee, Integer> getSmartListForQuestionByFilters(Employee e, Question q, List<Filter> filterList) {
-		Map<Employee, Integer> employeeScoreMap = new HashMap<>();
-
+	public Map<Integer, Employee> getSmartListForQuestionByFilters(int employeeId, int companyId, Question q, List<Filter> filterList) {
+		Map<Integer, Employee> employeeScoreMap = new HashMap<>();
+		// order doesn't matter for employee list
 		return employeeScoreMap;
-
 
 	}
 }
