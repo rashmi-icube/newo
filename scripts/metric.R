@@ -308,3 +308,86 @@ TeamMetric=function(Function,Position,Zone){
   return(op)
   
 }
+
+SmartListResponse=function(emp_id,rel_id){
+  
+  mydb = dbConnect(MySQL(), user=mysqlusername, password=mysqlpasswod, dbname=mysqldbname, host=mysqlhost, port=mysqlport)
+  
+  query=paste("select rel_name from relationship_master where rel_id=",rel_id,";",sep="")
+  
+  res <- dbSendQuery(mydb,query)
+  
+  relname<- fetch(res,-1)
+  
+  dbDisconnect(mydb)  
+  
+  relname=relname[1,1]
+  
+  graph = startGraph(neopath, username=neousername, password=neopassword)
+  
+  querynode = paste("match (a:Employee {emp_id:",emp_id,"})-[r:",relname,"]->(b:Employee) 
+                    return b.emp_id as emp_id,r.weight as weight"
+                    ,sep="")
+  
+  FirstConn=cypher(graph, querynode)
+  
+  FirstConn$Rank=rank(-FirstConn$weight,ties.method = "random")
+  
+  querynode = paste("match (a:Employee {emp_id:",emp_id,"})-[r:",relname,"]->(b:Employee)-[:",relname,"]->(c:Employee) 
+                    return b.emp_id,c.emp_id,r.weight"
+                    ,sep="")
+  
+  SecondConn=cypher(graph, querynode)
+  
+  SecondConn=aggregate(SecondConn$r.weight,by=list(emp_id=SecondConn$c.emp_id),max)
+  
+  names(SecondConn)[2]="weight"
+  
+  SecondConn=SecondConn[SecondConn$emp_id!=emp_id,]
+  
+  SecondConn=SecondConn[!(SecondConn$emp_id %in% FirstConn$emp_id),]
+  
+  SecondConn$Rank=rank(-SecondConn$weight,ties.method = "random")
+  
+  op=FirstConn[FirstConn$Rank<=5,]
+  
+  nextfive=SecondConn[SecondConn$Rank<=5,]
+  nextfive$Rank=nextfive$Rank+nrow(op)
+  
+  op=rbind(op,nextfive)
+  
+  nextfive=FirstConn[FirstConn$Rank>5,]
+  nextfive$Rank=nextfive$Rank+5
+  
+  op=rbind(op,nextfive)
+  
+  nextfive=SecondConn[SecondConn$Rank>5,]
+  nextfive$Rank=nextfive$Rank+nrow(op)-5
+  
+  op=rbind(op,nextfive)
+  
+  op=op[,c("emp_id","Rank")]
+  
+  mydb = dbConnect(MySQL(), user=mysqlusername, password=mysqlpasswod, dbname=mysqldbname, host=mysqlhost, port=mysqlport)
+  
+  query=paste("call owen.getListColleague('",emp_id,"')",sep="")
+  
+  res <- dbSendQuery(mydb,query)
+  
+  employeeCube<- fetch(res,-1)
+  
+  dbDisconnect(mydb)
+  
+  employeeCube=data.frame(employeeCube[!(employeeCube$emp_id %in% emp_id),])
+  names(employeeCube)[1]="emp_id"
+  
+  employeeCube=data.frame(employeeCube[!(employeeCube$emp_id %in% op$emp_id),])
+  names(employeeCube)="emp_id"
+  
+  if(nrow(employeeCube)>0){
+    employeeCube$Rank=(nrow(op)+1):(nrow(employeeCube)+nrow(op))
+    op=rbind(op,employeeCube)
+  }
+  
+  return(op)
+}
