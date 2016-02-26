@@ -9,6 +9,11 @@ public class LoginTest {
     
 	@Test
 	public void testLogin(){
-		l.login("emp2@i-cube.in", "abc123");
+		try {
+			l.login("emp2@i-cube.in", "abc123");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
 	}
 }

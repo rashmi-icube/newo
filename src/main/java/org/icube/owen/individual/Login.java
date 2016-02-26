@@ -18,40 +18,34 @@ public class Login extends TheBorg {
 	 * @param userId - email ID of the user
 	 * @param password - password of the user
 	 * @return Employee object
+	 * @throws Exception - thrown when provided with invalid credentials
 	 */
-	public Employee login(String userId, String password) {
+	public Employee login(String userId, String password) throws Exception {
 		Employee e = new Employee();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		Connection companySqlCon;
-		// userId == email; split the email into id + company name
-		// send company to sql ... receive company ID + db connection details
-		// make sql connection to company db
-		// return employee object(with companyId) to UI
+		Connection companySqlCon = null;
+
 		int index = userId.indexOf('@');
 		String companyDomain = userId.substring(index + 1);
 		try {
 			CallableStatement cstmt = dch.masterCon.prepareCall("{call getCompanyDb(?)}");
 			cstmt.setString(1, companyDomain);
 			ResultSet rs = cstmt.executeQuery();
-			rs.next();
-			String companySqlUrl = "jdbc:mysql://" + rs.getString("sql_server") + ":3306/" + rs.getString("comp_sql_dbname") + "";
-			String companyUser = rs.getString("sql_user_id");
-			String companyPassword = rs.getString("sql_password");
-			companySqlCon = dch.getCompanyConnection(rs.getInt("comp_id"), companySqlUrl, companyUser, companyPassword);
+			while (rs.next()) {
+				companySqlCon = dch.getCompanyConnection(rs.getInt("comp_id"));
+			}
+
 			CallableStatement cstmt1 = companySqlCon.prepareCall("{call verifyLogin(?,?)}");
 			cstmt1.setString(1, userId);
 			cstmt1.setString(2, password);
 			ResultSet res = cstmt1.executeQuery();
-			if (res.next()){
+			if (res.next()) {
 				e = e.get(res.getInt("emp_id"));
 				e.setCompanyId(rs.getInt("comp_id"));
-				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug(
-						"Successfully validated user with userID : " + userId);
-			}else {
-				//TODO swarna: figure out how to send error message
-				//send error message to UI
-				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug(
-						"Invalid username/password");
+				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Successfully validated user with userID : " + userId);
+			} else {
+				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("Invalid username/password");
+				throw new Exception("Invalid credentials!!!");
 			}
 
 		} catch (SQLException e1) {

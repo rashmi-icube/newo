@@ -9,13 +9,15 @@ import org.icube.owen.helper.DatabaseConnectionHelper;
 
 public class Employee extends TheBorg {
 
+	
+	//TODO: retrieve all employee details from SQL
 	private int employeeId;
 	private String companyEmployeeId;
 	private String firstName;
 	private String lastName;
 	private String reportingManagerId;
 	private long score;
-	private boolean active = true; // TODO ravi, hpatel :  to figure out where this field will be filled in from
+	private boolean active = true; 
 	private int companyId;
 	//TODO add method to give employee image
 	

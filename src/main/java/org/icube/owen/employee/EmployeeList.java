@@ -1,6 +1,7 @@
 package org.icube.owen.employee;
 
 import java.sql.CallableStatement;
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -12,6 +13,7 @@ import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
 import org.icube.owen.filter.Filter;
 import org.icube.owen.helper.DatabaseConnectionHelper;
+import org.icube.owen.survey.Question;
 
 public class EmployeeList extends TheBorg {
 
@@ -245,4 +247,43 @@ public class EmployeeList extends TheBorg {
 		return filterKeysStringList;
 	}
 
+	/**
+	 * Retrieves the employee list based on the dimension provided 
+	 * 
+	 * @return map<rank, employee object> - view of the employee list should be sorted by the rank
+	 */
+	public Map<Integer, Employee> getEmployeeListByFilters(int companyId, List<Filter> filterList) {
+
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		Map<Integer, Employee> employeeScoreMap = new HashMap<>();
+		Employee e = new Employee();
+		Connection conn;
+		try {
+			int funcId = 0, posId = 0, zoneId = 0;
+			for (Filter filter : filterList) {
+				if (filter.getFilterName().equalsIgnoreCase("Function")) {
+					funcId = filter.getFilterValues().keySet().iterator().next();
+				} else if (filter.getFilterName().equalsIgnoreCase("Position")) {
+					posId = filter.getFilterValues().keySet().iterator().next();
+				} else if (filter.getFilterName().equalsIgnoreCase("Zone")) {
+					zoneId = filter.getFilterValues().keySet().iterator().next();
+				}
+			}
+			conn = dch.getCompanyConnection(companyId);
+			CallableStatement cstmt = conn.prepareCall("{call getEmpFromDimension(?,?,?)}");
+			cstmt.setInt(1, funcId);
+			cstmt.setInt(2, posId);
+			cstmt.setInt(3, zoneId);
+			ResultSet rs = cstmt.executeQuery();
+			int count = 1;
+			while (rs.next()) {
+				employeeScoreMap.put(count++, e.get(rs.getInt("emp_id")));
+			}
+		} catch (SQLException e1) {
+			org.apache.log4j.Logger.getLogger(Question.class).error("Exception while retrieving the employee list based on dimension", e1);
+		}
+
+		return employeeScoreMap;
+
+	}
 }

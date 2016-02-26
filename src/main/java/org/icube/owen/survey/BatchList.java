@@ -71,6 +71,7 @@ public class BatchList extends TheBorg {
 					q.setResponsePercentage(rs1.getDouble("resp"));
 					q.setQuestionType(QuestionType.values()[rs1.getInt("que_type")]);
 					q.setSurveyBatchId(rs1.getInt("survey_batch_id"));
+					q.setRelationshipTypeId(rs1.getInt("rel_id"));
 					questionList.add(q);
 				}
 				b.setQuestionList(questionList);
@@ -226,8 +227,8 @@ public class BatchList extends TheBorg {
 	 * Gets the current batch based on the comparison of the dates
 	 * @return current batch
 	 */
-	// TODO Rashmi : Figure out a better way to do this...
 	public Batch getCurrentBatch() {
+		// TODO This is temp... Until we use only 1 batch through out the application
 		List<Batch> batchList = getBatchList();
 		Batch currentBatch = batchList.get(0);
 

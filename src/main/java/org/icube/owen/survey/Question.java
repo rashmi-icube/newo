@@ -15,9 +15,13 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
 import org.icube.owen.employee.Employee;
-import org.icube.owen.filter.Filter;
 import org.icube.owen.helper.DatabaseConnectionHelper;
 import org.icube.owen.helper.UtilHelper;
+import org.icube.owen.metrics.MetricsList;
+import org.rosuda.REngine.REXP;
+import org.rosuda.REngine.REXPDouble;
+import org.rosuda.REngine.REXPInteger;
+import org.rosuda.REngine.RList;
 
 public class Question extends TheBorg {
 
@@ -114,6 +118,7 @@ public class Question extends TheBorg {
 				q.setResponsePercentage(rs.getDouble("resp"));
 				q.setQuestionType(QuestionType.values()[rs.getInt("que_type")]);
 				q.setSurveyBatchId(rs.getInt("survey_batch_id"));
+				q.setRelationshipTypeId(rs.getInt("rel_id"));
 			}
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(Question.class).error("Exception while retrieving Question with ID" + questionId, e);
@@ -202,44 +207,73 @@ public class Question extends TheBorg {
 		List<Question> questionList = new ArrayList<>();
 		Connection conn;
 		try {
-			// check whether connection to company db exists using the company Id
-			if (dch.companyConnectionPool.containsKey(companyId)) {
-
-				conn = dch.companyConnectionPool.get(companyId);
-
-			} else {
-				// TODO : when will this scenario occur??
-				conn = dch.getCompanyConnection(companyId, "jdbc:mysql://localhost:3306/owen", "root", "root");
-			}
+			conn = dch.getCompanyConnection(companyId);
 			CallableStatement cstmt = conn.prepareCall("{call getEmpQuestionList(?,?)}");
 			cstmt.setInt(1, employeeId);
-			java.sql.Date date = new java.sql.Date(Date.from(Instant.now()).getTime());
+			Date date = UtilHelper.convertJavaDateToSqlDate(Date.from(Instant.now()));
 			cstmt.setDate(2, date);
 			ResultSet rs = cstmt.executeQuery();
-			// TODO : resultset should return only questionId's or entire Question details??
 			while (rs.next()) {
 				Question q = new Question();
-				q = q.getQuestion(rs.getInt("que_id"));
+				q.setQuestionId(rs.getInt("que_id"));
+				q.setQuestionText(rs.getString("question"));
+				q.setStartDate(rs.getDate("start_date"));
+				q.setEndDate(rs.getDate("end_date"));
+				q.setRelationshipTypeId(rs.getInt("rel_id"));
+				q.setSurveyBatchId(rs.getInt("survey_batch_id"));
+				q.setQuestionType(QuestionType.get(rs.getInt("que_type")));
+				q.setResponsePercentage(0);
 				questionList.add(q);
 			}
-		} catch (SQLException e1) {
-			org.apache.log4j.Logger.getLogger(Question.class).error("Exception while retrieving the questionList", e1);
+		} catch (SQLException e) {
+			org.apache.log4j.Logger.getLogger(Question.class).error("Exception while retrieving the questionList", e);
 		}
 
 		return questionList;
 	}
 
+	/**
+	 * Returns the default smart list for the employee on the we question page
+	 * 
+	 * @return map<rank, employee object> - view of the employee list should be sorted by the rank
+	 */
 	public Map<Integer, Employee> getSmartListForQuestion(int companyId, int employeeId, Question q) {
-
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Map<Integer, Employee> employeeScoreMap = new HashMap<>();
+
+		try {
+			String s = "source(\"metric.r\")";
+			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("R Path for eval " + s);
+			dch.rCon.eval(s);
+			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Filling up parameters for rscript function");
+			dch.rCon.assign("emp_id", new int[] { employeeId });
+			dch.rCon.assign("rel_id", new int[] { q.getRelationshipTypeId() });
+			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Calling the actual function in RScript SmartListResponse");
+			REXP employeeSmartList = dch.rCon.parseAndEval("try(eval(SmartListResponse(emp_id, rel_id)))");
+			if (employeeSmartList.inherits("try-error")) {
+				org.apache.log4j.Logger.getLogger(Question.class).error("Error: " + employeeSmartList.asString());
+				throw new Exception("Error: " + employeeSmartList.asString());
+			} else {
+				org.apache.log4j.Logger.getLogger(MetricsList.class).debug(
+						"Retrieval of the employee smart list completed " + employeeSmartList.asList());
+			}
+
+			RList result = employeeSmartList.asList();
+			REXPInteger empIdResult = (REXPInteger) result.get("emp_id");
+			int[] empIdArray = empIdResult.asIntegers();
+			REXPDouble rankResult = (REXPDouble) result.get("Rank");
+			int[] rankArray = rankResult.asIntegers();
+
+			for (int i = 0; i < rankArray.length; i++) {
+				Employee e = new Employee();
+				e = e.get(empIdArray[i]);
+				employeeScoreMap.put(rankArray[i], e);
+			}
+		} catch (Exception e) {
+			org.apache.log4j.Logger.getLogger(Question.class).error("Error while trying to retrieve the smart list for employee from question", e);
+		}
 
 		return employeeScoreMap;
 	}
 
-	public Map<Integer, Employee> getSmartListForQuestionByFilters(int companyId, int employeeId, Question q, List<Filter> filterList) {
-		Map<Integer, Employee> employeeScoreMap = new HashMap<>();
-		// order doesn't matter for employee list
-		return employeeScoreMap;
-
-	}
 }
