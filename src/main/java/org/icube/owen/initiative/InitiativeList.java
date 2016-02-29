@@ -53,7 +53,7 @@ public class InitiativeList extends TheBorg {
 			String initiativeListQuery = "";
 			if (viewByCriteria.equalsIgnoreCase("Type")) {
 
-				initiativeListQuery = "match (o:Employee)-[:owner_of]->(i:Init {Type:'" + (Integer) viewByValue + "', Category:'" + category
+				initiativeListQuery = "match (o:Employee)-[:owner_of]->(i:Init {Type:" + (Integer) viewByValue + ", Category:'" + category
 						+ "'})<-[r:part_of]-(a) return i.Id as Id, i.Name as Name,"
 						+ "i.StartDate as StartDate, i.EndDate as EndDate, case i.Category when 'Individual' then collect(distinct(a.emp_id)) "
 						+ "else collect(distinct(a.Id))  end as PartOfID,collect(distinct(a.Name))as PartOfName, labels(a) as Filters, "
@@ -161,7 +161,7 @@ public class InitiativeList extends TheBorg {
 	 * @param resultMap- A map containing the Initiative attributes and connections
 	 * @param i - An Initiative object
 	 */
-	private void setInitiativeValues(ResultSet res, Initiative i) {
+	protected void setInitiativeValues(ResultSet res, Initiative i) {
 		InitiativeHelper ih = new InitiativeHelper();
 		org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Setting initiative values");
 

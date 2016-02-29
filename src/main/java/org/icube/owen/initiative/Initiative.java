@@ -3,14 +3,11 @@ package org.icube.owen.initiative;
 import java.sql.CallableStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import org.icube.owen.ObjectFactory;
@@ -257,32 +254,20 @@ public class Initiative extends TheBorg {
 
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Initiative i = new Initiative();
+		InitiativeList il = new InitiativeList();
 		i.setInitiativeId(initiativeId);
 		try {
-			String query = "match (o:Employee)-[:owner_of]->(i:Init{Id:" + initiativeId + "})<-[r:part_of]-(a) return i.Name as Name,"
-					+ "i.StartDate as StartDate, i.EndDate as EndDate,case i.Category when 'Individual' then collect(distinct(a.emp_id)) "
+			String query = "match (o:Employee)-[:owner_of]->(i:Init{Id:"
+					+ initiativeId
+					+ "})<-[r:part_of]-(a) return i.Name as Name,"
+					+ "i.StartDate as StartDate, i.EndDate as EndDate, i.Id as Id,case i.Category when 'Individual' then collect(distinct(a.emp_id)) "
 					+ "else collect(distinct(a.Id))  end as PartOfID,collect(distinct(a.Name))as PartOfName, labels(a) as Filters, "
 					+ "collect(distinct (o.emp_id)) as OwnersOf,i.Comment as Comments,i.Type as Type,i.Category as Category,i.Status as Status";
 			org.apache.log4j.Logger.getLogger(Initiative.class).error("Query : " + query);
 			ResultSet res = dch.neo4jCon.createStatement().executeQuery(query);
-			while (res.next()) {
-				i.setInitiativeName(res.getString("Name"));
-				i.setInitiativeTypeId(res.getInt("Type"));
-				i.setInitiativeStatus(res.getString("Status"));
-				i.setInitiativeCategory(res.getString("Category"));
-				SimpleDateFormat parserSDF = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzzz yyyy", Locale.ENGLISH);
-				i.setInitiativeStartDate(parserSDF.parse((String) res.getString("StartDate")));
-				i.setInitiativeEndDate(parserSDF.parse((String) res.getString("EndDate")));
-				i.setInitiativeComment(res.getString("Comments"));
-				if (res.getString("Category").equalsIgnoreCase("Team")) {
-					i.setFilterList(ih.setPartOfConnections(res, i));
-				} else if (res.getString("Category").equalsIgnoreCase("Individual")) {
-					i.setPartOfEmployeeList(ih.setPartOfEmployeeList(res, i));
-				}
-
-				i.setOwnerOfList(ih.getOwnerOfList(res));
-			}
-		} catch (ParseException | SQLException e) {
+			res.next();
+			il.setInitiativeValues(res, i);
+		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception while retrieving the initiative with ID" + initiativeId, e);
 
 		}

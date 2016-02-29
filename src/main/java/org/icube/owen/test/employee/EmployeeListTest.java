@@ -16,6 +16,20 @@ import org.junit.Test;
 
 public class EmployeeListTest {
 	EmployeeList el = (EmployeeList) ObjectFactory.getInstance("org.icube.owen.employee.EmployeeList");
+	Employee e = (Employee) ObjectFactory.getInstance("org.icube.owen.employee.Employee");
+
+	@Test
+	public void testGetEmployeeMasterList() {
+		List<Employee> empList = new ArrayList<Employee>();
+		empList = el.getEmployeeMasterList();
+		for (Employee e : empList) {
+			assertNotNull(e.getFirstName());
+			assertNotNull(e.getLastName());
+			assertNotNull(e.getEmployeeId());
+			assertNotNull(e.getCompanyId());
+		}
+
+	}
 
 	@Test
 	public void testGetEmployeeSmartListForTeam() {
@@ -53,6 +67,14 @@ public class EmployeeListTest {
 			assertNotNull(emp.getScore());
 		}
 
+	}
+
+	@Test
+	public void testGetEmployeeSmartListForIndividual() {
+		List<Employee> empList = new ArrayList<Employee>();
+		List<Employee> partOfEmployeeList = new ArrayList<>();
+		partOfEmployeeList.add(e.get(16));
+		empList = el.getEmployeeSmartListForIndividual(partOfEmployeeList, 1);
 	}
 
 	@Test

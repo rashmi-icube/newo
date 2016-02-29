@@ -92,13 +92,22 @@ public class EmployeeList extends TheBorg {
 					+ " with a,b,count(a)"
 					+ "as TotalPeople optional match a<-[r:"
 					+ relation
-					+ "]-b return a.emp_id as employeeId, a.FirstName as firstName, a.LastName as lastName,"
-					+ "a.Reporting_emp_id as reportingManagerId, a.emp_int_id as companyEmployeeId, count(r) as score";
+					+ "]-b return a.emp_id as emp_id, a.FirstName as first_name, a.LastName as last_name,"
+					+ "a.Reporting_emp_id as reporting_emp_id, a.emp_int_id as emp_int_id, count(r) as score";
 
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("query : " + query);
 			ResultSet res = dch.neo4jCon.createStatement().executeQuery(query);
 			while (res.next()) {
-				Employee e = setEmployeeDetails(res, true);
+				// Employee e = setEmployeeDetails(res, true);
+
+				Employee e = new Employee();
+				e.setEmployeeId(res.getInt("emp_id"));
+				e.setCompanyEmployeeId(res.getString("emp_int_id"));
+				e.setFirstName(res.getString("first_name"));
+				e.setLastName(res.getString("last_name"));
+				e.setReportingManagerId(res.getString("reporting_emp_id"));
+				e.setActive(true);
+				e.setScore(res.getLong("score"));
 				employeeSmartList.add(e);
 			}
 
@@ -162,12 +171,19 @@ public class EmployeeList extends TheBorg {
 					+ employeeIdList
 					+ " and b.emp_id in"
 					+ employeeIdList
-					+ " return a.emp_id as employeeId, a.FirstName as firstName, a.LastName as lastName, a.Reporting_emp_id as reportingManagerId, a.emp_int_id as companyEmployeeId, count(r) as score";
+					+ " return a.emp_id as emp_id, a.FirstName as first_name, a.LastName as last_name, a.Reporting_emp_id as reporting_emp_id, a.emp_int_id as emp_int_id, count(r) as score";
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("query : " + query);
 			ResultSet res = dch.neo4jCon.createStatement().executeQuery(query);
 			while (res.next()) {
-
-				Employee e = setEmployeeDetails(res, true);
+				// Employee e = setEmployeeDetails(res, true);
+				Employee e = new Employee();
+				e.setEmployeeId(res.getInt("emp_id"));
+				e.setCompanyEmployeeId(res.getString("emp_int_id"));
+				e.setFirstName(res.getString("first_name"));
+				e.setLastName(res.getString("last_name"));
+				e.setReportingManagerId(res.getString("reporting_emp_id"));
+				e.setActive(true);
+				e.setScore(res.getLong("score"));
 				employeeSmartList.add(e);
 			}
 
@@ -191,10 +207,9 @@ public class EmployeeList extends TheBorg {
 		List<Employee> employeeList = new ArrayList<>();
 		try {
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("getEmployeeMasterList method started");
-			String query = "match (a:Employee) return a.emp_id as employeeId, a.FirstName as firstName, a.LastName as lastName, "
-					+ "a.Reporting_emp_id as reportingManagerId, a.emp_int_id as companyEmployeeId";
-			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("query : " + query);
-			ResultSet res = dch.neo4jCon.createStatement().executeQuery(query);
+			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getEmployeeList()}");
+			ResultSet res = cstmt.executeQuery();
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("query : " + cstmt);
 			while (res.next()) {
 				Employee e = setEmployeeDetails(res, false);
 				employeeList.add(e);
@@ -202,7 +217,7 @@ public class EmployeeList extends TheBorg {
 
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("employeeList : " + employeeList.toString());
 
-		} catch (Exception e) {
+		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).error("Exception while getting the employee master list", e);
 
 		}
@@ -220,11 +235,18 @@ public class EmployeeList extends TheBorg {
 	 */
 	protected Employee setEmployeeDetails(ResultSet res, boolean setScore) throws SQLException {
 		Employee e = new Employee();
-		e.setEmployeeId(res.getInt("employeeId"));
-		e.setCompanyEmployeeId(res.getString("companyEmployeeId"));
-		e.setFirstName(res.getString("firstName"));
-		e.setLastName(res.getString("lastName"));
-		e.setReportingManagerId(res.getString("reportingManagerId"));
+		e.setEmployeeId(res.getInt("emp_id"));
+		e.setCompanyEmployeeId(res.getString("emp_int_id"));
+		e.setFirstName(res.getString("first_name"));
+		e.setLastName(res.getString("last_name"));
+		e.setReportingManagerId(res.getString("reporting_emp_id"));
+		//TODO hpatel : fix null active values in the sql db
+		if (res.getString("status") != null && res.getString("status").equalsIgnoreCase("active")) {
+			e.setActive(true);
+		} else {
+			e.setActive(false);
+		}
+
 		if (setScore) {
 			e.setScore(res.getLong("score"));
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug(
