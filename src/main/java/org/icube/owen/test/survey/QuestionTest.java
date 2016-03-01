@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.icube.owen.ObjectFactory;
+import org.icube.owen.employee.Employee;
 import org.icube.owen.survey.Question;
 import org.junit.Test;
 
@@ -50,6 +51,12 @@ public class QuestionTest {
 		List<Question> ql = new ArrayList<Question>();
 		ql = q.getEmployeeQuestionList(1,30);
 		assertNotNull(ql);
+	}
+	
+	@Test
+	public void testGetSmartListForQuestion(){
+		Map<Integer, Employee> result = q.getSmartListForQuestion(1, 1, q.getQuestion(1));
+		assertNotNull(result);
 	}
 
 }

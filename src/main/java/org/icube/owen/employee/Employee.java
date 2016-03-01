@@ -1,7 +1,8 @@
 package org.icube.owen.employee;
 
+import java.sql.CallableStatement;
 import java.sql.ResultSet;
-import java.util.Map;
+import java.sql.SQLException;
 
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
@@ -9,16 +10,18 @@ import org.icube.owen.helper.DatabaseConnectionHelper;
 
 public class Employee extends TheBorg {
 
+	// TODO: retrieve all employee details from SQL
 	private int employeeId;
 	private String companyEmployeeId;
 	private String firstName;
 	private String lastName;
 	private String reportingManagerId;
 	private long score;
-	private boolean active = true; // TODO ravi, hpatel :  to figure out where this field will be filled in from
+	private boolean active;
 	private int companyId;
-	//TODO add method to give employee image
-	
+
+	// TODO add method to give employee image
+
 	public int getEmployeeId() {
 		return employeeId;
 	}
@@ -89,28 +92,22 @@ public class Employee extends TheBorg {
 	 * @param employeeId - ID of the employee that needs to be retrieved
 	 * @return employee object
 	 */
-	@SuppressWarnings("unchecked")
 	public Employee get(int employeeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		EmployeeList el = new EmployeeList();
 		Employee e = new Employee();
 		try {
-			String query = "match (e:Employee{emp_id:" + employeeId + "}) return e";
-			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("query : " + query);
-			ResultSet res = dch.neo4jCon.createStatement().executeQuery(query);
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("get method started");
+			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getEmployeeDetails(?)}");
+			cstmt.setInt(1, employeeId);
+			ResultSet res = cstmt.executeQuery();
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("query : " + cstmt);
+			res.next();
+			e = el.setEmployeeDetails(res, false);
+			org.apache.log4j.Logger.getLogger(Employee.class).debug(
+					"Employee  : " + e.getEmployeeId() + "-" + e.getFirstName() + "-" + e.getLastName());
 
-			while (res.next()) {
-				Map<String, Object> resultMap = (Map<String, Object>) res.getObject("e");
-
-				e.setEmployeeId((int) resultMap.get("emp_id"));
-				e.setCompanyEmployeeId((String) resultMap.get("emp_int_id"));
-				e.setFirstName(resultMap.get("FirstName").toString());
-				e.setLastName(resultMap.get("LastName").toString());
-				e.setReportingManagerId(resultMap.get("Reporting_emp_id").toString());
-				org.apache.log4j.Logger.getLogger(Employee.class).debug(
-						"Employee  : " + e.getEmployeeId() + "-" + e.getFirstName() + "-" + e.getLastName());
-
-			}
-		} catch (Exception e1) {
+		} catch (SQLException e1) {
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).error("Exception while retrieving employee object with employeeId : " + employeeId,
 					e1);
 

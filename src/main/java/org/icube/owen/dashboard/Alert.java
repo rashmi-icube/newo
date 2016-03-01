@@ -18,7 +18,8 @@ import org.icube.owen.metrics.Metrics;
 public class Alert extends TheBorg {
 
 	private int alertId;
-	private String alertMessage; //TODO split into two strings for underlined + non-underlined
+	private String alertTeam;
+	private String alertStatement;
 	private String alertStatus;
 	private List<Filter> filterList;
 	private List<Employee> employeeList;
@@ -26,8 +27,6 @@ public class Alert extends TheBorg {
 	private int initiativeTypeId;
 	private double deltaScore;
 	private int teamSize;
-
-	// private String cubeName;
 
 	/**
 	 * Get populated alert object based on the alertId
@@ -82,7 +81,8 @@ public class Alert extends TheBorg {
 		}
 
 		a.setFilterList(filterList);
-		a.setAlertMessage(String.format(rs.getString("alert_statement"), zone, function, position));
+		a.setAlertTeam(String.format(rs.getString("alert_team"), zone, function, position));
+		a.setAlertStatement(rs.getString("alert_statement"));
 		Metrics m = new Metrics();
 		m.setId(rs.getInt("metric_id"));
 		m.setName(rs.getString("metric_name"));
@@ -132,12 +132,20 @@ public class Alert extends TheBorg {
 		this.alertId = alertId;
 	}
 
-	public String getAlertMessage() {
-		return alertMessage;
+	public String getAlertTeam() {
+		return alertTeam;
 	}
 
-	public void setAlertMessage(String alertMessage) {
-		this.alertMessage = alertMessage;
+	public void setAlertTeam(String alertTeam) {
+		this.alertTeam = alertTeam;
+	}
+
+	public String getAlertStatement() {
+		return alertStatement;
+	}
+
+	public void setAlertStatement(String alertStatement) {
+		this.alertStatement = alertStatement;
 	}
 
 	public String getAlertStatus() {

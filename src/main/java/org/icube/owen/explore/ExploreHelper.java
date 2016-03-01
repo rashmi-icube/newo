@@ -16,7 +16,6 @@ import org.icube.owen.filter.Filter;
 import org.icube.owen.helper.DatabaseConnectionHelper;
 import org.icube.owen.metrics.Metrics;
 import org.icube.owen.metrics.MetricsList;
-import org.icube.owen.survey.BatchList;
 
 public class ExploreHelper extends TheBorg {
 
@@ -184,7 +183,7 @@ public class ExploreHelper extends TheBorg {
 				result.put(e, metricsList);
 			}
 		} catch (SQLException e) {
-			org.apache.log4j.Logger.getLogger(BatchList.class).error("Exception while retrieving individual metrics data", e);
+			org.apache.log4j.Logger.getLogger(ExploreHelper.class).error("Exception while retrieving individual metrics data", e);
 		}
 		return result;
 
@@ -210,7 +209,7 @@ public class ExploreHelper extends TheBorg {
 				result.put(e, metricsList);
 			}
 		} catch (SQLException e) {
-			org.apache.log4j.Logger.getLogger(BatchList.class).error("Exception while retrieving individual metrics data", e);
+			org.apache.log4j.Logger.getLogger(ExploreHelper.class).error("Exception while retrieving individual metrics data", e);
 		}
 		return result;
 
@@ -218,7 +217,7 @@ public class ExploreHelper extends TheBorg {
 
 	private Map<Integer, List<Map<Date, Integer>>> getTimeSeriesMap(ResultSet rs) throws SQLException {
 		Map<Integer, List<Map<Date, Integer>>> result = new HashMap<>();
-		
+
 		while (rs.next()) {
 			if (result.containsKey(rs.getInt("metric_id"))) {
 				List<Map<Date, Integer>> metricScoreMapList = new ArrayList<>();
@@ -236,5 +235,224 @@ public class ExploreHelper extends TheBorg {
 			}
 		}
 		return result;
+	}
+
+	/**
+	 * Get the node list and edge list for team network diagram
+	 * 
+	 * @return map with node list and edge list
+	 */
+	public Map<String, List<?>> getTeamNetworkDiagram(Map<String, List<Filter>> teamListMap, Map<Integer, String> relationshipType) {
+		Map<String, List<?>> result = new HashMap<>();
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		String query = "";
+		List<Node> nodeList = new ArrayList<>();
+		List<Edge> edgeList = new ArrayList<>();
+		for (String teamName : teamListMap.keySet()) {
+			List<Filter> filterList = teamListMap.get(teamName);
+			List<Integer> funcList = new ArrayList<>(), posList = new ArrayList<>(), zoneList = new ArrayList<>();
+
+			for (Filter filter : filterList) {
+				if (filter.getFilterName().equalsIgnoreCase("Function")) {
+					funcList.add(filter.getFilterValues().keySet().iterator().next());
+				} else if (filter.getFilterName().equalsIgnoreCase("Position")) {
+					posList.add(filter.getFilterValues().keySet().iterator().next());
+				} else if (filter.getFilterName().equalsIgnoreCase("Zone")) {
+					zoneList.add(filter.getFilterValues().keySet().iterator().next());
+				}
+			}
+			String funcQuery = "", posQuery = "", zoneQuery = "";
+			if (funcList.contains(0)) {
+				funcQuery = "";
+			} else {
+				funcQuery = "f.Id = " + funcList.toString();
+			}
+
+			if (zoneList.contains(0)) {
+				zoneQuery = "";
+			} else {
+				zoneQuery = "z.Id = " + zoneList.get(0);
+			}
+
+			if (posList.contains(0)) {
+				posQuery = "";
+			} else {
+				posQuery = "p.Id = " + posList.get(0);
+			}
+
+			String subQuery = "match (a:Employee)-[:has_functionality]->(f:Function), (p:Position)<-[:is_positioned]-(a)-[:from_zone]->(z:Zone) "
+					+ ((!zoneQuery.isEmpty() || !funcQuery.isEmpty() || !posQuery.isEmpty()) ? " where " : "")
+					+ (zoneQuery.isEmpty() ? "" : (zoneQuery + ((!funcQuery.isEmpty() || !posQuery.isEmpty() ? " and " : ""))))
+					+ (funcQuery.isEmpty() ? "" : funcQuery + (!posQuery.isEmpty() ? " and " : ""))
+					+ (posQuery.isEmpty() ? "" : (posQuery))
+					+ "  return a.emp_id as emp_id, a.FirstName as firstName ,a.LastName as lastName,f.Name as funcName,p.Name as posName,z.Name as zoneName, '"
+					+ teamName + "' as team";
+
+			query = query.isEmpty() ? subQuery : query + " union " + subQuery;
+
+			org.apache.log4j.Logger.getLogger(ExploreHelper.class).debug("getTeamNetworkDiagram subQuery for team " + teamName + " : " + subQuery);
+
+		}
+
+		try {
+			List<Integer> empIdList = new ArrayList<>();
+			org.apache.log4j.Logger.getLogger(ExploreHelper.class).debug("getTeamNetworkDiagram query for all teams  : " + query);
+			ResultSet res = dch.neo4jCon.createStatement().executeQuery(query);
+			while (res.next()) {
+				empIdList.add(res.getInt("emp_id"));
+				Node n = new Node();
+				n.setEmployee_id(res.getInt("emp_id"));
+				n.setFirstName(res.getString("firstName"));
+				n.setLastName(res.getString("lastName"));
+				n.setFunction(res.getString("funcName"));
+				n.setZone(res.getString("zoneName"));
+				n.setPosition(res.getString("posName"));
+				n.setTeamName(res.getString("team"));
+				nodeList.add(n);
+			}
+
+			edgeList = getEdges(empIdList, relationshipType);
+		} catch (SQLException e) {
+			org.apache.log4j.Logger.getLogger(ExploreHelper.class).error("Error while retrieving team networks diagram", e);
+		}
+
+		result.put("nodeList", nodeList);
+		result.put("edgeList", edgeList);
+
+		return result;
+
+	}
+
+	/**
+	 * Get the node list and edge list for the individual network diagram
+	 * 
+	 * @return map with node list and edge list
+	 */
+	public Map<String, List<?>> getIndividualNetworkDiagram(List<Employee> employeeList, Map<Integer, String> relationshipTypeMap) {
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		Map<String, List<?>> result = new HashMap<>();
+		List<Node> nodeList = new ArrayList<>();
+		List<Edge> edgeList = new ArrayList<>();
+		List<Integer> employeeIdList = new ArrayList<>();
+		String relationshipType = "";
+
+		for (Employee e : employeeList) {
+			employeeIdList.add(e.getEmployeeId());
+		}
+
+		for (int relationshipTypeId : relationshipTypeMap.keySet()) {
+			relationshipType = relationshipType.isEmpty() ? relationshipTypeMap.get(relationshipTypeId) : relationshipType + " | "
+					+ relationshipTypeMap.get(relationshipTypeId);
+		}
+
+		String query = "match (a:Employee)-[:has_functionality]->(f:Function),(p:Position)<-[:is_positioned]-(a)-[:from_zone]->(z:Zone) where a.emp_id in "
+				+ employeeIdList
+				+ " return a.emp_id as emp_id,a.FirstName as firstName,a.LastName as lastName,0 as degree,f.Name as funcName,p.Name as posName,z.Name as zoneName order by emp_id "
+				+ "union "
+				+ "match (a:Employee)-[r:"
+				+ relationshipType
+				+ "]-(b:Employee)-[:has_functionality]->(f:Function),(p:Position)<-[:is_positioned]-(b)-[:from_zone]->(z:Zone)"
+				+ " where a.emp_id in "
+				+ employeeIdList
+				+ " and not  b.emp_id in "
+				+ employeeIdList
+				+ " return b.emp_id as emp_id,b.FirstName as firstName,b.LastName as lastName,1 as degree,f.Name as funcName,p.Name as posName,z.Name as zoneName order by emp_id"
+				+ " union "
+				+ "match (x:Employee)-[r:"
+				+ relationshipType
+				+ "]-(y:Employee)"
+				+ " where x.emp_id in "
+				+ employeeIdList
+				+ " with collect(y) as firstdegree"
+				+ " match (a:Employee)-[r:"
+				+ relationshipType
+				+ "]-(b:Employee)-[r1:"
+				+ relationshipType
+				+ "]-(c:Employee)-[:has_functionality]->(f:Function),(p:Position)<-[:is_positioned]-(c)-[:from_zone]->(z:Zone)"
+				+ " where a.emp_id in "
+				+ employeeIdList
+				+ " and a<>b and not  c.emp_id in "
+				+ employeeIdList
+				+ " and b<>c and not(c in firstdegree)"
+				+ " return c.emp_id as emp_id,c.FirstName as firstName,c.LastName as lastName,2 as degree,f.Name as funcName,p.Name as posName,z.Name as zoneName order by emp_id";
+
+		try {
+			List<Integer> empIdList = new ArrayList<>();
+			org.apache.log4j.Logger.getLogger(ExploreHelper.class).debug("getIndividualNetworkDiagram query  : " + query);
+			ResultSet res = dch.neo4jCon.createStatement().executeQuery(query);
+			while (res.next()) {
+				empIdList.add(res.getInt("emp_id"));
+				Node n = new Node();
+				n.setEmployee_id(res.getInt("emp_id"));
+				n.setFirstName(res.getString("firstName"));
+				n.setLastName(res.getString("lastName"));
+				n.setFunction(res.getString("funcName"));
+				n.setZone(res.getString("zoneName"));
+				n.setPosition(res.getString("posName"));
+				n.setConnectedness(res.getInt("degree"));
+				nodeList.add(n);
+			}
+
+			edgeList = getEdges(empIdList, relationshipTypeMap);
+		} catch (SQLException e) {
+			org.apache.log4j.Logger.getLogger(ExploreHelper.class).error("Error while retrieving individual networks diagram", e);
+		}
+
+		result.put("nodeList", nodeList);
+		result.put("edgeList", edgeList);
+		return result;
+	}
+
+	public List<Edge> getEdges(List<Integer> employeeIdList, Map<Integer, String> relationshipTypeMap) {
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		List<Edge> result = new ArrayList<>();
+		String relationshipType = "";
+
+		for (int relationshipTypeId : relationshipTypeMap.keySet()) {
+			relationshipType = relationshipType.isEmpty() ? relationshipTypeMap.get(relationshipTypeId) : relationshipType + " | "
+					+ relationshipTypeMap.get(relationshipTypeId);
+		}
+		String query = "match (a:Employee)-[r:" + relationshipType + "]->(b:Employee) where a.emp_id in " + employeeIdList.toString()
+				+ "  and b.emp_id in " + employeeIdList.toString() + " and a<>b "
+				+ "return a.emp_id as from ,b.emp_id as to,type(r) as rel_type,r.weight as weight";
+
+		org.apache.log4j.Logger.getLogger(ExploreHelper.class).debug("getEdges query for all teams  : " + query);
+		try {
+			ResultSet res = dch.neo4jCon.createStatement().executeQuery(query);
+			while (res.next()) {
+				Edge e = new Edge();
+				e.setFromEmployeId(res.getInt("from"));
+				e.setToEmployeeId(res.getInt("to"));
+				e.setRelationshipType(res.getString("rel_type"));
+				e.setWeight(res.getDouble("weight"));
+				result.add(e);
+
+			}
+		} catch (SQLException e) {
+			org.apache.log4j.Logger.getLogger(ExploreHelper.class).error("Exception whil getting edgeList", e);
+		}
+
+		return result;
+
+	}
+
+	/**
+	 * Returns a map of relationship type ID + relationship type Name
+	 * @return relationshipTypeMap
+	 */
+	public Map<Integer, String> getRelationshipTypeMap() {
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		Map<Integer, String> relationshipTypeMap = new HashMap<>();
+		try {
+			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getRelationTypeList()}");
+			ResultSet rs = cstmt.executeQuery();
+			while (rs.next()) {
+				relationshipTypeMap.put(rs.getInt("rel_id"), rs.getString("rel_name"));
+			}
+		} catch (SQLException e) {
+			org.apache.log4j.Logger.getLogger(ExploreHelper.class).error("Error while retrieving relationship type map", e);
+		}
+
+		return relationshipTypeMap;
 	}
 }

@@ -1,6 +1,7 @@
 package org.icube.owen.employee;
 
 import java.sql.CallableStatement;
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -12,6 +13,7 @@ import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
 import org.icube.owen.filter.Filter;
 import org.icube.owen.helper.DatabaseConnectionHelper;
+import org.icube.owen.survey.Question;
 
 public class EmployeeList extends TheBorg {
 
@@ -90,13 +92,22 @@ public class EmployeeList extends TheBorg {
 					+ " with a,b,count(a)"
 					+ "as TotalPeople optional match a<-[r:"
 					+ relation
-					+ "]-b return a.emp_id as employeeId, a.FirstName as firstName, a.LastName as lastName,"
-					+ "a.Reporting_emp_id as reportingManagerId, a.emp_int_id as companyEmployeeId, count(r) as score";
+					+ "]-b return a.emp_id as emp_id, a.FirstName as first_name, a.LastName as last_name,"
+					+ "a.Reporting_emp_id as reporting_emp_id, a.emp_int_id as emp_int_id, count(r) as score";
 
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("query : " + query);
 			ResultSet res = dch.neo4jCon.createStatement().executeQuery(query);
 			while (res.next()) {
-				Employee e = setEmployeeDetails(res, true);
+				// Employee e = setEmployeeDetails(res, true);
+
+				Employee e = new Employee();
+				e.setEmployeeId(res.getInt("emp_id"));
+				e.setCompanyEmployeeId(res.getString("emp_int_id"));
+				e.setFirstName(res.getString("first_name"));
+				e.setLastName(res.getString("last_name"));
+				e.setReportingManagerId(res.getString("reporting_emp_id"));
+				e.setActive(true);
+				e.setScore(res.getLong("score"));
 				employeeSmartList.add(e);
 			}
 
@@ -160,12 +171,19 @@ public class EmployeeList extends TheBorg {
 					+ employeeIdList
 					+ " and b.emp_id in"
 					+ employeeIdList
-					+ " return a.emp_id as employeeId, a.FirstName as firstName, a.LastName as lastName, a.Reporting_emp_id as reportingManagerId, a.emp_int_id as companyEmployeeId, count(r) as score";
+					+ " return a.emp_id as emp_id, a.FirstName as first_name, a.LastName as last_name, a.Reporting_emp_id as reporting_emp_id, a.emp_int_id as emp_int_id, count(r) as score";
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("query : " + query);
 			ResultSet res = dch.neo4jCon.createStatement().executeQuery(query);
 			while (res.next()) {
-
-				Employee e = setEmployeeDetails(res, true);
+				// Employee e = setEmployeeDetails(res, true);
+				Employee e = new Employee();
+				e.setEmployeeId(res.getInt("emp_id"));
+				e.setCompanyEmployeeId(res.getString("emp_int_id"));
+				e.setFirstName(res.getString("first_name"));
+				e.setLastName(res.getString("last_name"));
+				e.setReportingManagerId(res.getString("reporting_emp_id"));
+				e.setActive(true);
+				e.setScore(res.getLong("score"));
 				employeeSmartList.add(e);
 			}
 
@@ -189,10 +207,9 @@ public class EmployeeList extends TheBorg {
 		List<Employee> employeeList = new ArrayList<>();
 		try {
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("getEmployeeMasterList method started");
-			String query = "match (a:Employee) return a.emp_id as employeeId, a.FirstName as firstName, a.LastName as lastName, "
-					+ "a.Reporting_emp_id as reportingManagerId, a.emp_int_id as companyEmployeeId";
-			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("query : " + query);
-			ResultSet res = dch.neo4jCon.createStatement().executeQuery(query);
+			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getEmployeeList()}");
+			ResultSet res = cstmt.executeQuery();
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("query : " + cstmt);
 			while (res.next()) {
 				Employee e = setEmployeeDetails(res, false);
 				employeeList.add(e);
@@ -200,7 +217,7 @@ public class EmployeeList extends TheBorg {
 
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("employeeList : " + employeeList.toString());
 
-		} catch (Exception e) {
+		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).error("Exception while getting the employee master list", e);
 
 		}
@@ -218,11 +235,18 @@ public class EmployeeList extends TheBorg {
 	 */
 	protected Employee setEmployeeDetails(ResultSet res, boolean setScore) throws SQLException {
 		Employee e = new Employee();
-		e.setEmployeeId(res.getInt("employeeId"));
-		e.setCompanyEmployeeId(res.getString("companyEmployeeId"));
-		e.setFirstName(res.getString("firstName"));
-		e.setLastName(res.getString("lastName"));
-		e.setReportingManagerId(res.getString("reportingManagerId"));
+		e.setEmployeeId(res.getInt("emp_id"));
+		e.setCompanyEmployeeId(res.getString("emp_int_id"));
+		e.setFirstName(res.getString("first_name"));
+		e.setLastName(res.getString("last_name"));
+		e.setReportingManagerId(res.getString("reporting_emp_id"));
+		//TODO hpatel : fix null active values in the sql db
+		if (res.getString("status") != null && res.getString("status").equalsIgnoreCase("active")) {
+			e.setActive(true);
+		} else {
+			e.setActive(false);
+		}
+
 		if (setScore) {
 			e.setScore(res.getLong("score"));
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug(
@@ -245,4 +269,43 @@ public class EmployeeList extends TheBorg {
 		return filterKeysStringList;
 	}
 
+	/**
+	 * Retrieves the employee list based on the dimension provided 
+	 * 
+	 * @return map<rank, employee object> - view of the employee list should be sorted by the rank
+	 */
+	public Map<Integer, Employee> getEmployeeListByFilters(int companyId, List<Filter> filterList) {
+
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		Map<Integer, Employee> employeeScoreMap = new HashMap<>();
+		Employee e = new Employee();
+		Connection conn;
+		try {
+			int funcId = 0, posId = 0, zoneId = 0;
+			for (Filter filter : filterList) {
+				if (filter.getFilterName().equalsIgnoreCase("Function")) {
+					funcId = filter.getFilterValues().keySet().iterator().next();
+				} else if (filter.getFilterName().equalsIgnoreCase("Position")) {
+					posId = filter.getFilterValues().keySet().iterator().next();
+				} else if (filter.getFilterName().equalsIgnoreCase("Zone")) {
+					zoneId = filter.getFilterValues().keySet().iterator().next();
+				}
+			}
+			conn = dch.getCompanyConnection(companyId);
+			CallableStatement cstmt = conn.prepareCall("{call getEmpFromDimension(?,?,?)}");
+			cstmt.setInt(1, funcId);
+			cstmt.setInt(2, posId);
+			cstmt.setInt(3, zoneId);
+			ResultSet rs = cstmt.executeQuery();
+			int count = 1;
+			while (rs.next()) {
+				employeeScoreMap.put(count++, e.get(rs.getInt("emp_id")));
+			}
+		} catch (SQLException e1) {
+			org.apache.log4j.Logger.getLogger(Question.class).error("Exception while retrieving the employee list based on dimension", e1);
+		}
+
+		return employeeScoreMap;
+
+	}
 }

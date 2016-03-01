@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -52,7 +53,7 @@ public class DatabaseConnectionHelper extends TheBorg {
 		// master sql connection
 		try {
 			Class.forName("com.mysql.jdbc.Driver");
-			mysqlCon = DriverManager.getConnection(MASTER_URL, MASTER_USER, MASTER_PASSWORD);
+			masterCon = DriverManager.getConnection(MASTER_URL, MASTER_USER, MASTER_PASSWORD);
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Successfully connected to MySql with owen master database");
 
 		} catch (SQLException e) {
@@ -86,13 +87,15 @@ public class DatabaseConnectionHelper extends TheBorg {
 			// R connection
 			rCon = new RConnection();
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Successfully connected to R");
-			// String rScriptPath = new java.io.File("").getAbsolutePath() + "\\scripts";
-			String rScriptPath = "C:\\\\Users\\\\fermion10\\\\Documents\\\\Neo4j\\\\scripts";
-			// String workingDir = "setwd(\"" + rScriptPath.replace("\\", "\\\\") + "\")";
-			String workingDir = "setwd(\"" + rScriptPath + "\")";
-						org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Trying to load the RScript file at " + rScriptPath);
+			String rScriptPath = new java.io.File("").getAbsolutePath() + "/scripts";
+			// String rScriptPath = "C:\\\\Users\\\\fermion10\\\\Documents\\\\Neo4j\\\\scripts";
+			String workingDir = "setwd(\"" + rScriptPath.replace("/", "//") + "\")";
+			// String workingDir = "setwd(\"" + rScriptPath + "\")";
+			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Trying to load the RScript file at " + rScriptPath);
 			rCon.eval(workingDir);
 			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Successfully loaded rScript: source(\"//" + rScriptPath);
+			
+			companyConnectionPool = new HashMap<>();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error(
 					"An error occurred while attempting to get neo4j connection details", e);
@@ -132,15 +135,24 @@ public class DatabaseConnectionHelper extends TheBorg {
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("An error occurred while attempting to close db connections", e);
 		}
 	}
-	
-	public Connection getCompanyConnection(int companyId, String url, String username, String password) {
+
+	public Connection getCompanyConnection(int companyId) {
 		Connection conn = null;
 		if (!companyConnectionPool.isEmpty() && companyConnectionPool.containsKey(companyId)) {
 			conn = companyConnectionPool.get(companyId);
 		} else {
 			try {
+				CallableStatement cstmt = masterCon.prepareCall("{call getCompanyDbFromId(?)}");
+				cstmt.setInt(1, companyId);
+				ResultSet rs = cstmt.executeQuery();
+				String cUrl = "", cUserName = "", cPassword = "";
+				while (rs.next()) {
+					cUrl = "jdbc:mysql://" + rs.getString("sql_server") + ":3306/" + rs.getString("comp_sql_dbname");
+					cUserName = rs.getString("sql_user_id");
+					cPassword = rs.getString("sql_password");
+				}
 				Class.forName("com.mysql.jdbc.Driver");
-				conn = DriverManager.getConnection(url, username, password);
+				conn = DriverManager.getConnection(cUrl, cUserName, cPassword);
 				companyConnectionPool.put(companyId, conn);
 				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug(
 						"Successfully connected to company db with companyId : " + companyId);

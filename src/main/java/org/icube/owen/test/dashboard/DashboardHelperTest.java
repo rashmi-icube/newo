@@ -21,19 +21,17 @@ public class DashboardHelperTest {
 	FilterList fl = (FilterList) ObjectFactory.getInstance("org.icube.owen.filter.FilterList");
 	List<Filter> filterMasterList = fl.getFilterValues();
 	Filter functionFilter = fl.getFilterValues("Function");
-	
-	
-	
+
 	@Test
-	public void testGetFilterMetrics(){
+	public void testGetFilterMetrics() {
 		Map<Integer, String> filterValuesMap = new HashMap<>();
 		filterValuesMap.put(1, "HR");
-        Filter f = new Filter();
-        f.setFilterName("Function");
-        f.setFilterId(1);
-        f.setFilterValues(filterValuesMap);
+		Filter f = new Filter();
+		f.setFilterName("Function");
+		f.setFilterId(1);
+		f.setFilterValues(filterValuesMap);
 		List<Metrics> metricsList = dh.getFilterMetrics(f);
-		for (Metrics m : metricsList){
+		for (Metrics m : metricsList) {
 			assertNotNull(m.getId());
 			assertNotNull(m.getDirection());
 			assertNotNull(m.getCategory());
@@ -42,55 +40,55 @@ public class DashboardHelperTest {
 			assertNotNull(m.getScore());
 		}
 	}
-	
+
 	@Test
-	public void testGetOrganizationalMetrics(){
+	public void testGetOrganizationalMetrics() {
 		List<Metrics> metricsList = dh.getOrganizationalMetrics();
-		for (Metrics m : metricsList){
+		for (Metrics m : metricsList) {
 			assertTrue(m.getId() > 0);
 			assertTrue(!m.getDirection().isEmpty());
 		}
 	}
-	
+
 	@Test
-	public void testGetTimeSeriesGraph(){
+	public void testGetTimeSeriesGraph() {
 		Map<Integer, String> filterValuesMap = new HashMap<>();
 		filterValuesMap.put(11, "INTG4");
-        Filter f = new Filter();
-        f.setFilterName("Position");
-        f.setFilterId(2);
-        f.setFilterValues(filterValuesMap);
-        Map<Integer, List<Map<Date, Integer>>> result = dh.getTimeSeriesGraph(f);
-        for (int metricId : result.keySet()) {
-            assertNotNull(result.get(metricId));
-            List<Map<Date, Integer>> timeSeriesDataList = result.get(metricId);
-            assertNotNull(timeSeriesDataList);
-            for (int i = 0; i < timeSeriesDataList.size(); i++) {
-                assertNotNull(timeSeriesDataList.get(i));
-            }
-        }
-		
+		Filter f = new Filter();
+		f.setFilterName("Position");
+		f.setFilterId(2);
+		f.setFilterValues(filterValuesMap);
+		Map<Integer, List<Map<Date, Integer>>> result = dh.getTimeSeriesGraph(f);
+		for (int metricId : result.keySet()) {
+			assertNotNull(result.get(metricId));
+			List<Map<Date, Integer>> timeSeriesDataList = result.get(metricId);
+			assertNotNull(timeSeriesDataList);
+			for (int i = 0; i < timeSeriesDataList.size(); i++) {
+				assertNotNull(timeSeriesDataList.get(i));
+			}
+		}
+
 	}
-	
+
 	@Test
-	public void testGetOrganizationTimeSeriesGraph(){
+	public void testGetOrganizationTimeSeriesGraph() {
 		Map<Integer, List<Map<Date, Integer>>> result = dh.getOrganizationTimeSeriesGraph();
-		 for (int metricId : result.keySet()) {
-	            assertNotNull(result.get(metricId));
-	            List<Map<Date, Integer>> timeSeriesDataList = result.get(metricId);
-	            assertNotNull(timeSeriesDataList);
-	            for (int i = 0; i < timeSeriesDataList.size(); i++) {
-	                assertNotNull(timeSeriesDataList.get(i));
-	            }
-	        }
+		for (int metricId : result.keySet()) {
+			assertNotNull(result.get(metricId));
+			List<Map<Date, Integer>> timeSeriesDataList = result.get(metricId);
+			assertNotNull(timeSeriesDataList);
+			for (int i = 0; i < timeSeriesDataList.size(); i++) {
+				assertNotNull(timeSeriesDataList.get(i));
+			}
+		}
 	}
-	
+
 	@Test
-	public void testGetAlertList(){
+	public void testGetAlertList() {
 		List<Alert> alertList = dh.getAlertList();
-		for (Alert a : alertList){
+		for (Alert a : alertList) {
 			assertTrue(a.getAlertId() > 0);
-			
+
 		}
 	}
 

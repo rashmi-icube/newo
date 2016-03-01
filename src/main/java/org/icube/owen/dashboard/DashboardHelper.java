@@ -101,7 +101,7 @@ public class DashboardHelper extends TheBorg {
 
 	private Map<Integer, List<Map<Date, Integer>>> getTimeSeriesMap(ResultSet rs) throws SQLException {
 		Map<Integer, List<Map<Date, Integer>>> result = new HashMap<>();
-		
+
 		while (rs.next()) {
 			if (result.containsKey(rs.getInt("metric_id"))) {
 				List<Map<Date, Integer>> metricScoreMapList = new ArrayList<>();

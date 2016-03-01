@@ -36,6 +36,7 @@ public class QuestionList extends TheBorg {
 				q.setStartDate(rs.getDate("start_date"));
 				q.setEndDate(rs.getDate("end_date"));
 				q.setResponsePercentage(rs.getDouble("resp"));
+				q.setRelationshipTypeId(rs.getInt("rel_id"));
 				questionList.add(q);
 			}
 

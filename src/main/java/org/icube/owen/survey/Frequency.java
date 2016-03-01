@@ -6,7 +6,7 @@ import java.util.Map;
 public enum Frequency {
 	WEEKLY(1), BIWEEKLY(2), MONTHLY(3), QUARTERLY(4);
 
-	// Reverse-lookup map for getting a day from an abbreviation
+	// Reverse-lookup map for getting a frequency from frequency ID
 	private static final Map<Integer, Frequency> lookup = new HashMap<Integer, Frequency>();
 
 	static {

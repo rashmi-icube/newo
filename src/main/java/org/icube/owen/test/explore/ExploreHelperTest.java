@@ -4,6 +4,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.sql.Date;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -11,7 +12,9 @@ import java.util.Map;
 
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.employee.Employee;
+import org.icube.owen.explore.Edge;
 import org.icube.owen.explore.ExploreHelper;
+import org.icube.owen.explore.Node;
 import org.icube.owen.filter.Filter;
 import org.icube.owen.filter.FilterList;
 import org.icube.owen.metrics.Metrics;
@@ -156,6 +159,118 @@ public class ExploreHelperTest {
 		teamMetricsData = eh.getTeamTimeSeriesGraph(teamListMap); // 3 filters have selected as ALL
 		for (String name : teamMetricsData.keySet()) {
 			checkTimeSeriesData(teamMetricsData.get(name));
+		}
+
+	}
+
+	@Test
+	public void testGetTeamNetworkDiagram() {
+
+		Map<String, List<Filter>> teamListMap = new HashMap<>();
+		List<Filter> filterList = new ArrayList<>();
+
+		Map<Integer, String> filterValuesMap = new HashMap<>();
+		Filter f = new Filter();
+		f.setFilterId(1);
+		f.setFilterName("Function");
+		filterValuesMap.put(0, "All");
+		f.setFilterValues(filterValuesMap);
+		filterList.add(f);
+
+		f = new Filter();
+		f.setFilterId(2);
+		f.setFilterName("Position");
+		filterValuesMap = new HashMap<>();
+		filterValuesMap.put(4, "Region");
+		f.setFilterValues(filterValuesMap);
+		filterList.add(f);
+
+		f = new Filter();
+		f.setFilterId(3);
+		f.setFilterName("Zone");
+		filterValuesMap = new HashMap<>();
+		filterValuesMap.put(8, "INTG1");
+		f.setFilterValues(filterValuesMap);
+		filterList.add(f);
+
+		teamListMap.put("team1", filterList);
+
+		filterList = new ArrayList<>();
+		f = new Filter();
+		f.setFilterId(1);
+		f.setFilterName("Function");
+		filterValuesMap = new HashMap<>();
+		filterValuesMap.put(0, "All");
+		f.setFilterValues(filterValuesMap);
+		filterList.add(f);
+
+		f = new Filter();
+		f.setFilterId(2);
+		f.setFilterName("Position");
+		filterValuesMap = new HashMap<>();
+		filterValuesMap.put(4, "Region");
+		f.setFilterValues(filterValuesMap);
+		filterList.add(f);
+
+		f = new Filter();
+		f.setFilterId(3);
+		f.setFilterName("Zone");
+		filterValuesMap = new HashMap<>();
+		filterValuesMap.put(9, "INTG2");
+		f.setFilterValues(filterValuesMap);
+		filterList.add(f);
+
+		teamListMap.put("team2", filterList);
+
+		Map<String, List<?>> result = eh.getTeamNetworkDiagram(teamListMap, eh.getRelationshipTypeMap());
+
+		List<Node> nodeList = (List<Node>) result.get("nodeList");
+		for (Node n : nodeList) {
+			assertNotNull(n.getEmployee_id());
+			assertNotNull(n.getFirstName());
+			assertNotNull(n.getLastName());
+			assertNotNull(n.getFunction());
+			assertNotNull(n.getPosition());
+			assertNotNull(n.getZone());
+			assertNotNull(n.getTeamName());
+		}
+
+		List<Edge> edgeList = (List<Edge>) result.get("edgeList");
+		for (Edge e : edgeList) {
+			assertNotNull(e.getFromEmployeId());
+			assertNotNull(e.getToEmployeeId());
+			assertNotNull(e.getRelationshipType());
+			assertNotNull(e.getWeight());
+		}
+
+	}
+
+	@Test
+	public void testGetIndividualNetworkDiagram() {
+		List<Employee> employeeList = new ArrayList<>();
+		for (int i = 1; i < 6; i++) {
+			Employee e = new Employee();
+			employeeList.add(e.get(i));
+		}
+
+		Map<String, List<?>> result = eh.getIndividualNetworkDiagram(employeeList, eh.getRelationshipTypeMap());
+		List<Node> nodeList = (List<Node>) result.get("nodeList");
+		for (Node n : nodeList) {
+			assertNotNull(n.getEmployee_id());
+			assertNotNull(n.getFirstName());
+			assertNotNull(n.getLastName());
+			assertNotNull(n.getFunction());
+			assertNotNull(n.getPosition());
+			assertNotNull(n.getZone());
+			assertNotNull(n.getConnectedness());
+		}
+
+		List<Edge> edgeList = (List<Edge>) result.get("edgeList");
+		for (Edge e : edgeList) {
+			assertNotNull(e.getFromEmployeId());
+			assertNotNull(e.getToEmployeeId());
+			assertNotNull(e.getRelationshipType());
+			assertNotNull(e.getWeight());
 		}
 
 	}
