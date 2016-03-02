@@ -1,8 +1,17 @@
 package org.icube.owen.employee;
 
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.sql.Blob;
 import java.sql.CallableStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
+import javax.imageio.ImageIO;
 
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
@@ -11,6 +20,7 @@ import org.icube.owen.helper.DatabaseConnectionHelper;
 public class Employee extends TheBorg {
 
 	// TODO: retrieve all employee details from SQL
+	// TODO hpatel:  inactive employees to be filtered out 
 	private int employeeId;
 	private String companyEmployeeId;
 	private String firstName;
@@ -19,8 +29,6 @@ public class Employee extends TheBorg {
 	private long score;
 	private boolean active;
 	private int companyId;
-
-	// TODO add method to give employee image
 
 	public int getEmployeeId() {
 		return employeeId;
@@ -113,5 +121,31 @@ public class Employee extends TheBorg {
 
 		}
 		return e;
+	}
+	
+	
+	//TODO return and save image file for employee image
+	public Blob getImage(int companyId, int employeeId) throws IOException, SQLException{
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		String imagePath = dch.companyImagePath.get(companyId);
+		
+		File sourceimage = new File("c:\\mypic.jpg");
+		Image image = ImageIO.read(sourceimage);
+
+		
+		URL url = new URL("http://www.mkyong.com/image/mypic.jpg");
+		image = ImageIO.read(url);
+		
+		
+		BufferedImage buffered = new BufferedImage(employeeId, employeeId, employeeId);
+		buffered.getGraphics().drawImage(image, 0, 0 , null);
+		
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		ImageIO.write(buffered, "jpg", baos );
+		byte[] imageInByte = baos.toByteArray();
+		
+		Blob blob = dch.companySqlConnectionPool.get(companyId).createBlob();
+		blob.setBytes(1, imageInByte);
+		return blob;
 	}
 }

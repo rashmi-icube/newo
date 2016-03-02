@@ -10,14 +10,14 @@ import java.util.Map;
 
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.dashboard.Alert;
-import org.icube.owen.dashboard.DashboardHelper;
+import org.icube.owen.dashboard.HrDashboardHelper;
 import org.icube.owen.filter.Filter;
 import org.icube.owen.filter.FilterList;
 import org.icube.owen.metrics.Metrics;
 import org.junit.Test;
 
 public class DashboardHelperTest {
-	DashboardHelper dh = (DashboardHelper) ObjectFactory.getInstance("org.icube.owen.dashboard.DashboardHelper");
+	HrDashboardHelper dh = (HrDashboardHelper) ObjectFactory.getInstance("org.icube.owen.dashboard.DashboardHelper");
 	FilterList fl = (FilterList) ObjectFactory.getInstance("org.icube.owen.filter.FilterList");
 	List<Filter> filterMasterList = fl.getFilterValues();
 	Filter functionFilter = fl.getFilterValues("Function");

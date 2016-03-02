@@ -15,7 +15,7 @@ import org.icube.owen.filter.Filter;
 import org.icube.owen.helper.DatabaseConnectionHelper;
 import org.icube.owen.metrics.Metrics;
 
-public class DashboardHelper extends TheBorg {
+public class HrDashboardHelper extends TheBorg {
 
 	/**
 	 * Calculates the organizational metrics - for specific filter selection
@@ -43,7 +43,7 @@ public class DashboardHelper extends TheBorg {
 				orgMetricsList.add(m);
 			}
 		} catch (SQLException e) {
-			org.apache.log4j.Logger.getLogger(DashboardHelper.class).error("Exception while retrieving organization level metrics", e);
+			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).error("Exception while retrieving organization level metrics", e);
 		}
 
 		return orgMetricsList;
@@ -72,7 +72,7 @@ public class DashboardHelper extends TheBorg {
 				orgMetricsList.add(m);
 			}
 		} catch (SQLException e) {
-			org.apache.log4j.Logger.getLogger(DashboardHelper.class).error("Exception while retrieving organization level metrics", e);
+			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).error("Exception while retrieving organization level metrics", e);
 		}
 
 		return orgMetricsList;
@@ -93,7 +93,7 @@ public class DashboardHelper extends TheBorg {
 			ResultSet rs = cstmt.executeQuery();
 			result = getTimeSeriesMap(rs);
 		} catch (SQLException e) {
-			org.apache.log4j.Logger.getLogger(DashboardHelper.class).error("Exception while retrieving metrics", e);
+			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).error("Exception while retrieving metrics", e);
 		}
 
 		return result;
@@ -134,7 +134,7 @@ public class DashboardHelper extends TheBorg {
 			ResultSet rs = cstmt.executeQuery();
 			result = getTimeSeriesMap(rs);
 		} catch (SQLException e) {
-			org.apache.log4j.Logger.getLogger(DashboardHelper.class).error("Exception while retrieving organization level metrics", e);
+			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).error("Exception while retrieving organization level metrics", e);
 		}
 		return result;
 
@@ -155,7 +155,7 @@ public class DashboardHelper extends TheBorg {
 				alertList.add(a.fillAlertDetails(rs));
 			}
 		} catch (SQLException e) {
-			org.apache.log4j.Logger.getLogger(DashboardHelper.class).error("Exception while retrieving organization level metrics", e);
+			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).error("Exception while retrieving organization level metrics", e);
 		}
 		return alertList;
 	}
