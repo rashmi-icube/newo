@@ -12,11 +12,11 @@ public class Node {
 	private String teamName;
 	private int connectedness;
 
-	public int getEmployee_id() {
+	public int getEmployeeId() {
 		return employee_id;
 	}
 
-	public void setEmployee_id(int employee_id) {
+	public void setEmployeeId(int employee_id) {
 		this.employee_id = employee_id;
 	}
 

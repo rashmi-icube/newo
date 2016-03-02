@@ -235,7 +235,7 @@ public class Question extends TheBorg {
 	/**
 	 * Returns the default smart list for the employee on the we question page
 	 * 
-	 * @return map<rank, employee object> - view of the employee list should be sorted by the rank
+	 * @return map[rank, employee object] - view of the employee list should be sorted by the rank
 	 */
 	public Map<Integer, Employee> getSmartListForQuestion(int companyId, int employeeId, Question q) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();

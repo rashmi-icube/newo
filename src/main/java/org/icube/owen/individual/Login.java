@@ -15,18 +15,18 @@ public class Login extends TheBorg {
 
 	/**
 	 * Validates username and password for login page
-	 * @param userId - email ID of the user
+	 * @param emailId - email ID of the user
 	 * @param password - password of the user
 	 * @return Employee object
 	 * @throws Exception - thrown when provided with invalid credentials
 	 */
-	public Employee login(String userId, String password) throws Exception {
+	public Employee login(String emailId, String password) throws Exception {
 		Employee e = new Employee();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Connection companySqlCon = null;
 
-		int index = userId.indexOf('@');
-		String companyDomain = userId.substring(index + 1);
+		int index = emailId.indexOf('@');
+		String companyDomain = emailId.substring(index + 1);
 		try {
 			CallableStatement cstmt = dch.masterCon.prepareCall("{call getCompanyDb(?)}");
 			cstmt.setString(1, companyDomain);
@@ -36,13 +36,13 @@ public class Login extends TheBorg {
 			}
 
 			CallableStatement cstmt1 = companySqlCon.prepareCall("{call verifyLogin(?,?)}");
-			cstmt1.setString(1, userId);
+			cstmt1.setString(1, emailId);
 			cstmt1.setString(2, password);
 			ResultSet res = cstmt1.executeQuery();
 			if (res.next()) {
 				e = e.get(res.getInt("emp_id"));
 				e.setCompanyId(rs.getInt("comp_id"));
-				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Successfully validated user with userID : " + userId);
+				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Successfully validated user with userID : " + emailId);
 			} else {
 				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("Invalid username/password");
 				throw new Exception("Invalid credentials!!!");

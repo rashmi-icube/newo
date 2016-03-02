@@ -226,7 +226,7 @@ public class ExploreHelperTest {
 
 		List<Node> nodeList = (List<Node>) result.get("nodeList");
 		for (Node n : nodeList) {
-			assertNotNull(n.getEmployee_id());
+			assertNotNull(n.getEmployeeId());
 			assertNotNull(n.getFirstName());
 			assertNotNull(n.getLastName());
 			assertNotNull(n.getFunction());
@@ -248,7 +248,7 @@ public class ExploreHelperTest {
 	@Test
 	public void testGetIndividualNetworkDiagram() {
 		List<Employee> employeeList = new ArrayList<>();
-		for (int i = 1; i < 6; i++) {
+		for (int i = 3; i < 8; i++) {
 			Employee e = new Employee();
 			employeeList.add(e.get(i));
 		}
@@ -256,7 +256,7 @@ public class ExploreHelperTest {
 		Map<String, List<?>> result = eh.getIndividualNetworkDiagram(employeeList, eh.getRelationshipTypeMap());
 		List<Node> nodeList = (List<Node>) result.get("nodeList");
 		for (Node n : nodeList) {
-			assertNotNull(n.getEmployee_id());
+			assertNotNull(n.getEmployeeId());
 			assertNotNull(n.getFirstName());
 			assertNotNull(n.getLastName());
 			assertNotNull(n.getFunction());

@@ -80,7 +80,7 @@ public class ExploreHelper extends TheBorg {
 		Map<String, Map<Integer, List<Map<Date, Integer>>>> result = new HashMap<>();
 
 		for (String teamName : teamListMap.keySet()) {
-			Map<Integer, List<Map<Date, Integer>>> metricsList = new HashMap<>();
+			Map<Integer, List<Map<Date, Integer>>> timeSeriesMap = new HashMap<>();
 			List<Filter> filterList = teamListMap.get(teamName);
 			parseTeamMap(filterList);
 			try {
@@ -88,14 +88,14 @@ public class ExploreHelper extends TheBorg {
 					// if all selections are ALL then it is a organizational team metric
 					CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getOrganizationMetricTimeSeries()}");
 					ResultSet rs = cstmt.executeQuery();
-					metricsList = getTimeSeriesMap(rs);
+					timeSeriesMap = getTimeSeriesMap(rs);
 
 				} else if (countAll == 2) {
 					// if two of the filters are ALL then it is a dimension metric
 					CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getDimensionMetricTimeSeries(?)}");
 					cstmt.setInt(1, dimensionValueId);
 					ResultSet rs = cstmt.executeQuery();
-					metricsList = getTimeSeriesMap(rs);
+					timeSeriesMap = getTimeSeriesMap(rs);
 				} else if (countAll == 0) {
 					// if none of the filters is ALL then it is a cube metric
 					CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getTeamMetricTimeSeries(?,?,?)}");
@@ -103,7 +103,7 @@ public class ExploreHelper extends TheBorg {
 					cstmt.setInt(2, posId);
 					cstmt.setInt(3, zoneId);
 					ResultSet rs = cstmt.executeQuery();
-					metricsList = getTimeSeriesMap(rs);
+					timeSeriesMap = getTimeSeriesMap(rs);
 
 				} else {
 					org.apache.log4j.Logger.getLogger(ExploreHelper.class).info(
@@ -116,7 +116,7 @@ public class ExploreHelper extends TheBorg {
 				org.apache.log4j.Logger.getLogger(ExploreHelper.class).error("Exception while getting team metrics data : " + teamListMap.toString(),
 						e);
 			}
-			result.put(teamName, metricsList);
+			result.put(teamName, timeSeriesMap);
 		}
 
 		return result;
@@ -301,7 +301,7 @@ public class ExploreHelper extends TheBorg {
 			while (res.next()) {
 				empIdList.add(res.getInt("emp_id"));
 				Node n = new Node();
-				n.setEmployee_id(res.getInt("emp_id"));
+				n.setEmployeeId(res.getInt("emp_id"));
 				n.setFirstName(res.getString("firstName"));
 				n.setLastName(res.getString("lastName"));
 				n.setFunction(res.getString("funcName"));
@@ -383,7 +383,7 @@ public class ExploreHelper extends TheBorg {
 			while (res.next()) {
 				empIdList.add(res.getInt("emp_id"));
 				Node n = new Node();
-				n.setEmployee_id(res.getInt("emp_id"));
+				n.setEmployeeId(res.getInt("emp_id"));
 				n.setFirstName(res.getString("firstName"));
 				n.setLastName(res.getString("lastName"));
 				n.setFunction(res.getString("funcName"));
