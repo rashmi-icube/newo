@@ -1,12 +1,12 @@
 package org.icube.owen.employee;
 
 import java.awt.Image;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
+import java.awt.image.RenderedImage;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.URL;
-import java.sql.Blob;
+import java.io.OutputStream;
 import java.sql.CallableStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -20,7 +20,7 @@ import org.icube.owen.helper.DatabaseConnectionHelper;
 public class Employee extends TheBorg {
 
 	// TODO: retrieve all employee details from SQL
-	// TODO hpatel:  inactive employees to be filtered out 
+	// TODO hpatel: inactive employees to be filtered out
 	private int employeeId;
 	private String companyEmployeeId;
 	private String firstName;
@@ -105,47 +105,78 @@ public class Employee extends TheBorg {
 		EmployeeList el = new EmployeeList();
 		Employee e = new Employee();
 		try {
-			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("get method started");
+			org.apache.log4j.Logger.getLogger(Employee.class).debug("get method started");
 			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getEmployeeDetails(?)}");
 			cstmt.setInt(1, employeeId);
 			ResultSet res = cstmt.executeQuery();
-			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("query : " + cstmt);
+			org.apache.log4j.Logger.getLogger(Employee.class).debug("query : " + cstmt);
 			res.next();
 			e = el.setEmployeeDetails(res, false);
 			org.apache.log4j.Logger.getLogger(Employee.class).debug(
 					"Employee  : " + e.getEmployeeId() + "-" + e.getFirstName() + "-" + e.getLastName());
 
 		} catch (SQLException e1) {
-			org.apache.log4j.Logger.getLogger(EmployeeList.class).error("Exception while retrieving employee object with employeeId : " + employeeId,
-					e1);
+			org.apache.log4j.Logger.getLogger(Employee.class).error("Exception while retrieving employee object with employeeId : " + employeeId, e1);
 
 		}
 		return e;
 	}
-	
-	
-	//TODO return and save image file for employee image
-	public Blob getImage(int companyId, int employeeId) throws IOException, SQLException{
-		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		String imagePath = dch.companyImagePath.get(companyId);
-		
-		File sourceimage = new File("c:\\mypic.jpg");
-		Image image = ImageIO.read(sourceimage);
 
-		
-		URL url = new URL("http://www.mkyong.com/image/mypic.jpg");
-		image = ImageIO.read(url);
-		
-		
-		BufferedImage buffered = new BufferedImage(employeeId, employeeId, employeeId);
-		buffered.getGraphics().drawImage(image, 0, 0 , null);
-		
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		ImageIO.write(buffered, "jpg", baos );
-		byte[] imageInByte = baos.toByteArray();
-		
-		Blob blob = dch.companySqlConnectionPool.get(companyId).createBlob();
-		blob.setBytes(1, imageInByte);
-		return blob;
+	/**
+	 * Get the image of an employee
+	 * 
+	 * @return image object
+	 */
+	public Image getImage(int companyId, int employeeId) {
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
+		String imagePath = dch.companyImagePath.get(companyId);
+		Image image = null;
+
+		try {
+			File sourceimage = new File(imagePath + companyId + "_" + employeeId + ".jpg");
+			org.apache.log4j.Logger.getLogger(Employee.class).debug(
+					"Path for retrieving the image for employeeId " + employeeId + " : " + sourceimage.getAbsolutePath());
+			image = ImageIO.read(sourceimage);
+			org.apache.log4j.Logger.getLogger(Employee.class).debug("Successfully read the image for employeeId " + employeeId);
+		} catch (IOException e) {
+			org.apache.log4j.Logger.getLogger(Employee.class).error("Exception while retrieving employee image with employeeId : " + employeeId, e);
+		}
+
+		return image;
+	}
+
+	/**
+	 * Save the image of the given employee in a pre-defined format
+	 * @return boolean value if the image is stored or not
+	 */
+	public boolean saveImage(int companyId, int employeeId, Image image) {
+		boolean imageSaved = false;
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
+		String imagePath = dch.companyImagePath.get(companyId);
+
+		OutputStream out = null;
+		int size = 0;
+		try {
+			out = new FileOutputStream(imagePath + companyId + "_" + employeeId + ".jpg");
+			org.apache.log4j.Logger.getLogger(Employee.class).debug(
+					"Path for the image to be stored : " + imagePath + companyId + "_" + employeeId + ".jpg");
+
+		} catch (FileNotFoundException ex) {
+			org.apache.log4j.Logger.getLogger(Employee.class).error("Exception while saving employee image with employeeId : " + employeeId, ex);
+		}
+		byte[] b = new byte[size];
+		try {
+			out.write(b);
+			ImageIO.write((RenderedImage) image, "jpg", out);
+			imageSaved = true;
+			org.apache.log4j.Logger.getLogger(Employee.class).debug(
+					"Image was successfully stored at " + imagePath + companyId + "_" + employeeId + ".jpg");
+		} catch (Exception ex) {
+			org.apache.log4j.Logger.getLogger(Employee.class).error("Exception while saving employee image with employeeId : " + employeeId, ex);
+		}
+
+		return imageSaved;
 	}
 }
