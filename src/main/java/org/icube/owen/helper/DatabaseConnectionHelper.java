@@ -92,10 +92,10 @@ public class DatabaseConnectionHelper extends TheBorg {
 			// R connection
 			rCon = new RConnection();
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Successfully connected to R");
-			// String rScriptPath = new java.io.File("").getAbsolutePath() + "/scripts";
-			String rScriptPath = "C:\\\\Users\\\\fermion10\\\\Documents\\\\Neo4j\\\\scripts";
-			// String workingDir = "setwd(\"" + rScriptPath.replace("/", "//") + "\")";
-			String workingDir = "setwd(\"" + rScriptPath + "\")";
+			String rScriptPath = new java.io.File("").getAbsolutePath() + "/scripts";
+			// String rScriptPath = "C:\\\\Users\\\\fermion10\\\\Documents\\\\Neo4j\\\\scripts";
+			String workingDir = "setwd(\"" + rScriptPath.replace("/", "//") + "\")";
+			// String workingDir = "setwd(\"" + rScriptPath + "\")";
 			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Trying to load the RScript file at " + rScriptPath);
 			rCon.eval(workingDir);
 			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Successfully loaded rScript: source(\"//" + rScriptPath);
@@ -148,7 +148,7 @@ public class DatabaseConnectionHelper extends TheBorg {
 			conn = companySqlConnectionPool.get(companyId);
 		} else {
 			try {
-				CallableStatement cstmt = masterCon.prepareCall("{call getCompanyDbFromId(?)}");
+				CallableStatement cstmt = masterCon.prepareCall("{call getCompanyConfig(?)}");
 				cstmt.setInt(1, companyId);
 				ResultSet rs = cstmt.executeQuery();
 				String cUrl = "", cUserName = "", cPassword = "";
@@ -156,7 +156,7 @@ public class DatabaseConnectionHelper extends TheBorg {
 					cUrl = "jdbc:mysql://" + rs.getString("sql_server") + ":3306/" + rs.getString("comp_sql_dbname");
 					cUserName = rs.getString("sql_user_id");
 					cPassword = rs.getString("sql_password");
-					companyImagePath.put(companyId, rs.getString("image_path")); //TODO hpatel : return the image path too
+					companyImagePath.put(companyId, rs.getString("images_path"));
 				}
 				Class.forName("com.mysql.jdbc.Driver");
 				conn = DriverManager.getConnection(cUrl, cUserName, cPassword);
