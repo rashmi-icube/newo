@@ -5,9 +5,9 @@ import java.util.Date;
 public class BasicEmployeeDetails {
 
 	private int employeeId;
-	private int basicEmployeeDetailId;
 	private String salutation;
 	private String firstName;
+	private String lastName;
 	private String designation;
 	private String function;
 	private String location;
@@ -24,14 +24,6 @@ public class BasicEmployeeDetails {
 		this.employeeId = employeeId;
 	}
 
-	public int getBasicEmployeeDetailId() {
-		return basicEmployeeDetailId;
-	}
-
-	public void setBasicEmployeeDetailId(int basicEmployeeDetailId) {
-		this.basicEmployeeDetailId = basicEmployeeDetailId;
-	}
-
 	public String getSalutation() {
 		return salutation;
 	}
@@ -46,6 +38,14 @@ public class BasicEmployeeDetails {
 
 	public void setFirstName(String firstName) {
 		this.firstName = firstName;
+	}
+
+	public String getLastName() {
+		return lastName;
+	}
+
+	public void setLastName(String lastName) {
+		this.lastName = lastName;
 	}
 
 	public String getDesignation() {
