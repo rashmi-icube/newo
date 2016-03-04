@@ -36,13 +36,14 @@ public class IndividualDashboardHelper extends TheBorg {
 	 * @param employeeId - Employee Id of the individual who is logged in
 	 * @return A list of Metrics
 	 */
-	public List<Metrics> getIndividualMetrics(int employeeId) {
+	public List<Metrics> getIndividualMetrics(int companyId, int employeeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
 		ExploreHelper eh = new ExploreHelper();
 		List<Metrics> metricsList = new ArrayList<>();
 		try {
 
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getIndividualMetricValueForIndividual(?)}");
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getIndividualMetricValueForIndividual(?)}");
 			cstmt.setInt(1, employeeId);
 			ResultSet rs = cstmt.executeQuery();
 			metricsList = eh.fillMetricsData(rs, "Individual");
@@ -129,13 +130,14 @@ public class IndividualDashboardHelper extends TheBorg {
 	 * @return A list of ActivityFeed objects
 	 */
 	//TODO : Hpatel give neo query and stored proc
-	public List<ActivityFeed> getActivityFeedList(int employeeId) {
+	public List<ActivityFeed> getActivityFeedList(int companyId, int employeeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
 		List<ActivityFeed> result = new ArrayList<>();
 		List<Initiative> il = new ArrayList<>();
 		org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Get ActivityFeed list");
 		try {
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getActivityFeed(?)}");
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getActivityFeed(?)}");
 			cstmt.setInt(1, employeeId);
 			ResultSet rs = cstmt.executeQuery();
 			String initiativeListQuery = "";
@@ -231,22 +233,28 @@ public class IndividualDashboardHelper extends TheBorg {
 	 */
 	
 	//TODO : Hpatel give neo query and stored proc
-	public boolean saveAppreciation(Map<Employee, Integer> appreciationResponseMap, int companyId) {
+	public boolean saveAppreciation(Map<Employee, Integer> appreciationResponseMap, int companyId, int employeeId,int metricId) {
 		boolean responseSaved = false;
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
+		Map<Integer, Integer> MetricRelationshipTypeMap = getMetricRelationshipTypeMapping();
 		try {
-			Connection conn = dch.getCompanyConnection(companyId);
 			for (Employee e : appreciationResponseMap.keySet()) {
-				CallableStatement cstmt = conn.prepareCall("{call insertAppreciationResponse(?,?,?,?,?,?)}");
-				cstmt.setInt(1, e.getEmployeeId());
-				// cstmt.setInt(2, q.getQuestionId());
+				CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call insertAppreciation(?,?,?,?,?)}");
+				cstmt.setInt(1, employeeId);
 				cstmt.setDate(2, UtilHelper.convertJavaDateToSqlDate(Date.from(Instant.now())));
-				cstmt.setInt(3, appreciationResponseMap.get(e));
+				cstmt.setInt(3, e.getEmployeeId());
+				cstmt.setInt(4, MetricRelationshipTypeMap.get(metricId));
+				cstmt.setInt(5, appreciationResponseMap.get(e));
 				ResultSet rs = cstmt.executeQuery();
-				if (rs.next()) {
+				rs.next();
+				if(rs.getString(1) == "true"){
 					responseSaved = true;
 					org.apache.log4j.Logger.getLogger(Response.class).debug("Successfully saved the response ");
+				}else {
+					org.apache.log4j.Logger.getLogger(Response.class).debug("Error in saving the response ");
 				}
+			
 			}
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(Response.class).error("Exception while saving the response ", e);
@@ -255,17 +263,18 @@ public class IndividualDashboardHelper extends TheBorg {
 	}
 
 	/**
-	 * Password Guidelines : Minimum 8 characters and should contain atleast 1 numeric digit
+	 * Updates the password 
+	 * Password Guidelines : Minimum 8 characters and should contain at least 1 numeric digit
 	 * @param currentPassword
 	 * @param newPassword
 	 * @return true/false 
 	 */
 	public boolean changePassword(String currentPassword, String newPassword, int companyId, int employeeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
 		boolean passwordChanged = false;
 		try {
-			Connection conn = dch.getCompanyConnection(companyId);
-			CallableStatement cstmt = conn.prepareCall("{call changePassword(?,?,?)}");
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call updateEmployeePassword(?,?,?)}");
 			cstmt.setInt(1,employeeId);
 			cstmt.setString(2,currentPassword);
 			cstmt.setString(3,newPassword);
