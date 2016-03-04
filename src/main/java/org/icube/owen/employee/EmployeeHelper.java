@@ -9,13 +9,13 @@ import java.time.Period;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
 import org.icube.owen.helper.DatabaseConnectionHelper;
-import org.icube.owen.survey.Response;
-import org.restlet.data.Language;
 
 public class EmployeeHelper extends TheBorg {
 
@@ -123,21 +123,48 @@ public class EmployeeHelper extends TheBorg {
 
 	}
 
-	public List<Language> getLanguageMasterList(int companyId) {
-		List<Language> languageList = new ArrayList<>();
+	public List<LanguageDetails> getEmployeeLanguageDetails(int companyId, int employeeId) {
+		List<LanguageDetails> languageDetailsList = new ArrayList<>();
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
+
+		try {
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getEmployeeLanguage(?)}");
+			cstmt.setInt(1, employeeId);
+			ResultSet rs = cstmt.executeQuery();
+			while (rs.next()) {
+				LanguageDetails languageDetails = new LanguageDetails();
+				languageDetails.setEmployeeId(employeeId);
+				languageDetails.setLanguageDetailsId(rs.getInt("employee_language_id"));
+				languageDetails.setLanguageName(rs.getString("language_name"));
+				languageDetails.setLanguageId(rs.getInt("language_id"));
+				languageDetailsList.add(languageDetails);
+			}
+		} catch (SQLException e) {
+			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).error("Exception while getting the employee basic details", e);
+		}
+
+		return languageDetailsList;
+
+	}
+
+	public Map<Integer, String> getLanguageMasterMap(int companyId) {
+		Map<Integer, String> languageMasterMap = new HashMap<>();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		try {
 			Connection conn = dch.getCompanyConnection(companyId);
-			CallableStatement cstmt = conn.prepareCall("{call getLanguageMasterList(?)}");
-			cstmt.setInt(1, companyId);
+			CallableStatement cstmt = conn.prepareCall("{call getLanguageList}");
+
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
+				languageMasterMap.put(rs.getInt("language_id"), rs.getString("language_name"));
+
 			}
 		} catch (SQLException e) {
-			org.apache.log4j.Logger.getLogger(Response.class).error("Exception while retrieving the ;anguage masterlist ", e);
+			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).error("Exception while retrieving the language master map ", e);
 		}
-		Connection conn = dch.getCompanyConnection(companyId);
-		return languageList;
+
+		return languageMasterMap;
 	}
 
 	/**
