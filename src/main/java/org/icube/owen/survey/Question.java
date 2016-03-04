@@ -261,7 +261,7 @@ public class Question extends TheBorg {
 			RList result = employeeSmartList.asList();
 			REXPInteger empIdResult = (REXPInteger) result.get("emp_id");
 			int[] empIdArray = empIdResult.asIntegers();
-			REXPDouble rankResult = (REXPDouble) result.get("Rank");
+			REXPInteger rankResult = (REXPInteger) result.get("Rank");
 			int[] rankArray = rankResult.asIntegers();
 
 			for (int i = 0; i < rankArray.length; i++) {

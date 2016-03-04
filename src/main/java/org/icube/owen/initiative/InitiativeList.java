@@ -161,7 +161,7 @@ public class InitiativeList extends TheBorg {
 	 * @param resultMap- A map containing the Initiative attributes and connections
 	 * @param i - An Initiative object
 	 */
-	protected void setInitiativeValues(ResultSet res, Initiative i) {
+	public void setInitiativeValues(ResultSet res, Initiative i) {
 		InitiativeHelper ih = new InitiativeHelper();
 		org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Setting initiative values");
 

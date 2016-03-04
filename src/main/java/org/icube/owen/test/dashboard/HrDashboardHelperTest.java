@@ -16,7 +16,7 @@ import org.icube.owen.filter.FilterList;
 import org.icube.owen.metrics.Metrics;
 import org.junit.Test;
 
-public class DashboardHelperTest {
+public class HrDashboardHelperTest {
 	HrDashboardHelper dh = (HrDashboardHelper) ObjectFactory.getInstance("org.icube.owen.dashboard.DashboardHelper");
 	FilterList fl = (FilterList) ObjectFactory.getInstance("org.icube.owen.filter.FilterList");
 	List<Filter> filterMasterList = fl.getFilterValues();
