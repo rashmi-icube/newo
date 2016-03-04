@@ -36,7 +36,6 @@ public class EmployeeHelper {
 			cstmt.setInt(1, companyId);
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()){
-				
 			}
 		}catch (SQLException e){
 			org.apache.log4j.Logger.getLogger(Response.class).error("Exception while retrieving the ;anguage masterlist ", e);
