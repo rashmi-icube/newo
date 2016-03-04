@@ -139,11 +139,6 @@ public class EmployeeHelper {
 		return languageList;
 	}
 
-	public List<Language> getLanguageDetails(int companyId, int employeeId) {
-
-		return null;
-	}
-
 	// remove of all details given up
 	// add of all details given up
 }
