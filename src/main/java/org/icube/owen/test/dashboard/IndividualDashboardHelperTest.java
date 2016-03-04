@@ -45,4 +45,10 @@ public class IndividualDashboardHelperTest {
 		Map<Integer, Employee> employeeScoreMap = idh.getSmartList(1, 1);
 		
 	}
+	
+	@Test
+	public void testChangePassword(){
+		boolean status = idh.changePassword("abc123", "myNewPassword123", 1, 2);
+		assertTrue(status);
+	}
 }

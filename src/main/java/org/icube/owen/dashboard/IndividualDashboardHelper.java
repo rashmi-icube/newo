@@ -266,17 +266,18 @@ public class IndividualDashboardHelper extends TheBorg {
 		try {
 			Connection conn = dch.getCompanyConnection(companyId);
 			CallableStatement cstmt = conn.prepareCall("{call changePassword(?,?,?)}");
-			cstmt.setString(1,currentPassword);
-			cstmt.setString(2,newPassword);
-			cstmt.setInt(3,employeeId);
+			cstmt.setInt(1,employeeId);
+			cstmt.setString(2,currentPassword);
+			cstmt.setString(3,newPassword);
+			
 			ResultSet rs = cstmt.executeQuery();
 			rs.next();
-			/*if ("password changed successfully"){
+			if (rs.getBoolean(1)){
 				passwordChanged = true;
 			}else {
 				org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Invalid username/password");
 				throw new Exception("Invalid credentials!!!");
-			}*/
+			}
 		
 	}catch (Exception e) {
 		org.apache.log4j.Logger.getLogger(Response.class).error("Exception while validating password ", e);

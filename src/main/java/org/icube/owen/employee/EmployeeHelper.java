@@ -12,11 +12,12 @@ import java.util.Date;
 import java.util.List;
 
 import org.icube.owen.ObjectFactory;
+import org.icube.owen.TheBorg;
 import org.icube.owen.helper.DatabaseConnectionHelper;
 import org.icube.owen.survey.Response;
 import org.restlet.data.Language;
 
-public class EmployeeHelper {
+public class EmployeeHelper extends TheBorg {
 
 	public BasicEmployeeDetails getBasicEmployeeDetails(int companyId, int employeeId) {
 		BasicEmployeeDetails bed = new BasicEmployeeDetails();
@@ -139,6 +140,70 @@ public class EmployeeHelper {
 		return languageList;
 	}
 
+	public boolean removeWorkExperience(int companyId, int workExperienceId) {
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		boolean status = false;
+		try {
+			Connection conn = dch.getCompanyConnection(companyId);
+			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).debug("Removing work experience details with Id" + workExperienceId);
+			CallableStatement cstmt = conn.prepareCall("{call removeWorkExperience(?)}");
+			cstmt.setInt(1, workExperienceId);
+			ResultSet rs = cstmt.executeQuery();
+			rs.next();
+			if (rs.getBoolean(1)) {
+				status = true;
+				org.apache.log4j.Logger.getLogger(EmployeeHelper.class).debug(
+						"Successfully removed work experience details with Id" + workExperienceId);
+			}
+		} catch (SQLException e) {
+			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).error(
+					"Exception while removing Work Experience details with Id" + workExperienceId, e);
+		}
+
+		return status;
+	}
+
+	public boolean removeEducation(int companyId, int educationId) {
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		boolean status = false;
+		try {
+			Connection conn = dch.getCompanyConnection(companyId);
+			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).debug("Removing Education details with Id" + educationId);
+			CallableStatement cstmt = conn.prepareCall("{call removeEducation(?)}");
+			cstmt.setInt(1, educationId);
+			ResultSet rs = cstmt.executeQuery();
+			rs.next();
+			if (rs.getBoolean(1)) {
+				status = true;
+				org.apache.log4j.Logger.getLogger(EmployeeHelper.class).debug("Successfully removed work experience details with Id" + educationId);
+			}
+		} catch (SQLException e) {
+			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).error("Exception while removing Education details with Id" + educationId, e);
+		}
+
+		return status;
+	}
+
+	public boolean removeLanguage(int companyId, int languageId) {
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		boolean status = false;
+		try {
+			Connection conn = dch.getCompanyConnection(companyId);
+			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).debug("Removing Language details with Id" + languageId);
+			CallableStatement cstmt = conn.prepareCall("{call removeLanguage(?)}");
+			cstmt.setInt(1, languageId);
+			ResultSet rs = cstmt.executeQuery();
+			rs.next();
+			if (rs.getBoolean(1)) {
+				status = true;
+				org.apache.log4j.Logger.getLogger(EmployeeHelper.class).debug("Successfully removed Language details with Id" + languageId);
+			}
+		} catch (SQLException e) {
+			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).error("Exception while removing Language details with Id" + languageId, e);
+		}
+
+		return status;
+	}
 	// remove of all details given up
 	// add of all details given up
 }
