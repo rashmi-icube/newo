@@ -140,13 +140,19 @@ public class EmployeeHelper extends TheBorg {
 		return languageList;
 	}
 
+	/**
+	 * Removes a Work Experience
+	 * @param companyId - Company Id of the employee
+	 * @param workExperienceId - Work experience Id to be deleted
+	 * @return true/false
+	 */
 	public boolean removeWorkExperience(int companyId, int workExperienceId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
 		boolean status = false;
 		try {
-			Connection conn = dch.getCompanyConnection(companyId);
 			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).debug("Removing work experience details with Id" + workExperienceId);
-			CallableStatement cstmt = conn.prepareCall("{call removeWorkExperience(?)}");
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call removeWorkExperience(?)}");
 			cstmt.setInt(1, workExperienceId);
 			ResultSet rs = cstmt.executeQuery();
 			rs.next();
@@ -163,13 +169,19 @@ public class EmployeeHelper extends TheBorg {
 		return status;
 	}
 
+	/**
+	 * Removes an Education 
+	 * @param companyId - Company Id of the employee
+	 * @param educationId - Work experience Id to be deleted
+	 * @return true/false
+	 */
 	public boolean removeEducation(int companyId, int educationId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
 		boolean status = false;
 		try {
-			Connection conn = dch.getCompanyConnection(companyId);
 			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).debug("Removing Education details with Id" + educationId);
-			CallableStatement cstmt = conn.prepareCall("{call removeEducation(?)}");
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call removeEducation(?)}");
 			cstmt.setInt(1, educationId);
 			ResultSet rs = cstmt.executeQuery();
 			rs.next();
@@ -184,13 +196,19 @@ public class EmployeeHelper extends TheBorg {
 		return status;
 	}
 
+	/**
+	 * Removes a Language
+	 * @param companyId - Company Id of the employee
+	 * @param languageId - Work experience Id to be deleted
+	 * @return true/false
+	 */
 	public boolean removeLanguage(int companyId, int languageId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
 		boolean status = false;
 		try {
-			Connection conn = dch.getCompanyConnection(companyId);
 			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).debug("Removing Language details with Id" + languageId);
-			CallableStatement cstmt = conn.prepareCall("{call removeLanguage(?)}");
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call removeLanguage(?)}");
 			cstmt.setInt(1, languageId);
 			ResultSet rs = cstmt.executeQuery();
 			rs.next();
@@ -204,6 +222,6 @@ public class EmployeeHelper extends TheBorg {
 
 		return status;
 	}
-	// remove of all details given up
+
 	// add of all details given up
 }

@@ -18,7 +18,7 @@ public class IndividualDashboardHelperTest {
 
 	@Test
 	public void testGetIndividualMetrics() {
-		List<Metrics> metricsList = idh.getIndividualMetrics(1);
+		List<Metrics> metricsList = idh.getIndividualMetrics(1,1);
 		for (Metrics m : metricsList) {
 			assertNotNull(m.getName());
 			assertNotNull(m.getScore());
@@ -38,17 +38,21 @@ public class IndividualDashboardHelperTest {
 	public void testIndividualInitiativeList(){
 		List<Initiative> initiativeList = new ArrayList<>();
 		initiativeList = idh.individualInitiativeList(208);
+		for (Initiative i : initiativeList){
+			assertNotNull(i.get(i.getInitiativeId()));
+		}
 	}
 	
 	@Test
 	public void testGetSmartList(){
 		Map<Integer, Employee> employeeScoreMap = idh.getSmartList(1, 1);
+		assertNotNull(employeeScoreMap);
 		
 	}
 	
 	@Test
 	public void testChangePassword(){
-		boolean status = idh.changePassword("abc123", "myNewPassword123", 1, 2);
+		boolean status = idh.changePassword("abc123", "myNewPassword123", 1, 3);
 		assertTrue(status);
 	}
 }

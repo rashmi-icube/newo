@@ -75,6 +75,7 @@ public class EmployeeListTest {
 		List<Employee> partOfEmployeeList = new ArrayList<>();
 		partOfEmployeeList.add(e.get(16));
 		empList = el.getEmployeeSmartListForIndividual(partOfEmployeeList, 1);
+		assertNotNull(empList);
 	}
 
 	@Test
