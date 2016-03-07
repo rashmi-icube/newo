@@ -9,7 +9,6 @@ import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
 import org.icube.owen.employee.Employee;
 import org.icube.owen.helper.DatabaseConnectionHelper;
-import org.icube.owen.survey.Question;
 
 public class Login extends TheBorg {
 
@@ -27,12 +26,14 @@ public class Login extends TheBorg {
 
 		int index = emailId.indexOf('@');
 		String companyDomain = emailId.substring(index + 1);
+		int companyId = 0;
 		try {
 			CallableStatement cstmt = dch.masterCon.prepareCall("{call getCompanyDb(?)}");
 			cstmt.setString(1, companyDomain);
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
-				companySqlCon = dch.getCompanyConnection(rs.getInt("comp_id"));
+				companyId = rs.getInt("comp_id");
+				companySqlCon = dch.getCompanyConnection(companyId);
 			}
 
 			CallableStatement cstmt1 = companySqlCon.prepareCall("{call verifyLogin(?,?)}");
@@ -41,15 +42,15 @@ public class Login extends TheBorg {
 			ResultSet res = cstmt1.executeQuery();
 			if (res.next()) {
 				e = e.get(res.getInt("emp_id"));
-				e.setCompanyId(rs.getInt("comp_id"));
-				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Successfully validated user with userID : " + emailId);
+				e.setCompanyId(companyId);
+				org.apache.log4j.Logger.getLogger(Login.class).debug("Successfully validated user with userID : " + emailId);
 			} else {
-				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("Invalid username/password");
+				org.apache.log4j.Logger.getLogger(Login.class).error("Invalid username/password");
 				throw new Exception("Invalid credentials!!!");
 			}
 
 		} catch (SQLException e1) {
-			org.apache.log4j.Logger.getLogger(Question.class).error("Exception while retrieving the company database", e1);
+			org.apache.log4j.Logger.getLogger(Login.class).error("Exception while retrieving the company database", e1);
 		}
 		return e;
 	}

@@ -16,9 +16,14 @@ import java.util.Map;
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
 import org.icube.owen.helper.DatabaseConnectionHelper;
+import org.icube.owen.helper.UtilHelper;
 
 public class EmployeeHelper extends TheBorg {
 
+	/**
+	 * Retrieves the basic details of an employee
+	 * 
+	 */
 	public BasicEmployeeDetails getBasicEmployeeDetails(int companyId, int employeeId) {
 		BasicEmployeeDetails bed = new BasicEmployeeDetails();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
@@ -31,15 +36,15 @@ public class EmployeeHelper extends TheBorg {
 			while (rs.next()) {
 				bed.setEmployeeId(employeeId);
 				bed.setCompanyEmployeeId(rs.getInt("emp_int_id"));
-				bed.setDob(rs.getDate("date_of_birth"));
-				bed.setEmailId(rs.getString("emailId"));
+				bed.setDob(rs.getDate("dob"));
+				bed.setEmailId(rs.getString("login_id"));
 				bed.setSalutation(rs.getString("salutation"));
-				bed.setFirstName(rs.getString("firstName"));
-				bed.setLastName(rs.getString("lastName"));
-				bed.setPhone(rs.getString("phone"));
-				bed.setFunction(rs.getString("function"));
-				bed.setLocation(rs.getString("location"));
-				bed.setDesignation(rs.getString("designation"));
+				bed.setFirstName(rs.getString("first_name"));
+				bed.setLastName(rs.getString("last_name"));
+				bed.setPhone(rs.getString("phone_no"));
+				bed.setFunction(rs.getString("Function"));
+				bed.setLocation(rs.getString("Zone"));
+				bed.setDesignation(rs.getString("Position"));
 			}
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).error("Exception while getting the employee basic details", e);
@@ -49,6 +54,9 @@ public class EmployeeHelper extends TheBorg {
 
 	}
 
+	/**
+	 * Retrieves the list of work experiences of a given employee
+	 */
 	public List<WorkExperience> getWorkExperienceDetails(int companyId, int employeeId) {
 
 		List<WorkExperience> workExList = new ArrayList<>();
@@ -63,12 +71,12 @@ public class EmployeeHelper extends TheBorg {
 			while (rs.next()) {
 				WorkExperience workEx = new WorkExperience();
 				workEx.setEmployeeId(employeeId);
-				workEx.setWorkExperienceDetailsId(rs.getInt("id"));
-				workEx.setCompanyName(rs.getString("company_name"));
-				workEx.setDesignation(rs.getString("designation"));
-				workEx.setStartDate(rs.getDate("start_date"));
+				workEx.setWorkExperienceDetailsId(rs.getInt("work_experience_id"));
+				workEx.setCompanyName(rs.getString("organization_name"));
+				workEx.setDesignation(rs.getString("position"));
+				workEx.setStartDate(rs.getDate("from_date"));
 				workEx.setLocation(rs.getString("location"));
-				workEx.setEndDate(rs.getDate("end_date"));
+				workEx.setEndDate(rs.getDate("to_date"));
 
 				if (workEx.getEndDate() == null) {
 					Date startDate = workEx.getStartDate();
@@ -93,6 +101,9 @@ public class EmployeeHelper extends TheBorg {
 
 	}
 
+	/**
+	 * Returns a list of education details for a given employee
+	 */
 	public List<EducationDetails> getEducationDetails(int companyId, int employeeId) {
 
 		List<EducationDetails> educationDetailsList = new ArrayList<>();
@@ -101,7 +112,7 @@ public class EmployeeHelper extends TheBorg {
 		dch.getCompanyConnection(companyId);
 
 		try {
-			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getEmployeeWorkExperience(?)}");
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getEmployeeEducation(?)}");
 			cstmt.setInt(1, employeeId);
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
@@ -123,6 +134,9 @@ public class EmployeeHelper extends TheBorg {
 
 	}
 
+	/**
+	 * Retrieves the list of languages spoken by a given employee
+	 */
 	public List<LanguageDetails> getEmployeeLanguageDetails(int companyId, int employeeId) {
 		List<LanguageDetails> languageDetailsList = new ArrayList<>();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
@@ -148,6 +162,9 @@ public class EmployeeHelper extends TheBorg {
 
 	}
 
+	/**
+	 * Returns a map of languages that can be spoken by any employee
+	 */
 	public Map<Integer, String> getLanguageMasterMap(int companyId) {
 		Map<Integer, String> languageMasterMap = new HashMap<>();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
@@ -250,5 +267,116 @@ public class EmployeeHelper extends TheBorg {
 		return status;
 	}
 
-	// add of all details given up
+	public boolean updateBasicDetails(int companyId, BasicEmployeeDetails bed) {
+		boolean status = false;
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
+		try {
+			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).debug("Updating employee basic details" + bed.getEmployeeId());
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call updateEmployeeBasicDetails(?, ?)}");
+			cstmt.setInt("empid", bed.getEmployeeId());
+			cstmt.setString("phoneno", bed.getPhone());
+			ResultSet rs = cstmt.executeQuery();
+			rs.next();
+			if (rs.getBoolean(1)) {
+				status = true;
+				org.apache.log4j.Logger.getLogger(EmployeeHelper.class).debug(
+						"Successfully updated employee basic details for employeeId : " + bed.getEmployeeId());
+			}
+		} catch (SQLException e) {
+			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).error(
+					"Exception while updating employee basic details for employeeId : " + bed.getEmployeeId());
+		}
+
+		return status;
+	}
+
+	/**
+	 * Add a new work experience to the given employee
+	 */
+	public boolean addWorkExperience(int companyId, WorkExperience wek) {
+		boolean status = false;
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
+		try {
+			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).debug("Adding new work experience for employee" + wek.getEmployeeId());
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call insertWorkExperience(?, ?, ?, ?, ?, ?)}");
+			cstmt.setInt("emp_id_ip", wek.getEmployeeId());
+			cstmt.setString("organization_name_ip", wek.getCompanyName());
+			cstmt.setString("position_ip", wek.getDesignation());
+			cstmt.setDate("from_date_ip", UtilHelper.convertJavaDateToSqlDate(wek.getStartDate()));
+			cstmt.setDate("to_date_ip", wek.getEndDate() == null ? null : UtilHelper.convertJavaDateToSqlDate(wek.getEndDate()));
+			cstmt.setString("location_ip", wek.getLocation());
+			ResultSet rs = cstmt.executeQuery();
+			rs.next();
+			if (rs.getBoolean(1)) {
+				status = true;
+				org.apache.log4j.Logger.getLogger(EmployeeHelper.class).debug(
+						"Successfully added a new work experience for employeeId : " + wek.getEmployeeId());
+			}
+		} catch (SQLException e) {
+			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).error(
+					"Exception while adding a new work experience for employeeId : " + wek.getEmployeeId());
+		}
+
+		return status;
+	}
+
+	/**
+	 * Add a new education to the given employee
+	 */
+	public boolean addEducation(int companyId, EducationDetails ed) {
+		boolean status = false;
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
+		try {
+			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).debug("Adding new education for employee" + ed.getEmployeeId());
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call insertEducation(?, ?, ?, ?, ?, ?)}");
+			cstmt.setInt("emp_id_ip", ed.getEmployeeId());
+			cstmt.setString("institute_name_ip", ed.getInstitution());
+			cstmt.setString("certification_ip", ed.getCertification());
+			cstmt.setDate("from_date_ip", UtilHelper.convertJavaDateToSqlDate(ed.getStartDate()));
+			cstmt.setDate("to_date_ip", UtilHelper.convertJavaDateToSqlDate(ed.getEndDate()));
+			cstmt.setString("location_ip", ed.getLocation());
+			ResultSet rs = cstmt.executeQuery();
+			rs.next();
+			if (rs.getBoolean(1)) {
+				status = true;
+				org.apache.log4j.Logger.getLogger(EmployeeHelper.class).debug(
+						"Successfully added a new education for employeeId : " + ed.getEmployeeId());
+			}
+		} catch (SQLException e) {
+			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).error(
+					"Exception while adding a new education for employeeId : " + ed.getEmployeeId());
+		}
+
+		return status;
+	}
+
+	/**
+	 * Add a new language to the given employee
+	 */
+	public boolean addLanguage(int companyId, LanguageDetails ld) {
+		boolean status = false;
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
+		try {
+			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).debug("Adding new language for employee" + ld.getEmployeeId());
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call insertLanguage(?, ?)}");
+			cstmt.setInt("emp_id_ip", ld.getEmployeeId());
+			cstmt.setInt("language_id_ip", ld.getLanguageId());
+			ResultSet rs = cstmt.executeQuery();
+			rs.next();
+			if (rs.getBoolean(1)) {
+				status = true;
+				org.apache.log4j.Logger.getLogger(EmployeeHelper.class).debug(
+						"Successfully added a new language for employeeId : " + ld.getEmployeeId());
+			}
+		} catch (SQLException e) {
+			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).error(
+					"Exception while adding a new language for employeeId : " + ld.getEmployeeId());
+		}
+
+		return status;
+	}
 }
