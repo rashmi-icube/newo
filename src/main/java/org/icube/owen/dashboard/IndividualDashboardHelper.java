@@ -1,14 +1,19 @@
 package org.icube.owen.dashboard;
 
 import java.sql.CallableStatement;
-import java.sql.Connection;
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.icube.owen.ObjectFactory;
@@ -16,7 +21,6 @@ import org.icube.owen.TheBorg;
 import org.icube.owen.employee.Employee;
 import org.icube.owen.explore.ExploreHelper;
 import org.icube.owen.helper.DatabaseConnectionHelper;
-import org.icube.owen.helper.UtilHelper;
 import org.icube.owen.initiative.Initiative;
 import org.icube.owen.initiative.InitiativeHelper;
 import org.icube.owen.initiative.InitiativeList;
@@ -25,7 +29,6 @@ import org.icube.owen.metrics.MetricsList;
 import org.icube.owen.survey.Question;
 import org.icube.owen.survey.Response;
 import org.rosuda.REngine.REXP;
-import org.rosuda.REngine.REXPDouble;
 import org.rosuda.REngine.REXPInteger;
 import org.rosuda.REngine.RList;
 
@@ -129,35 +132,45 @@ public class IndividualDashboardHelper extends TheBorg {
 	 * @param employeeId - Employee Id of the individual who is logged in
 	 * @return A list of ActivityFeed objects
 	 */
-	//TODO : Hpatel give neo query and stored proc
+	
 	public List<ActivityFeed> getActivityFeedList(int companyId, int employeeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
 		List<ActivityFeed> result = new ArrayList<>();
-		List<Initiative> il = new ArrayList<>();
 		org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Get ActivityFeed list");
 		try {
-			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getActivityFeed(?)}");
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getAppreciationActivity(?)}");
 			cstmt.setInt(1, employeeId);
 			ResultSet rs = cstmt.executeQuery();
-			String initiativeListQuery = "";
+			String initiativeListQuery = "MATCH (i:Init {Status:'Active'})<-[:owner_of]-(e:Employee {emp_id:" + employeeId
+					+ "}) return i.Name as Name ,i.CreatedOn as CreatedOn";
 			ResultSet res = dch.neo4jCon.createStatement().executeQuery(initiativeListQuery);
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Executed query for retrieving initiative list");
 			while (res.next()) {
-				Initiative i = new Initiative();
-				i.setInitiativeName(res.getString("Name"));
-				il.add(i);
+				ActivityFeed afini = new ActivityFeed();
+				afini.setActivityType("Initiative");
+				afini.setHeaderText("Initiative created");
+				afini.setBodyText("You were added to the " + res.getString("Name") + " initiative");
+				SimpleDateFormat parserSDF = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzzz yyyy", Locale.ENGLISH);
+				afini.setDate(parserSDF.parse(res.getString("CreatedOn")));
+				result.add(afini);
 			}
 			while (rs.next()) {
-				ActivityFeed af = new ActivityFeed();
-				af.setHeaderText("Appreciation received");
-				af.setBodyText("You were appreciated for" + rs.getString("metrics"));
-				af.setActivityType("Appreciation");
-				af.setDate(rs.getDate("response_date"));
-				result.add(af);
+				ActivityFeed afapp = new ActivityFeed();
+				afapp.setHeaderText("Appreciation received");
+				afapp.setBodyText("You were appreciated for " + rs.getString("metric_name"));
+				afapp.setActivityType("Appreciation");
+				afapp.setDate(rs.getTimestamp("response_time"));
+				result.add(afapp);
 			}
 
-		} catch (SQLException e) {
+			Collections.sort(result, new Comparator<ActivityFeed>() {
+				public int compare(ActivityFeed af1, ActivityFeed af2) {
+					return af1.getDate().compareTo(af2.getDate());
+				}
+			});
+
+		} catch (SQLException | ParseException e) {
 			org.apache.log4j.Logger.getLogger(ExploreHelper.class).error("Exception while retrieving the activity feed data", e);
 		}
 
@@ -226,14 +239,14 @@ public class IndividualDashboardHelper extends TheBorg {
 	}
 
 	/**
-	 * Saves the appreciation result
-	 * @param appreciationResponseMap - Map of employee objects and their corresponding ranking
+	 * Saves the Appreciation response
+	 * @param appreciationResponseMap - Map of employee object and ranking
 	 * @param companyId - Company Id of the employee who is logged in
-	 * @return - true/false depending on if the response has been saved or not
+	 * @param employeeId - Company Id of the employee who is logged in
+	 * @param metricId
+	 * @return true/false
 	 */
-	
-	//TODO : Hpatel give neo query and stored proc
-	public boolean saveAppreciation(Map<Employee, Integer> appreciationResponseMap, int companyId, int employeeId,int metricId) {
+	public boolean saveAppreciation(Map<Employee, Integer> appreciationResponseMap, int companyId, int employeeId, int metricId) {
 		boolean responseSaved = false;
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
@@ -242,19 +255,19 @@ public class IndividualDashboardHelper extends TheBorg {
 			for (Employee e : appreciationResponseMap.keySet()) {
 				CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call insertAppreciation(?,?,?,?,?)}");
 				cstmt.setInt(1, employeeId);
-				cstmt.setDate(2, UtilHelper.convertJavaDateToSqlDate(Date.from(Instant.now())));
+				cstmt.setTimestamp(2, Timestamp.from(Instant.now()));
 				cstmt.setInt(3, e.getEmployeeId());
 				cstmt.setInt(4, MetricRelationshipTypeMap.get(metricId));
 				cstmt.setInt(5, appreciationResponseMap.get(e));
 				ResultSet rs = cstmt.executeQuery();
 				rs.next();
-				if(rs.getString(1) == "true"){
+				if (rs.getString("op").equalsIgnoreCase("true")) {
 					responseSaved = true;
 					org.apache.log4j.Logger.getLogger(Response.class).debug("Successfully saved the response ");
-				}else {
+				} else {
 					org.apache.log4j.Logger.getLogger(Response.class).debug("Error in saving the response ");
 				}
-			
+
 			}
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(Response.class).error("Exception while saving the response ", e);
@@ -275,22 +288,22 @@ public class IndividualDashboardHelper extends TheBorg {
 		boolean passwordChanged = false;
 		try {
 			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call updateEmployeePassword(?,?,?)}");
-			cstmt.setInt(1,employeeId);
-			cstmt.setString(2,currentPassword);
-			cstmt.setString(3,newPassword);
-			
+			cstmt.setInt(1, employeeId);
+			cstmt.setString(2, currentPassword);
+			cstmt.setString(3, newPassword);
+
 			ResultSet rs = cstmt.executeQuery();
 			rs.next();
-			if (rs.getBoolean(1)){
+			if (rs.getBoolean(1)) {
 				passwordChanged = true;
-			}else {
+			} else {
 				org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Invalid username/password");
 				throw new Exception("Invalid credentials!!!");
 			}
-		
-	}catch (Exception e) {
-		org.apache.log4j.Logger.getLogger(Response.class).error("Exception while validating password ", e);
-	}
+
+		} catch (Exception e) {
+			org.apache.log4j.Logger.getLogger(Response.class).error("Exception while validating password ", e);
+		}
 		return passwordChanged;
-}
+	}
 }

@@ -1,6 +1,7 @@
 package org.icube.owen.test.initiative;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -50,41 +51,41 @@ public class InitiativeTest {
         f2.setFilterValues(filterValuesMap2);
         filterList.add(f2);
 
-		initiative.setInitiativeProperties("1Individual", 1, "Individual", Date.from(Instant.now()), Date.from(Instant.now()),
+		initiative.setInitiativeProperties("1Individual", 1, "Individual", Date.from(Instant.now()), Date.from(Instant.now()),Date.from(Instant.now()),
 				"You are owners of the initiative", null, ownerOfList, partOfEmployeeList);
 		initiative.create();
-		initiative.setInitiativeProperties("1Team", 6, "Team", Date.from(Instant.now()), Date.from(Instant.now()),
+		initiative.setInitiativeProperties("1Team", 6, "Team", Date.from(Instant.now()), Date.from(Instant.now()),Date.from(Instant.now()),
 				"You are owners of the initiative", filterList, ownerOfList, null);
 		initiative.create();
-		initiative.setInitiativeProperties("3Individual", 3, "Individual", Date.from(Instant.now()), Date.from(Instant.now()),
-				"You are owners of the initiative", null, ownerOfList, partOfEmployeeList);
-		initiative.create();
-
-		initiative.setInitiativeProperties("4Individual", 4, "Individual", Date.from(Instant.now()), Date.from(Instant.now()),
+		initiative.setInitiativeProperties("3Individual", 3, "Individual", Date.from(Instant.now()), Date.from(Instant.now()),Date.from(Instant.now()),
 				"You are owners of the initiative", null, ownerOfList, partOfEmployeeList);
 		initiative.create();
 
-		initiative.setInitiativeProperties("5Individual", 5, "Individual", Date.from(Instant.now()), Date.from(Instant.now()),
+		initiative.setInitiativeProperties("4Individual", 4, "Individual", Date.from(Instant.now()), Date.from(Instant.now()),Date.from(Instant.now()),
 				"You are owners of the initiative", null, ownerOfList, partOfEmployeeList);
 		initiative.create();
 
-		initiative.setInitiativeProperties("1Team", 6, "Team", Date.from(Instant.now()), Date.from(Instant.now()),
+		initiative.setInitiativeProperties("5Individual", 5, "Individual", Date.from(Instant.now()), Date.from(Instant.now()),Date.from(Instant.now()),
+				"You are owners of the initiative", null, ownerOfList, partOfEmployeeList);
+		initiative.create();
+
+		initiative.setInitiativeProperties("1Team", 6, "Team", Date.from(Instant.now()), Date.from(Instant.now()),Date.from(Instant.now()),
 				"You are owners of the initiative", filterList, ownerOfList, null);
 		initiative.create();
 
-		initiative.setInitiativeProperties("2Team", 7, "Team", Date.from(Instant.now()), Date.from(Instant.now()),
+		initiative.setInitiativeProperties("2Team", 7, "Team", Date.from(Instant.now()), Date.from(Instant.now()),Date.from(Instant.now()),
 				"You are owners of the initiative", filterList, ownerOfList, null);
 		initiative.create();
 
-		initiative.setInitiativeProperties("3Team", 8, "Team", Date.from(Instant.now()), Date.from(Instant.now()),
+		initiative.setInitiativeProperties("3Team", 8, "Team", Date.from(Instant.now()), Date.from(Instant.now()),Date.from(Instant.now()),
 				"You are owners of the initiative", filterList, ownerOfList, null);
 		initiative.create();
 
-		initiative.setInitiativeProperties("4Team", 9, "Team", Date.from(Instant.now()), Date.from(Instant.now()),
+		initiative.setInitiativeProperties("4Team", 9, "Team", Date.from(Instant.now()), Date.from(Instant.now()),Date.from(Instant.now()),
 				"You are owners of the initiative", filterList, ownerOfList, null);
 		initiative.create();
 
-		initiative.setInitiativeProperties("5Team", 10, "Team", Date.from(Instant.now()), Date.from(Instant.now()),
+		initiative.setInitiativeProperties("5Team", 10, "Team", Date.from(Instant.now()), Date.from(Instant.now()),Date.from(Instant.now()),
 				"You are owners of the initiative", filterList, ownerOfList, null);
 		initiative.create();
 		
@@ -101,8 +102,7 @@ public class InitiativeTest {
 	
 	@Test
 	public void testGetInitiativeTypeMap(){
-		Map<Integer, String> initiativeTypeMap = new HashMap<>();
-		initiativeTypeMap = initiative.getInitiativeTypeMap("Individual");
+		 Map<Integer, String> initiativeTypeMap = initiative.getInitiativeTypeMap("Individual");
 	}
 	
 	@Test

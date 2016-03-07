@@ -2,11 +2,11 @@ package org.icube.owen.survey;
 
 import java.sql.CallableStatement;
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,7 +19,6 @@ import org.icube.owen.helper.DatabaseConnectionHelper;
 import org.icube.owen.helper.UtilHelper;
 import org.icube.owen.metrics.MetricsList;
 import org.rosuda.REngine.REXP;
-import org.rosuda.REngine.REXPDouble;
 import org.rosuda.REngine.REXPInteger;
 import org.rosuda.REngine.RList;
 
@@ -160,7 +159,8 @@ public class Question extends TheBorg {
 			ResultSet rs = cstmt.executeQuery();
 			if (rs.next()) {
 				while (rs.next()) {
-					responseMap.put(rs.getDate("date"), rs.getInt("responses"));
+					java.util.Date utilDate = new java.util.Date(rs.getDate("date").getTime());
+					responseMap.put(utilDate, rs.getInt("responses"));
 				}
 			} else {
 				for (Date d = q.getStartDate(); d.before(Date.from(Instant.now())); d = UtilHelper.convertJavaDateToSqlDate(DateUtils.addDays(d, 1))) {
@@ -210,8 +210,8 @@ public class Question extends TheBorg {
 			conn = dch.getCompanyConnection(companyId);
 			CallableStatement cstmt = conn.prepareCall("{call getEmpQuestionList(?,?)}");
 			cstmt.setInt(1, employeeId);
-			Date date = UtilHelper.convertJavaDateToSqlDate(Date.from(Instant.now()));
-			cstmt.setDate(2, date);
+			Date date = Date.from(Instant.now());
+			cstmt.setDate(2, (java.sql.Date) (date));
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
 				Question q = new Question();

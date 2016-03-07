@@ -26,6 +26,7 @@ public class Initiative extends TheBorg {
 	private String initiativeStatus = "";
 	private Date initiativeStartDate;
 	private Date initiativeEndDate;
+	private Date initiativeCreationDate;
 	private String initiativeComment = "";
 	private List<Filter> filterList;
 	private List<Employee> ownerOfList;
@@ -47,13 +48,14 @@ public class Initiative extends TheBorg {
 	 * @param partOfEmployeeList - applicable only for individual initiative should be null for team initiative list of employees for whom the initiative has been created
 	 */
 	public void setInitiativeProperties(String initiativeName, int initiativeTypeId, String initiativeCategory, Date initiativeStartDate,
-			Date initiativeEndDate, String initiativeComment, List<Filter> filterList, List<Employee> ownerOfList, List<Employee> partOfEmployeeList) {
+			Date initiativeEndDate, Date initiativeCreationDate, String initiativeComment, List<Filter> filterList, List<Employee> ownerOfList, List<Employee> partOfEmployeeList) {
 		org.apache.log4j.Logger.getLogger(Initiative.class).debug("Setting initiative properties");
 		this.initiativeName = initiativeName;
 		this.initiativeTypeId = initiativeTypeId;
 		this.initiativeCategory = initiativeCategory;
 		this.initiativeStartDate = initiativeStartDate;
 		this.initiativeEndDate = initiativeEndDate;
+		this.initiativeCreationDate = initiativeCreationDate;
 		this.initiativeComment = initiativeComment;
 		this.filterList = filterList;
 		this.ownerOfList = ownerOfList;
@@ -74,7 +76,7 @@ public class Initiative extends TheBorg {
 			String createInitQuery = "match (i:Init)  with CASE count(i) WHEN 0  THEN 1 ELSE max(i.Id)+1 END as uid "
 					+ "CREATE (i:Init {Id:uid,Status:'" + checkInitiativeStatus(initiativeStartDate) + "',Name:'" + initiativeName + "',Type:"
 					+ initiativeTypeId + ", Category:'" + initiativeCategory + "',StartDate:'" + initiativeStartDate.toString() + "',EndDate:'"
-					+ initiativeEndDate.toString() + "',Comment:'" + initiativeComment + "'}) return i.Id as Id";
+					+ initiativeEndDate.toString() + "',CreatedOn:'" + initiativeCreationDate.toString() + "',Comment:'" + initiativeComment + "'}) return i.Id as Id";
 
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Create initiative query : " + createInitQuery);
 			ResultSet res = dch.neo4jCon.createStatement().executeQuery(createInitQuery);
@@ -249,7 +251,6 @@ public class Initiative extends TheBorg {
 	 * @return initiative object 
 	 */
 	public Initiative get(int initiativeId) {
-		InitiativeHelper ih = new InitiativeHelper();
 		org.apache.log4j.Logger.getLogger(Initiative.class).debug("Retrieving the initiative with initiative ID " + initiativeId);
 
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
@@ -260,7 +261,7 @@ public class Initiative extends TheBorg {
 			String query = "match (o:Employee)-[:owner_of]->(i:Init{Id:"
 					+ initiativeId
 					+ "})<-[r:part_of]-(a) return i.Name as Name,"
-					+ "i.StartDate as StartDate, i.EndDate as EndDate, i.Id as Id,case i.Category when 'Individual' then collect(distinct(a.emp_id)) "
+					+ "i.StartDate as StartDate, i.EndDate as EndDate,i.CreatedOn as CreationDate, i.Id as Id,case i.Category when 'Individual' then collect(distinct(a.emp_id)) "
 					+ "else collect(distinct(a.Id))  end as PartOfID,collect(distinct(a.Name))as PartOfName, labels(a) as Filters, "
 					+ "collect(distinct (o.emp_id)) as OwnersOf,i.Comment as Comments,i.Type as Type,i.Category as Category,i.Status as Status";
 			org.apache.log4j.Logger.getLogger(Initiative.class).error("Query : " + query);
@@ -338,13 +339,13 @@ public class Initiative extends TheBorg {
 			dch.neo4jCon.createStatement().executeQuery(ownersOfQuery);
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Ownersof list deleted from initiative " + updatedInitiative.initiativeId);
 			updatedInitiative.setOwner(updatedInitiativeId, updatedOwnerOfList);
-			String query = "match(a:Init {Id:" + updatedInitiativeId + "}) set a.Name = '" + updatedInitiative.getInitiativeName().toString()
+			String query = "match(a:Init {Id:" + updatedInitiativeId + "}) set a.CreatedOn = '" + updatedInitiative.getInitiativeCreationDate().toString() + "', a.Name = '" + updatedInitiative.getInitiativeName().toString()
 					+ "',a.Status = '" + checkInitiativeStatus(updatedInitiative.getInitiativeStartDate()) + "'," + "a.Type = '"
 					+ updatedInitiative.getInitiativeTypeId() + "',a.Category = '" + updatedInitiative.getInitiativeCategory() + "',"
 					+ "a.Comment = '" + updatedInitiative.getInitiativeComment().toString() + "',a.EndDate = '"
 					+ updatedInitiative.getInitiativeEndDate().toString() + "'," + "a.StartDate = '"
 					+ updatedInitiative.getInitiativeStartDate().toString() + "' return a.Name as Name, " + "a.Type as Type,a.Category as Category, "
-					+ "a.Status as Status,a.Comment as Comment,a.EndDate as endDate,a.StartDate as StartDate";
+					+ "a.Status as Status,a.Comment as Comment,a.EndDate as endDate,a.StartDate as StartDate,a.CreatedOn as CreationDate";
 			dch.neo4jCon.createStatement().executeQuery(query);
 			status = true;
 
@@ -491,5 +492,13 @@ public class Initiative extends TheBorg {
 	 */
 	public void setInitiativeMetrics(List<Metrics> initiativeMetrics) {
 		this.initiativeMetrics = initiativeMetrics;
+	}
+
+	public Date getInitiativeCreationDate() {
+		return initiativeCreationDate;
+	}
+
+	public void setInitiativeCreationDate(Date initiativeCreationDate) {
+		this.initiativeCreationDate = initiativeCreationDate;
 	}
 }
