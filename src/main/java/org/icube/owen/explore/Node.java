@@ -1,6 +1,5 @@
 package org.icube.owen.explore;
 
-
 public class Node {
 
 	private int employee_id;
@@ -75,5 +74,5 @@ public class Node {
 	public void setConnectedness(int connectedness) {
 		this.connectedness = connectedness;
 	}
-	
-	}
+
+}

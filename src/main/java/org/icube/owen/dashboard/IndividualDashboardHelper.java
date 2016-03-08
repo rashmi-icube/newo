@@ -132,7 +132,7 @@ public class IndividualDashboardHelper extends TheBorg {
 	 * @param employeeId - Employee Id of the individual who is logged in
 	 * @return A list of ActivityFeed objects
 	 */
-	
+
 	public List<ActivityFeed> getActivityFeedList(int companyId, int employeeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);

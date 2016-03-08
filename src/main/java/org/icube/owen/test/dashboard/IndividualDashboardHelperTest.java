@@ -14,29 +14,27 @@ import org.icube.owen.dashboard.IndividualDashboardHelper;
 import org.icube.owen.employee.Employee;
 import org.icube.owen.initiative.Initiative;
 import org.icube.owen.metrics.Metrics;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class IndividualDashboardHelperTest {
 	IndividualDashboardHelper idh = (IndividualDashboardHelper) ObjectFactory.getInstance("org.icube.owen.dashboard.IndividualDashboardHelper");
 
 	@Test
-	public void testGetActivityFeedList(){
+	public void testGetActivityFeedList() {
 		List<ActivityFeed> afl = idh.getActivityFeedList(1, 208);
-		for(ActivityFeed af : afl){
+		for (ActivityFeed af : afl) {
 			assertNotNull(af.getActivityType());
 			assertNotNull(af.getBodyText());
 			assertNotNull(af.getDate());
 			System.out.println(af.getDate());
 			assertNotNull(af.getHeaderText());
 		}
-		
+
 	}
-	
-	
-	@Ignore
+
+	@Test
 	public void testGetIndividualMetrics() {
-		List<Metrics> metricsList = idh.getIndividualMetrics(1,1);
+		List<Metrics> metricsList = idh.getIndividualMetrics(1, 1);
 		for (Metrics m : metricsList) {
 			assertNotNull(m.getName());
 			assertNotNull(m.getScore());
@@ -44,33 +42,33 @@ public class IndividualDashboardHelperTest {
 
 	}
 
-	@Ignore
+	@Test
 	public void testGetIndividualMetricsTimeSeries() {
 		Map<Integer, List<Map<java.sql.Date, Integer>>> metricsListMap = idh.getIndividualMetricsTimeSeries(1);
-		for (int i = 1; i<= metricsListMap.keySet().size();i++) {
+		for (int i = 1; i <= metricsListMap.keySet().size(); i++) {
 			assertTrue(!metricsListMap.keySet().isEmpty());
 		}
 	}
-	
-	@Ignore
-	public void testIndividualInitiativeList(){
+
+	@Test
+	public void testIndividualInitiativeList() {
 		List<Initiative> initiativeList = new ArrayList<>();
 		initiativeList = idh.individualInitiativeList(208);
-		for (Initiative i : initiativeList){
+		for (Initiative i : initiativeList) {
 			assertNotNull(i.get(i.getInitiativeId()));
 		}
 	}
-	
-	@Ignore
-	public void testGetSmartList(){
+
+	@Test
+	public void testGetSmartList() {
 		Map<Integer, Employee> employeeScoreMap = idh.getSmartList(1, 1);
 		assertNotNull(employeeScoreMap);
-		
+
 	}
-	
-	@Ignore
-	public void testSaveAppreciation(){
-		Map<Employee,Integer> appreciationResponseMap = new HashMap<>();
+
+	@Test
+	public void testSaveAppreciation() {
+		Map<Employee, Integer> appreciationResponseMap = new HashMap<>();
 		Employee e = new Employee();
 		appreciationResponseMap.put(e.get(1), 5);
 		appreciationResponseMap.put(e.get(2), 6);
@@ -79,11 +77,11 @@ public class IndividualDashboardHelperTest {
 		appreciationResponseMap.put(e.get(5), 9);
 		boolean status = idh.saveAppreciation(appreciationResponseMap, 1, 1, 1);
 		assertTrue(status);
-	 
+
 	}
-	
-	@Ignore
-	public void testChangePassword(){
+
+	@Test
+	public void testChangePassword() {
 		boolean status = idh.changePassword("abc123", "myNewPassword123", 1, 3);
 		assertTrue(status);
 	}
