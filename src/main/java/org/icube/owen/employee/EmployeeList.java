@@ -271,7 +271,7 @@ public class EmployeeList extends TheBorg {
 	/**
 	 * Retrieves the employee list based on the dimension provided 
 	 * 
-	 * @return map<rank, employee object> - view of the employee list should be sorted by the rank
+	 * @return map[rank, employee object] - view of the employee list should be sorted by the rank
 	 */
 	public Map<Integer, Employee> getEmployeeListByFilters(int companyId, List<Filter> filterList) {
 

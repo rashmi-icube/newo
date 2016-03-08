@@ -124,7 +124,8 @@ public class Employee extends TheBorg {
 
 	/**
 	 * Get the image of an employee
-	 * 
+	 * @param companyId - companyId
+	 * @param employeeId - employeeId
 	 * @return image object
 	 */
 	public Image getImage(int companyId, int employeeId) {
@@ -148,6 +149,9 @@ public class Employee extends TheBorg {
 
 	/**
 	 * Save the image of the given employee in a pre-defined format
+	 * @param companyId - companyId
+	 * @param employeeId - employeeId of the given employee
+	 * @param image - Image object
 	 * @return boolean value if the image is stored or not
 	 */
 	public boolean saveImage(int companyId, int employeeId, Image image) {

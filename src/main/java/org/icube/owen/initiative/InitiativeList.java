@@ -164,7 +164,7 @@ public class InitiativeList extends TheBorg {
 	}
 
 	/**
-	 * @param resultMap- A map containing the Initiative attributes and connections
+	 * @param res- A map containing the Initiative attributes and connections
 	 * @param i - An Initiative object
 	 */
 	public void setInitiativeValues(ResultSet res, Initiative i) {
