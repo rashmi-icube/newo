@@ -1,6 +1,6 @@
 package org.icube.owen.metrics;
 
-import java.sql.Date;
+import java.util.Date;
 
 import org.icube.owen.TheBorg;
 

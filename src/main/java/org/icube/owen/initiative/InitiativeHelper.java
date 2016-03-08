@@ -28,7 +28,7 @@ public class InitiativeHelper extends TheBorg {
 	@SuppressWarnings("unchecked")
 	public List<Filter> setPartOfConnections(ResultSet res, Initiative i) throws SQLException {
 		List<Filter> existingFilterList = (i.getFilterList() == null ? new ArrayList<>() : i.getFilterList());
-		org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Setting part of connections");
+		org.apache.log4j.Logger.getLogger(InitiativeHelper.class).debug("Setting part of connections");
 		FilterList fl = new FilterList();
 		Filter f = new Filter();
 		Map<Integer, String> filterLabelMap = fl.getFilterLabelMap();
@@ -102,7 +102,7 @@ public class InitiativeHelper extends TheBorg {
 	@SuppressWarnings("unchecked")
 	public List<Employee> setPartOfEmployeeList(ResultSet res, Initiative i) throws SQLException {
 		List<Employee> existingEmployeeList = (i.getPartOfEmployeeList() == null ? new ArrayList<>() : i.getPartOfEmployeeList());
-		org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Setting part of employee list");
+		org.apache.log4j.Logger.getLogger(InitiativeHelper.class).debug("Setting part of employee list");
 		List<Integer> employeeIdList = new ArrayList<>();
 		employeeIdList = (List<Integer>) res.getObject("PartOfID");
 		for (int employeeId : employeeIdList) {

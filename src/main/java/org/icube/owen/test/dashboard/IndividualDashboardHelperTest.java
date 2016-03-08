@@ -4,6 +4,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,7 +45,7 @@ public class IndividualDashboardHelperTest {
 
 	@Test
 	public void testGetIndividualMetricsTimeSeries() {
-		Map<Integer, List<Map<java.sql.Date, Integer>>> metricsListMap = idh.getIndividualMetricsTimeSeries(1);
+		Map<Integer, List<Map<Date, Integer>>> metricsListMap = idh.getIndividualMetricsTimeSeries(1);
 		for (int i = 1; i <= metricsListMap.keySet().size(); i++) {
 			assertTrue(!metricsListMap.keySet().isEmpty());
 		}

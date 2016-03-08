@@ -3,7 +3,6 @@ package org.icube.owen.test.survey;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-//import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;

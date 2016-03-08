@@ -13,7 +13,6 @@ import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
 import org.icube.owen.filter.Filter;
 import org.icube.owen.helper.DatabaseConnectionHelper;
-import org.icube.owen.survey.Question;
 
 public class EmployeeList extends TheBorg {
 
@@ -302,7 +301,7 @@ public class EmployeeList extends TheBorg {
 				employeeScoreMap.put(count++, e.get(rs.getInt("emp_id")));
 			}
 		} catch (SQLException e1) {
-			org.apache.log4j.Logger.getLogger(Question.class).error("Exception while retrieving the employee list based on dimension", e1);
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).error("Exception while retrieving the employee list based on dimension", e1);
 		}
 
 		return employeeScoreMap;
