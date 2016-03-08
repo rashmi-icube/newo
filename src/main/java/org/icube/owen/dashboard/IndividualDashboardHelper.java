@@ -61,12 +61,13 @@ public class IndividualDashboardHelper extends TheBorg {
 	 * @param employeeId - Employee Id of the individual who is logged in
 	 * @return Time series data to be displayed
 	 */
-	public Map<Integer, List<Map<Date, Integer>>> getIndividualMetricsTimeSeries(int employeeId) {
+	public Map<Integer, List<Map<Date, Integer>>> getIndividualMetricsTimeSeries(int companyId, int employeeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
 		ExploreHelper eh = new ExploreHelper();
 		Map<Integer, List<Map<Date, Integer>>> metricsListMap = new HashMap<>();
 		try {
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getIndividualMetricTimeSeriesForIndividual(?)}");
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getIndividualMetricTimeSeriesForIndividual(?)}");
 			cstmt.setInt(1, employeeId);
 			ResultSet rs = cstmt.executeQuery();
 			metricsListMap = eh.getTimeSeriesMap(rs);
@@ -93,7 +94,7 @@ public class IndividualDashboardHelper extends TheBorg {
 			String initiativeListQuery = "match(i:Init {Status:'Active'})<-[r:owner_of]-(e:Employee {emp_id:"
 					+ employeeId
 					+ "}) with i as ini match (o:Employee)-[:owner_of]->(i:Init)<-[r:part_of]-(a)"
-					+ " where i=ini return i.Name as Name,i.StartDate as StartDate, i.EndDate as EndDate, "
+					+ " where i=ini return i.Name as Name,i.StartDate as StartDate, i.EndDate as EndDate, i.CreatedOn as CreationDate,"
 					+ "i.Id as Id,case i.Category when 'Individual' then collect(distinct(a.emp_id)) else collect(distinct(a.Id))  end as PartOfID,collect(distinct(a.Name))as PartOfName, "
 					+ "labels(a) as Filters,collect(distinct (o.emp_id)) as OwnersOf,i.Comment as Comments,i.Type as Type,i.Category as Category,i.Status as Status;";
 
@@ -175,11 +176,12 @@ public class IndividualDashboardHelper extends TheBorg {
 		return result;
 	}
 
-	private Map<Integer, Integer> getMetricRelationshipTypeMapping() {
+	private Map<Integer, Integer> getMetricRelationshipTypeMapping(int companyId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
 		Map<Integer, Integer> result = new HashMap<>();
 		try {
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getMetricRelationshipType()}");
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getMetricRelationshipType()}");
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
 				result.put(rs.getInt("metric_id"), rs.getInt("rel_id"));
@@ -201,7 +203,7 @@ public class IndividualDashboardHelper extends TheBorg {
 	public Map<Integer, Employee> getSmartList(int employeeId, int metricId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Map<Integer, Employee> employeeScoreMap = new HashMap<>();
-		Map<Integer, Integer> MetricRelationshipTypeMap = getMetricRelationshipTypeMapping();
+		Map<Integer, Integer> MetricRelationshipTypeMap = getMetricRelationshipTypeMapping(1);
 		try {
 			String s = "source(\"metric.r\")";
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("R Path for eval " + s);
@@ -246,11 +248,11 @@ public class IndividualDashboardHelper extends TheBorg {
 	 * @param metricId
 	 * @return true/false
 	 */
-	public boolean saveAppreciation(Map<Employee, Integer> appreciationResponseMap, int companyId, int employeeId, int metricId) {
+	public boolean saveAppreciation(int companyId, int employeeId, int metricId, Map<Employee, Integer> appreciationResponseMap) {
 		boolean responseSaved = false;
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
-		Map<Integer, Integer> metricRelationshipTypeMap = getMetricRelationshipTypeMapping();
+		Map<Integer, Integer> metricRelationshipTypeMap = getMetricRelationshipTypeMapping(companyId);
 		try {
 			for (Employee e : appreciationResponseMap.keySet()) {
 				CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call insertAppreciation(?,?,?,?,?)}");
@@ -282,7 +284,7 @@ public class IndividualDashboardHelper extends TheBorg {
 	 * @param newPassword
 	 * @return true/false 
 	 */
-	public boolean changePassword(String currentPassword, String newPassword, int companyId, int employeeId) {
+	public boolean changePassword(int companyId, int employeeId, String currentPassword, String newPassword) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
 		boolean passwordChanged = false;

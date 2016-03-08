@@ -45,7 +45,7 @@ public class IndividualDashboardHelperTest {
 
 	@Test
 	public void testGetIndividualMetricsTimeSeries() {
-		Map<Integer, List<Map<Date, Integer>>> metricsListMap = idh.getIndividualMetricsTimeSeries(1);
+		Map<Integer, List<Map<Date, Integer>>> metricsListMap = idh.getIndividualMetricsTimeSeries(1, 1);
 		for (int i = 1; i <= metricsListMap.keySet().size(); i++) {
 			assertTrue(!metricsListMap.keySet().isEmpty());
 		}
@@ -76,14 +76,14 @@ public class IndividualDashboardHelperTest {
 		appreciationResponseMap.put(e.get(3), 7);
 		appreciationResponseMap.put(e.get(4), 8);
 		appreciationResponseMap.put(e.get(5), 9);
-		boolean status = idh.saveAppreciation(appreciationResponseMap, 1, 1, 1);
+		boolean status = idh.saveAppreciation(1, 1, 1, appreciationResponseMap);
 		assertTrue(status);
 
 	}
 
 	@Test
 	public void testChangePassword() {
-		boolean status = idh.changePassword("abc123", "myNewPassword123", 1, 3);
+		boolean status = idh.changePassword(1, 3, "myNewPassword123", "abc123");
 		assertTrue(status);
 	}
 }
