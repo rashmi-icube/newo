@@ -83,7 +83,7 @@ public class IndividualDashboardHelperTest {
 
 	@Test
 	public void testChangePassword() {
-		boolean status = idh.changePassword(1, 3, "myNewPassword123", "abc123");
+		boolean status = idh.changePassword(1, 3, "abc123", "fcjdrnf345");
 		assertTrue(status);
 	}
 }

@@ -128,7 +128,7 @@ public class IndividualDashboardHelper extends TheBorg {
 
 	/**
 	 * Retrieves the Activity Feed for the employee
-	 * @param employeeId - Employee Id of the individual who is logged in
+	 * @param employeeId - Employee Id of the individual who is logged in (pass employeeId = 208 for testing)
 	 * @return A list of ActivityFeed objects
 	 */
 
@@ -196,7 +196,7 @@ public class IndividualDashboardHelper extends TheBorg {
 
 	/**
 	 * Retrieves the smart list of employees 
-	 * @param employeeId - Employee Id of the individual who is logged in
+	 * @param employeeId - Employee Id of the individual who is logged in 
 	 * @param metricId - Metric Id of the selected Metric
 	 * @return - A map of ranking and Employee object
 	 */
