@@ -77,19 +77,19 @@ public class EmployeeHelperTest {
 
 	@Test
 	public void testRemoveWorkExperience() {
-		boolean status = eh.removeWorkExperience(1, 2);
+		boolean status = eh.removeWorkExperience(1, 5);
 		assertTrue(status);
 	}
 
 	@Test
 	public void testRemoveEducation() {
-		boolean status = eh.removeEducation(1, 2);
+		boolean status = eh.removeEducation(1, 5);
 		assertTrue(status);
 	}
 
 	@Test
 	public void testRemoveLanguage() {
-		boolean status = eh.removeLanguage(1, 2);
+		boolean status = eh.removeLanguage(1, 5);
 		assertTrue(status);
 	}
 
