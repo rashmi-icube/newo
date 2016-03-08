@@ -3,7 +3,6 @@ package org.icube.owen.survey;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
-import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
@@ -28,7 +27,7 @@ public class Response extends TheBorg {
 			CallableStatement cstmt = conn.prepareCall("{call insertMeResponse(?,?,?,?,?,?)}");
 			cstmt.setInt(1, employeeId);
 			cstmt.setInt(2, q.getQuestionId());
-			cstmt.setDate(3, UtilHelper.convertJavaDateToSqlDate(Date.from(Instant.now())));
+			cstmt.setTimestamp(3, UtilHelper.convertJavaDateToSqlTimestamp(Date.from(Instant.now())));
 			cstmt.setInt(4, responseValue);
 			cstmt.setInt(5, q.getRelationshipTypeId());
 			cstmt.setString(6, feedback);
@@ -59,7 +58,7 @@ public class Response extends TheBorg {
 				CallableStatement cstmt = conn.prepareCall("{call insertWeResponse(?,?,?,?,?,?)}");
 				cstmt.setInt(1, employeeId);
 				cstmt.setInt(2, q.getQuestionId());
-				cstmt.setTimestamp(3, Timestamp.from(Instant.now()));
+				cstmt.setTimestamp(3, UtilHelper.convertJavaDateToSqlTimestamp(Date.from(Instant.now())));
 				cstmt.setInt(4, e.getEmployeeId());
 				cstmt.setInt(5, q.getRelationshipTypeId());
 				cstmt.setInt(6, employeeRating.get(e));

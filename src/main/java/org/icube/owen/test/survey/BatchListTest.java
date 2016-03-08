@@ -28,7 +28,7 @@ public class BatchListTest {
 
 	@Test
 	public void testChangeFrequency() {
-		assertTrue(bl.changeFrequency(bl.getBatchList().get(0), Frequency.QUARTERLY));
+		assertTrue(bl.changeFrequency(bl.getBatchList().get(0), Frequency.MONTHLY));
 	}
 
 }
