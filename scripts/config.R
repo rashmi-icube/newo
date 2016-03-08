@@ -1,11 +1,11 @@
 
-mysqlusername='icube'
+mysqlusername='root'
 
-mysqlpasswod="icube123"
+mysqlpasswod=""
 
 mysqldbname='owen'
 
-mysqlhost="192.168.1.6"
+mysqlhost="127.0.0.1"
 
 mysqlport=3306
 

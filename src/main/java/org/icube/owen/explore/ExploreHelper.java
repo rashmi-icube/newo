@@ -39,13 +39,13 @@ public class ExploreHelper extends TheBorg {
 					// if all selections are ALL then it is a organizational team metric
 					CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getOrganizationMetricValue()}");
 					ResultSet rs = cstmt.executeQuery();
-					metricList = fillMetricsData(rs);
+					metricList = fillMetricsData(rs, "Team");
 				} else if (countAll == 2) {
 					// if two of the filters are ALL then it is a dimension metric
 					CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getDimensionMetricValue(?)}");
 					cstmt.setInt(1, dimensionValueId);
 					ResultSet rs = cstmt.executeQuery();
-					metricList = fillMetricsData(rs);
+					metricList = fillMetricsData(rs, "Team");
 				} else if (countAll == 0) {
 					// if none of the filters is ALL then it is a cube metric
 					CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getTeamMetricValue(?, ?, ?)}");
@@ -53,7 +53,7 @@ public class ExploreHelper extends TheBorg {
 					cstmt.setInt(2, posId);
 					cstmt.setInt(3, zoneId);
 					ResultSet rs = cstmt.executeQuery();
-					metricList = fillMetricsData(rs);
+					metricList = fillMetricsData(rs, "Team");
 
 				} else {
 					// else call metric.R
@@ -80,7 +80,7 @@ public class ExploreHelper extends TheBorg {
 		Map<String, Map<Integer, List<Map<Date, Integer>>>> result = new HashMap<>();
 
 		for (String teamName : teamListMap.keySet()) {
-			Map<Integer, List<Map<Date, Integer>>> metricsList = new HashMap<>();
+			Map<Integer, List<Map<Date, Integer>>> timeSeriesMap = new HashMap<>();
 			List<Filter> filterList = teamListMap.get(teamName);
 			parseTeamMap(filterList);
 			try {
@@ -88,14 +88,14 @@ public class ExploreHelper extends TheBorg {
 					// if all selections are ALL then it is a organizational team metric
 					CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getOrganizationMetricTimeSeries()}");
 					ResultSet rs = cstmt.executeQuery();
-					metricsList = getTimeSeriesMap(rs);
+					timeSeriesMap = getTimeSeriesMap(rs);
 
 				} else if (countAll == 2) {
 					// if two of the filters are ALL then it is a dimension metric
 					CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getDimensionMetricTimeSeries(?)}");
 					cstmt.setInt(1, dimensionValueId);
 					ResultSet rs = cstmt.executeQuery();
-					metricsList = getTimeSeriesMap(rs);
+					timeSeriesMap = getTimeSeriesMap(rs);
 				} else if (countAll == 0) {
 					// if none of the filters is ALL then it is a cube metric
 					CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getTeamMetricTimeSeries(?,?,?)}");
@@ -103,7 +103,7 @@ public class ExploreHelper extends TheBorg {
 					cstmt.setInt(2, posId);
 					cstmt.setInt(3, zoneId);
 					ResultSet rs = cstmt.executeQuery();
-					metricsList = getTimeSeriesMap(rs);
+					timeSeriesMap = getTimeSeriesMap(rs);
 
 				} else {
 					org.apache.log4j.Logger.getLogger(ExploreHelper.class).info(
@@ -116,13 +116,13 @@ public class ExploreHelper extends TheBorg {
 				org.apache.log4j.Logger.getLogger(ExploreHelper.class).error("Exception while getting team metrics data : " + teamListMap.toString(),
 						e);
 			}
-			result.put(teamName, metricsList);
+			result.put(teamName, timeSeriesMap);
 		}
 
 		return result;
 	}
 
-	private List<Metrics> fillMetricsData(ResultSet rs) throws SQLException {
+	public List<Metrics> fillMetricsData(ResultSet rs, String category) throws SQLException {
 		List<Metrics> metricsList = new ArrayList<>();
 		while (rs.next()) {
 			Metrics m = new Metrics();
@@ -130,7 +130,7 @@ public class ExploreHelper extends TheBorg {
 			m.setName(rs.getString("metric_name"));
 			m.setScore(rs.getInt("score"));
 			m.setDateOfCalculation(rs.getDate("calc_time"));
-			m.setCategory("Team");
+			m.setCategory(category);
 			metricsList.add(m);
 		}
 		return metricsList;
@@ -179,7 +179,7 @@ public class ExploreHelper extends TheBorg {
 				CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getIndividualMetricValue(?)}");
 				cstmt.setInt(1, e.getEmployeeId());
 				ResultSet rs = cstmt.executeQuery();
-				metricsList = fillMetricsData(rs);
+				metricsList = fillMetricsData(rs, "Individual");
 				result.put(e, metricsList);
 			}
 		} catch (SQLException e) {
@@ -215,7 +215,7 @@ public class ExploreHelper extends TheBorg {
 
 	}
 
-	private Map<Integer, List<Map<Date, Integer>>> getTimeSeriesMap(ResultSet rs) throws SQLException {
+	public Map<Integer, List<Map<Date, Integer>>> getTimeSeriesMap(ResultSet rs) throws SQLException {
 		Map<Integer, List<Map<Date, Integer>>> result = new HashMap<>();
 
 		while (rs.next()) {
@@ -301,7 +301,7 @@ public class ExploreHelper extends TheBorg {
 			while (res.next()) {
 				empIdList.add(res.getInt("emp_id"));
 				Node n = new Node();
-				n.setEmployee_id(res.getInt("emp_id"));
+				n.setEmployeeId(res.getInt("emp_id"));
 				n.setFirstName(res.getString("firstName"));
 				n.setLastName(res.getString("lastName"));
 				n.setFunction(res.getString("funcName"));
@@ -383,7 +383,7 @@ public class ExploreHelper extends TheBorg {
 			while (res.next()) {
 				empIdList.add(res.getInt("emp_id"));
 				Node n = new Node();
-				n.setEmployee_id(res.getInt("emp_id"));
+				n.setEmployeeId(res.getInt("emp_id"));
 				n.setFirstName(res.getString("firstName"));
 				n.setLastName(res.getString("lastName"));
 				n.setFunction(res.getString("funcName"));

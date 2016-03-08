@@ -19,3 +19,5 @@
 /target/
 /.DS_Store
 */.Rapp.history
+/scripts/config.R
+/resources

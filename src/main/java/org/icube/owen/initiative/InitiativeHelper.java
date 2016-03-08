@@ -20,7 +20,7 @@ import org.icube.owen.metrics.Metrics;
 public class InitiativeHelper extends TheBorg {
 
 	/**
-	 * @param res - A sql resultset containing the Initiative attributes and connections
+	 * @param res - A resultset containing the Initiative attributes and connections
 	 * @param i - An Initiative object
 	 * @return - List of Filter objects
 	 * @throws SQLException - if partOf connections are not set

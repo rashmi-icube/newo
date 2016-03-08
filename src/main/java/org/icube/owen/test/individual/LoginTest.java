@@ -1,19 +1,28 @@
 package org.icube.owen.test.individual;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import org.icube.owen.ObjectFactory;
+import org.icube.owen.employee.Employee;
 import org.icube.owen.individual.Login;
 import org.junit.Test;
 
 public class LoginTest {
 	Login l = (Login) ObjectFactory.getInstance("org.icube.owen.individual.Login");
-    
+
 	@Test
-	public void testLogin(){
+	public void testLogin() {
 		try {
-			l.login("emp2@i-cube.in", "abc123");
+			Employee e = l.login("emp1@i-cube.in", "abc123");
+			assertNotNull(e.getEmployeeId());
+			assertNotNull(e.getCompanyEmployeeId());
+			assertNotNull(e.getCompanyEmployeeId());
+			assertNotNull(e.getFirstName());
+			assertNotNull(e.getLastName());
+			assertNotNull(e.getReportingManagerId());
 		} catch (Exception e) {
-			e.printStackTrace();
+			assertEquals(e.getMessage(), "Invalid credentials!!!");
 		}
-		
 	}
 }

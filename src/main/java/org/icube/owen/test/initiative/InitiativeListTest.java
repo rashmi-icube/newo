@@ -25,6 +25,7 @@ public class InitiativeListTest {
 			assertNotNull(i.getInitiativeComment());
 			assertNotNull(i.getInitiativeMetrics());
 			assertNotNull(i.getInitiativeEndDate());
+			assertNotNull(i.getInitiativeCreationDate());
 			assertNotNull(i.getInitiativeStartDate());
 			assertNotNull(i.getOwnerOfList());
 			if (i.getInitiativeCategory().equalsIgnoreCase("Team")) {
@@ -48,6 +49,7 @@ public class InitiativeListTest {
 			assertNotNull(i.getInitiativeMetrics());
 			assertNotNull(i.getInitiativeEndDate());
 			assertNotNull(i.getInitiativeStartDate());
+			assertNotNull(i.getInitiativeCreationDate());
 			assertNotNull(i.getOwnerOfList());
 			if (i.getInitiativeCategory().equalsIgnoreCase("Team")) {
 				assertNotNull(i.getFilterList());
@@ -70,6 +72,7 @@ public class InitiativeListTest {
 			assertNotNull(i.getInitiativeMetrics());
 			assertNotNull(i.getInitiativeEndDate());
 			assertNotNull(i.getInitiativeStartDate());
+			assertNotNull(i.getInitiativeCreationDate());
 			assertNotNull(i.getOwnerOfList());
 			if (i.getInitiativeCategory().equalsIgnoreCase("Team")) {
 				assertNotNull(i.getFilterList());

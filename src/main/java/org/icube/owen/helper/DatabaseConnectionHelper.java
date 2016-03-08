@@ -19,20 +19,25 @@ public class DatabaseConnectionHelper extends TheBorg {
 
 	public Connection mysqlCon; // will get rid of this once login comes into HR page
 	public Connection masterCon;
-	public Map<Integer, Connection> companyConnectionPool;
+	public Map<Integer, Connection> companySqlConnectionPool;
+	public Map<Integer, String> companyImagePath;
 	public Connection neo4jCon;
 	public RConnection rCon;
 	/*private final static String mysqlurl = "jdbc:mysql://192.168.1.6:3306/owen";
 	private final static String user = "icube";
-	private final static String password = "icube123";*/
+	private final static String password = "icube123";
 
-	private final static String mysqlurl = "jdbc:mysql://localhost:3306/owen";
-	private final static String user = "root";
-	private final static String password = "";
+	private final static String MASTER_URL = "jdbc:mysql://192.168.1.6:3306/owen_master";
+	private final static String MASTER_USER = "icube";
+	private final static String MASTER_PASSWORD = "icube123";*/
 
-	private final static String MASTER_URL = "jdbc:mysql://localhost:3306/owen_master";
-	private final static String MASTER_USER = "root";
-	private final static String MASTER_PASSWORD = "";
+	private final static String mysqlurl = UtilHelper.getConfigProperty("mysql_url");
+	private final static String user = UtilHelper.getConfigProperty("mysql_user");
+	private final static String password = UtilHelper.getConfigProperty("mysql_password");
+
+	private final static String MASTER_URL = UtilHelper.getConfigProperty("master_sql_url");
+	private final static String MASTER_USER = UtilHelper.getConfigProperty("master_sql_user");
+	private final static String MASTER_PASSWORD = UtilHelper.getConfigProperty("master_sql_password");
 
 	public DatabaseConnectionHelper() {
 
@@ -87,15 +92,15 @@ public class DatabaseConnectionHelper extends TheBorg {
 			// R connection
 			rCon = new RConnection();
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Successfully connected to R");
-			String rScriptPath = new java.io.File("").getAbsolutePath() + "/scripts";
+			String rScriptPath = UtilHelper.getConfigProperty("r_script_path");
 			// String rScriptPath = "C:\\\\Users\\\\fermion10\\\\Documents\\\\Neo4j\\\\scripts";
-			String workingDir = "setwd(\"" + rScriptPath.replace("/", "//") + "\")";
-			// String workingDir = "setwd(\"" + rScriptPath + "\")";
+			String workingDir = "setwd(\"" + rScriptPath + "\")";
 			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Trying to load the RScript file at " + rScriptPath);
 			rCon.eval(workingDir);
 			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Successfully loaded rScript: source(\"//" + rScriptPath);
-			
-			companyConnectionPool = new HashMap<>();
+
+			companySqlConnectionPool = new HashMap<>();
+			companyImagePath = new HashMap<>();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error(
 					"An error occurred while attempting to get neo4j connection details", e);
@@ -138,11 +143,11 @@ public class DatabaseConnectionHelper extends TheBorg {
 
 	public Connection getCompanyConnection(int companyId) {
 		Connection conn = null;
-		if (!companyConnectionPool.isEmpty() && companyConnectionPool.containsKey(companyId)) {
-			conn = companyConnectionPool.get(companyId);
+		if (!companySqlConnectionPool.isEmpty() && companySqlConnectionPool.containsKey(companyId)) {
+			conn = companySqlConnectionPool.get(companyId);
 		} else {
 			try {
-				CallableStatement cstmt = masterCon.prepareCall("{call getCompanyDbFromId(?)}");
+				CallableStatement cstmt = masterCon.prepareCall("{call getCompanyConfig(?)}");
 				cstmt.setInt(1, companyId);
 				ResultSet rs = cstmt.executeQuery();
 				String cUrl = "", cUserName = "", cPassword = "";
@@ -150,10 +155,11 @@ public class DatabaseConnectionHelper extends TheBorg {
 					cUrl = "jdbc:mysql://" + rs.getString("sql_server") + ":3306/" + rs.getString("comp_sql_dbname");
 					cUserName = rs.getString("sql_user_id");
 					cPassword = rs.getString("sql_password");
+					companyImagePath.put(companyId, rs.getString("images_path"));
 				}
 				Class.forName("com.mysql.jdbc.Driver");
 				conn = DriverManager.getConnection(cUrl, cUserName, cPassword);
-				companyConnectionPool.put(companyId, conn);
+				companySqlConnectionPool.put(companyId, conn);
 				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug(
 						"Successfully connected to company db with companyId : " + companyId);
 			} catch (SQLException e) {
