@@ -1,7 +1,6 @@
 package org.icube.owen.dashboard;
 
 import java.sql.CallableStatement;
-import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -11,6 +10,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -25,9 +25,7 @@ import org.icube.owen.initiative.Initiative;
 import org.icube.owen.initiative.InitiativeHelper;
 import org.icube.owen.initiative.InitiativeList;
 import org.icube.owen.metrics.Metrics;
-import org.icube.owen.metrics.MetricsList;
 import org.icube.owen.survey.Question;
-import org.icube.owen.survey.Response;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPInteger;
 import org.rosuda.REngine.RList;
@@ -52,7 +50,7 @@ public class IndividualDashboardHelper extends TheBorg {
 			metricsList = eh.fillMetricsData(rs, "Individual");
 
 		} catch (SQLException e) {
-			org.apache.log4j.Logger.getLogger(ExploreHelper.class).error("Exception while retrieving individual metrics data", e);
+			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while retrieving individual metrics data", e);
 		}
 
 		return metricsList;
@@ -63,17 +61,18 @@ public class IndividualDashboardHelper extends TheBorg {
 	 * @param employeeId - Employee Id of the individual who is logged in
 	 * @return Time series data to be displayed
 	 */
-	public Map<Integer, List<Map<Date, Integer>>> getIndividualMetricsTimeSeries(int employeeId) {
+	public Map<Integer, List<Map<Date, Integer>>> getIndividualMetricsTimeSeries(int companyId, int employeeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
 		ExploreHelper eh = new ExploreHelper();
 		Map<Integer, List<Map<Date, Integer>>> metricsListMap = new HashMap<>();
 		try {
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getIndividualMetricTimeSeriesForIndividual(?)}");
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getIndividualMetricTimeSeriesForIndividual(?)}");
 			cstmt.setInt(1, employeeId);
 			ResultSet rs = cstmt.executeQuery();
 			metricsListMap = eh.getTimeSeriesMap(rs);
 		} catch (SQLException e) {
-			org.apache.log4j.Logger.getLogger(ExploreHelper.class).error("Exception while retrieving individual metrics data", e);
+			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while retrieving individual metrics data", e);
 		}
 
 		return metricsListMap;
@@ -89,18 +88,18 @@ public class IndividualDashboardHelper extends TheBorg {
 		InitiativeHelper ih = new InitiativeHelper();
 		InitiativeList il = new InitiativeList();
 		List<Initiative> initiativeList = new ArrayList<>();
-		org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Get initiative list");
+		org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Get initiative list");
 		Map<Integer, Initiative> initiativeIdMap = new HashMap<Integer, Initiative>();
 		try {
 			String initiativeListQuery = "match(i:Init {Status:'Active'})<-[r:owner_of]-(e:Employee {emp_id:"
 					+ employeeId
 					+ "}) with i as ini match (o:Employee)-[:owner_of]->(i:Init)<-[r:part_of]-(a)"
-					+ " where i=ini return i.Name as Name,i.StartDate as StartDate, i.EndDate as EndDate, "
+					+ " where i=ini return i.Name as Name,i.StartDate as StartDate, i.EndDate as EndDate, i.CreatedOn as CreationDate,"
 					+ "i.Id as Id,case i.Category when 'Individual' then collect(distinct(a.emp_id)) else collect(distinct(a.Id))  end as PartOfID,collect(distinct(a.Name))as PartOfName, "
 					+ "labels(a) as Filters,collect(distinct (o.emp_id)) as OwnersOf,i.Comment as Comments,i.Type as Type,i.Category as Category,i.Status as Status;";
 
 			ResultSet res = dch.neo4jCon.createStatement().executeQuery(initiativeListQuery);
-			org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Executed query for retrieving initiative list");
+			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Executed query for retrieving initiative list");
 			while (res.next()) {
 
 				int initiativeId = res.getInt("Id");
@@ -119,9 +118,9 @@ public class IndividualDashboardHelper extends TheBorg {
 			for (int initiativeId : initiativeIdMap.keySet()) {
 				initiativeList.add(initiativeIdMap.get(initiativeId));
 			}
-			org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("List of initiatives : " + initiativeList.toString());
+			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("List of initiatives : " + initiativeList.toString());
 		} catch (Exception e) {
-			org.apache.log4j.Logger.getLogger(InitiativeList.class).error("Exception while getting the initiative list", e);
+			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while getting the initiative list", e);
 		}
 		return initiativeList;
 
@@ -129,10 +128,10 @@ public class IndividualDashboardHelper extends TheBorg {
 
 	/**
 	 * Retrieves the Activity Feed for the employee
-	 * @param employeeId - Employee Id of the individual who is logged in
+	 * @param employeeId - Employee Id of the individual who is logged in (pass employeeId = 208 for testing)
 	 * @return A list of ActivityFeed objects
 	 */
-	
+
 	public List<ActivityFeed> getActivityFeedList(int companyId, int employeeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
@@ -171,23 +170,25 @@ public class IndividualDashboardHelper extends TheBorg {
 			});
 
 		} catch (SQLException | ParseException e) {
-			org.apache.log4j.Logger.getLogger(ExploreHelper.class).error("Exception while retrieving the activity feed data", e);
+			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while retrieving the activity feed data", e);
 		}
 
 		return result;
 	}
 
-	private Map<Integer, Integer> getMetricRelationshipTypeMapping() {
+	private Map<Integer, Integer> getMetricRelationshipTypeMapping(int companyId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
 		Map<Integer, Integer> result = new HashMap<>();
 		try {
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getMetricRelationshipType()}");
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getMetricRelationshipType()}");
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
 				result.put(rs.getInt("metric_id"), rs.getInt("rel_id"));
 			}
 		} catch (SQLException e) {
-			org.apache.log4j.Logger.getLogger(ExploreHelper.class).error("Exception while retrieving metrics relationship type id data", e);
+			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while retrieving metrics relationship type id data",
+					e);
 		}
 
 		return result;
@@ -195,28 +196,28 @@ public class IndividualDashboardHelper extends TheBorg {
 
 	/**
 	 * Retrieves the smart list of employees 
-	 * @param employeeId - Employee Id of the individual who is logged in
+	 * @param employeeId - Employee Id of the individual who is logged in 
 	 * @param metricId - Metric Id of the selected Metric
 	 * @return - A map of ranking and Employee object
 	 */
 	public Map<Integer, Employee> getSmartList(int employeeId, int metricId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Map<Integer, Employee> employeeScoreMap = new HashMap<>();
-		Map<Integer, Integer> MetricRelationshipTypeMap = getMetricRelationshipTypeMapping();
+		Map<Integer, Integer> MetricRelationshipTypeMap = getMetricRelationshipTypeMapping(1);
 		try {
 			String s = "source(\"metric.r\")";
-			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("R Path for eval " + s);
+			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("R Path for eval " + s);
 			dch.rCon.eval(s);
-			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Filling up parameters for rscript function");
+			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Filling up parameters for rscript function");
 			dch.rCon.assign("emp_id", new int[] { employeeId });
 			dch.rCon.assign("rel_id", new int[] { MetricRelationshipTypeMap.get(metricId) });
-			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Calling the actual function in RScript SmartListResponse");
+			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Calling the actual function in RScript SmartListResponse");
 			REXP employeeSmartList = dch.rCon.parseAndEval("try(eval(SmartListResponse(emp_id, rel_id)))");
 			if (employeeSmartList.inherits("try-error")) {
 				org.apache.log4j.Logger.getLogger(Question.class).error("Error: " + employeeSmartList.asString());
 				throw new Exception("Error: " + employeeSmartList.asString());
 			} else {
-				org.apache.log4j.Logger.getLogger(MetricsList.class).debug(
+				org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug(
 						"Retrieval of the employee smart list completed " + employeeSmartList.asList());
 			}
 
@@ -232,7 +233,8 @@ public class IndividualDashboardHelper extends TheBorg {
 				employeeScoreMap.put(rankArray[i], e);
 			}
 		} catch (Exception e) {
-			org.apache.log4j.Logger.getLogger(Question.class).error("Error while trying to retrieve the smart list for employee from question", e);
+			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error(
+					"Error while trying to retrieve the smart list for employee from question", e);
 		}
 
 		return employeeScoreMap;
@@ -246,31 +248,31 @@ public class IndividualDashboardHelper extends TheBorg {
 	 * @param metricId
 	 * @return true/false
 	 */
-	public boolean saveAppreciation(Map<Employee, Integer> appreciationResponseMap, int companyId, int employeeId, int metricId) {
+	public boolean saveAppreciation(int companyId, int employeeId, int metricId, Map<Employee, Integer> appreciationResponseMap) {
 		boolean responseSaved = false;
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
-		Map<Integer, Integer> MetricRelationshipTypeMap = getMetricRelationshipTypeMapping();
+		Map<Integer, Integer> metricRelationshipTypeMap = getMetricRelationshipTypeMapping(companyId);
 		try {
 			for (Employee e : appreciationResponseMap.keySet()) {
 				CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call insertAppreciation(?,?,?,?,?)}");
 				cstmt.setInt(1, employeeId);
 				cstmt.setTimestamp(2, Timestamp.from(Instant.now()));
 				cstmt.setInt(3, e.getEmployeeId());
-				cstmt.setInt(4, MetricRelationshipTypeMap.get(metricId));
+				cstmt.setInt(4, metricRelationshipTypeMap.get(metricId));
 				cstmt.setInt(5, appreciationResponseMap.get(e));
 				ResultSet rs = cstmt.executeQuery();
 				rs.next();
 				if (rs.getString("op").equalsIgnoreCase("true")) {
 					responseSaved = true;
-					org.apache.log4j.Logger.getLogger(Response.class).debug("Successfully saved the response ");
+					org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Successfully saved the response ");
 				} else {
-					org.apache.log4j.Logger.getLogger(Response.class).debug("Error in saving the response ");
+					org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Error in saving the response ");
 				}
 
 			}
 		} catch (SQLException e) {
-			org.apache.log4j.Logger.getLogger(Response.class).error("Exception while saving the response ", e);
+			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while saving the response ", e);
 		}
 		return responseSaved;
 	}
@@ -282,7 +284,7 @@ public class IndividualDashboardHelper extends TheBorg {
 	 * @param newPassword
 	 * @return true/false 
 	 */
-	public boolean changePassword(String currentPassword, String newPassword, int companyId, int employeeId) {
+	public boolean changePassword(int companyId, int employeeId, String currentPassword, String newPassword) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
 		boolean passwordChanged = false;
@@ -302,7 +304,7 @@ public class IndividualDashboardHelper extends TheBorg {
 			}
 
 		} catch (Exception e) {
-			org.apache.log4j.Logger.getLogger(Response.class).error("Exception while validating password ", e);
+			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while validating password ", e);
 		}
 		return passwordChanged;
 	}

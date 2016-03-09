@@ -15,29 +15,28 @@ import org.junit.Test;
 
 public class MetricsListTest {
 	MetricsList ml = (MetricsList) ObjectFactory.getInstance("org.icube.owen.metrics.MetricsList");
-	
+
 	@Test
-	public void testGetInitiativeMetricsForTeam(){
+	public void testGetInitiativeMetricsForTeam() {
 		FilterList fl = (FilterList) ObjectFactory.getInstance("org.icube.owen.filter.FilterList");
 		List<Filter> filterMasterList = fl.getFilterValues();
 		List<Metrics> metricsList = ml.getInitiativeMetricsForTeam(1, filterMasterList);
-		for(Metrics m : metricsList){
+		for (Metrics m : metricsList) {
 			assertTrue(!m.getName().isEmpty());
-		    assertTrue(!m.getDirection().isEmpty());
+			assertTrue(!m.getDirection().isEmpty());
 		}
-	
+
 	}
-	
-	
+
 	@Test
-	public void testGetInitiativeMetricsForIndividual(){
+	public void testGetInitiativeMetricsForIndividual() {
 		List<Employee> partOfEmployeeList = new ArrayList<>();
 		Employee e = (Employee) ObjectFactory.getInstance("org.icube.owen.employee.Employee");
 		partOfEmployeeList.add(e.get(16));
 		List<Metrics> metricsList = ml.getInitiativeMetricsForIndividual(1, partOfEmployeeList);
-		for(Metrics m : metricsList){
+		for (Metrics m : metricsList) {
 			assertTrue(!m.getName().isEmpty());
-		    assertTrue(!m.getDirection().isEmpty());
+			assertTrue(!m.getDirection().isEmpty());
 		}
 	}
 

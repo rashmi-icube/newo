@@ -22,7 +22,9 @@ public class EmployeeHelper extends TheBorg {
 
 	/**
 	 * Retrieves the basic details of an employee
-	 * 
+	 * @param companyId - companyId
+	 * @param employeeId - employeeId of the given employee
+	 * @return BasicEmployeeDetails of the given employee
 	 */
 	public BasicEmployeeDetails getBasicEmployeeDetails(int companyId, int employeeId) {
 		BasicEmployeeDetails bed = new BasicEmployeeDetails();
@@ -56,6 +58,9 @@ public class EmployeeHelper extends TheBorg {
 
 	/**
 	 * Retrieves the list of work experiences of a given employee
+	 * @param companyId - companyId
+	 * @param employeeId - employeeId of the given employee
+	
 	 */
 	public List<WorkExperience> getWorkExperienceDetails(int companyId, int employeeId) {
 

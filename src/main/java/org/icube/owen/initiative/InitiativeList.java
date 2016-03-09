@@ -53,7 +53,10 @@ public class InitiativeList extends TheBorg {
 			String initiativeListQuery = "";
 			if (viewByCriteria.equalsIgnoreCase("Type")) {
 
-				initiativeListQuery = "match (o:Employee)-[:owner_of]->(i:Init {Type:" + (Integer) viewByValue + ", Category:'" + category
+				initiativeListQuery = "match (o:Employee)-[:owner_of]->(i:Init {Type:"
+						+ (Integer) viewByValue
+						+ ", Category:'"
+						+ category
 						+ "'})<-[r:part_of]-(a) return i.Id as Id, i.Name as Name,"
 						+ "i.StartDate as StartDate, i.EndDate as EndDate, i.CreatedOn as CreationDate, case i.Category when 'Individual' then collect(distinct(a.emp_id)) "
 						+ "else collect(distinct(a.Id))  end as PartOfID,collect(distinct(a.Name))as PartOfName, labels(a) as Filters, "
@@ -63,7 +66,10 @@ public class InitiativeList extends TheBorg {
 
 			} else if (viewByCriteria.equalsIgnoreCase("Status")) {
 
-				initiativeListQuery = "match (o:Employee)-[:owner_of]->(i:Init {Status:'" + (String) viewByValue + "', Category:'" + category
+				initiativeListQuery = "match (o:Employee)-[:owner_of]->(i:Init {Status:'"
+						+ (String) viewByValue
+						+ "', Category:'"
+						+ category
 						+ "'})<-[r:part_of]-(a) return i.Id as Id, i.Name as Name,"
 						+ "i.StartDate as StartDate, i.EndDate as EndDate, i.CreatedOn as CreationDate, case i.Category when 'Individual' then collect(distinct(a.emp_id)) "
 						+ "else collect(distinct(a.Id))  end as PartOfID,collect(distinct(a.Name))as PartOfName, labels(a) as Filters, "
@@ -158,7 +164,7 @@ public class InitiativeList extends TheBorg {
 	}
 
 	/**
-	 * @param resultMap- A map containing the Initiative attributes and connections
+	 * @param res- A map containing the Initiative attributes and connections
 	 * @param i - An Initiative object
 	 */
 	public void setInitiativeValues(ResultSet res, Initiative i) {
@@ -170,7 +176,7 @@ public class InitiativeList extends TheBorg {
 			i.setInitiativeName(res.getString("Name"));
 			i.setInitiativeStatus(res.getString("Status"));
 			i.setInitiativeCategory(res.getString("Category"));
-			
+
 			SimpleDateFormat parserSDF = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzzz yyyy", Locale.ENGLISH);
 			i.setInitiativeStartDate(parserSDF.parse(res.getString("StartDate")));
 			i.setInitiativeEndDate(parserSDF.parse(res.getString("EndDate")));

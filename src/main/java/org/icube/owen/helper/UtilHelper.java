@@ -18,6 +18,10 @@ public class UtilHelper {
 	public static java.sql.Date convertJavaDateToSqlDate(java.util.Date date) {
 		return new java.sql.Date(date.getTime());
 	}
+	
+	public static java.sql.Timestamp convertJavaDateToSqlTimestamp(java.util.Date date) {
+		return new java.sql.Timestamp(date.getTime());
+	}
 
 	public static String getConfigProperty(String propertyName) {
 		String propertyValue = "";

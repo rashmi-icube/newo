@@ -10,7 +10,6 @@ import java.util.Map;
 
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
-import org.icube.owen.explore.ExploreHelper;
 import org.icube.owen.helper.DatabaseConnectionHelper;
 
 public class FilterList extends TheBorg {
@@ -90,7 +89,7 @@ public class FilterList extends TheBorg {
 
 			}
 		} catch (SQLException e) {
-			org.apache.log4j.Logger.getLogger(ExploreHelper.class).error("Exception while getting dimension value list : ", e);
+			org.apache.log4j.Logger.getLogger(FilterList.class).error("Exception while getting dimension value list : ", e);
 		}
 		return allFiltersList;
 	}

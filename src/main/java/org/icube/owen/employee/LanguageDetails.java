@@ -1,6 +1,5 @@
 package org.icube.owen.employee;
 
-
 public class LanguageDetails {
 
 	private int employeeId;

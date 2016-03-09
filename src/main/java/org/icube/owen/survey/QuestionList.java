@@ -85,7 +85,7 @@ public class QuestionList extends TheBorg {
 	public List<Question> getQuestionListByStatus(int batchId, String filter) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Question> questionList = new ArrayList<Question>();
-		List<Question> QuestionListByStatus = new ArrayList<Question>();
+		List<Question> questionListByStatus = new ArrayList<Question>();
 
 		try {
 			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getBatchQuestionList(?)}");
@@ -109,12 +109,12 @@ public class QuestionList extends TheBorg {
 		for (Question q1 : questionList) {
 
 			if ((q1.getQuestionStatus(q1.getStartDate(), q1.getEndDate())).equalsIgnoreCase(filter)) {
-				QuestionListByStatus.add(q1);
+				questionListByStatus.add(q1);
 
 			}
 		}
 
-		return QuestionListByStatus;
+		return questionListByStatus;
 	}
 
 }

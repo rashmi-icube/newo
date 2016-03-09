@@ -28,7 +28,7 @@ public class InitiativeHelper extends TheBorg {
 	@SuppressWarnings("unchecked")
 	public List<Filter> setPartOfConnections(ResultSet res, Initiative i) throws SQLException {
 		List<Filter> existingFilterList = (i.getFilterList() == null ? new ArrayList<>() : i.getFilterList());
-		org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Setting part of connections");
+		org.apache.log4j.Logger.getLogger(InitiativeHelper.class).debug("Setting part of connections");
 		FilterList fl = new FilterList();
 		Filter f = new Filter();
 		Map<Integer, String> filterLabelMap = fl.getFilterLabelMap();
@@ -102,7 +102,7 @@ public class InitiativeHelper extends TheBorg {
 	@SuppressWarnings("unchecked")
 	public List<Employee> setPartOfEmployeeList(ResultSet res, Initiative i) throws SQLException {
 		List<Employee> existingEmployeeList = (i.getPartOfEmployeeList() == null ? new ArrayList<>() : i.getPartOfEmployeeList());
-		org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Setting part of employee list");
+		org.apache.log4j.Logger.getLogger(InitiativeHelper.class).debug("Setting part of employee list");
 		List<Integer> employeeIdList = new ArrayList<>();
 		employeeIdList = (List<Integer>) res.getObject("PartOfID");
 		for (int employeeId : employeeIdList) {
@@ -111,7 +111,7 @@ public class InitiativeHelper extends TheBorg {
 		}
 		return existingEmployeeList;
 	}
-	
+
 	/**
 	 * Sets the values for Metrics object
 	 * @param i - Initiative object
@@ -126,38 +126,37 @@ public class InitiativeHelper extends TheBorg {
 				int empId = i.getPartOfEmployeeList().get(0).getEmployeeId();
 				cs.setInt(1, empId);
 				ResultSet rs = cs.executeQuery();
-				while(rs.next()){
+				while (rs.next()) {
 					Metrics m = new Metrics();
 					m.setId(rs.getInt("metric_id"));
 					m.setName(rs.getString("metric_name"));
 					m.setScore(rs.getInt("current_score"));
 					m.setCategory("Individual");
 					m.setDateOfCalculation(rs.getDate("calc_time"));
-					String direction = m.calculateMetricDirection(rs.getInt("current_score"),rs.getInt("previous_score"));
+					String direction = m.calculateMetricDirection(rs.getInt("current_score"), rs.getInt("previous_score"));
 					m.setDirection(direction);
 					metricsList.add(m);
 				}
-			} else if(i.getInitiativeCategory().equalsIgnoreCase("Team")){
+			} else if (i.getInitiativeCategory().equalsIgnoreCase("Team")) {
 
 				CallableStatement cs = dch.mysqlCon.prepareCall("{call getTeamInitiativeMetricValueAggregate(?)}");
 				int initId = i.getInitiativeId();
 				cs.setInt(1, initId);
 				ResultSet rs = cs.executeQuery();
-				while(rs.next()){
+				while (rs.next()) {
 					Metrics m = new Metrics();
 					m.setId(rs.getInt("metric_id"));
 					m.setName(rs.getString("metric_name"));
 					m.setCategory("Team");
 					m.setScore(rs.getInt("current_score"));
 					m.setDateOfCalculation(rs.getDate("calc_time"));
-					String direction = (m.calculateMetricDirection(rs.getInt("current_score"),rs.getInt("previous_score")));
-                    m.setDirection(direction);
+					String direction = (m.calculateMetricDirection(rs.getInt("current_score"), rs.getInt("previous_score")));
+					m.setDirection(direction);
 					metricsList.add(m);
 				}
-			
+
 			}
-			
-			
+
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(InitiativeHelper.class).error(
 					"Exception while setting the metrics for initiative with ID " + i.getInitiativeId(), e);

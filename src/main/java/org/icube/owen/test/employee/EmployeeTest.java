@@ -16,6 +16,7 @@ import javax.imageio.ImageIO;
 
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.employee.Employee;
+import org.icube.owen.helper.UtilHelper;
 import org.junit.Test;
 
 public class EmployeeTest {
@@ -41,7 +42,7 @@ public class EmployeeTest {
 		OutputStream out = null;
 		int size = 0;
 		try {
-			out = new FileOutputStream(new java.io.File("").getAbsolutePath() + "/test" + ".jpg");
+			out = new FileOutputStream(UtilHelper.getConfigProperty("test_image_get_path"));
 
 		} catch (FileNotFoundException ex) {
 			ex.printStackTrace();
@@ -59,7 +60,7 @@ public class EmployeeTest {
 
 	@Test
 	public void testSaveImage() throws IOException {
-		File sourceimage = new File("/Users/apple/Desktop/nihao_goodies_logo_tm.jpg");
+		File sourceimage = new File(UtilHelper.getConfigProperty("test_image_save_path"));
 		Image image = ImageIO.read(sourceimage);
 		assertTrue(e.saveImage(1, 2, image));
 	}

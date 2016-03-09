@@ -13,22 +13,22 @@ import org.junit.Test;
 
 public class BatchListTest {
 	BatchList bl = (BatchList) ObjectFactory.getInstance("org.icube.owen.survey.BatchList");
-	
+
 	@Test
-	public void testGetFrequencyLabelMap(){
+	public void testGetFrequencyLabelMap() {
 		Map<Integer, String> getFrequencyLabelMap = bl.getFrequencyLabelMap();
 		assertTrue(!getFrequencyLabelMap.isEmpty());
 	}
-	
+
 	@Test
-	public void testGetBatchList(){
+	public void testGetBatchList() {
 		List<Batch> b = bl.getBatchList();
 		assertTrue(!b.isEmpty());
 	}
-	
+
 	@Test
-	public void testChangeFrequency(){
-		assertTrue(bl.changeFrequency(bl.getBatchList().get(0), Frequency.WEEKLY));
+	public void testChangeFrequency() {
+		assertTrue(bl.changeFrequency(bl.getBatchList().get(0), Frequency.MONTHLY));
 	}
 
 }

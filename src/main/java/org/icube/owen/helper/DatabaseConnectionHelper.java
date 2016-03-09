@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.icube.owen.TheBorg;
-import org.icube.owen.metrics.MetricsList;
 import org.neo4j.jdbc.Driver;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
@@ -95,9 +94,9 @@ public class DatabaseConnectionHelper extends TheBorg {
 			String rScriptPath = UtilHelper.getConfigProperty("r_script_path");
 			// String rScriptPath = "C:\\\\Users\\\\fermion10\\\\Documents\\\\Neo4j\\\\scripts";
 			String workingDir = "setwd(\"" + rScriptPath + "\")";
-			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Trying to load the RScript file at " + rScriptPath);
+			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Trying to load the RScript file at " + rScriptPath);
 			rCon.eval(workingDir);
-			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Successfully loaded rScript: source(\"//" + rScriptPath);
+			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Successfully loaded rScript: source(\"//" + rScriptPath);
 
 			companySqlConnectionPool = new HashMap<>();
 			companyImagePath = new HashMap<>();

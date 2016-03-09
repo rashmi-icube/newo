@@ -13,7 +13,6 @@ import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
 import org.icube.owen.filter.Filter;
 import org.icube.owen.helper.DatabaseConnectionHelper;
-import org.icube.owen.survey.Question;
 
 public class EmployeeList extends TheBorg {
 
@@ -240,7 +239,7 @@ public class EmployeeList extends TheBorg {
 		e.setFirstName(res.getString("first_name"));
 		e.setLastName(res.getString("last_name"));
 		e.setReportingManagerId(res.getString("reporting_emp_id"));
-		//TODO hpatel : fix null active values in the sql db
+		// TODO hpatel : fix null active values in the sql db
 		if (res.getString("status") != null && res.getString("status").equalsIgnoreCase("active")) {
 			e.setActive(true);
 		} else {
@@ -272,7 +271,7 @@ public class EmployeeList extends TheBorg {
 	/**
 	 * Retrieves the employee list based on the dimension provided 
 	 * 
-	 * @return map<rank, employee object> - view of the employee list should be sorted by the rank
+	 * @return map[rank, employee object] - view of the employee list should be sorted by the rank
 	 */
 	public Map<Integer, Employee> getEmployeeListByFilters(int companyId, List<Filter> filterList) {
 
@@ -302,7 +301,7 @@ public class EmployeeList extends TheBorg {
 				employeeScoreMap.put(count++, e.get(rs.getInt("emp_id")));
 			}
 		} catch (SQLException e1) {
-			org.apache.log4j.Logger.getLogger(Question.class).error("Exception while retrieving the employee list based on dimension", e1);
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).error("Exception while retrieving the employee list based on dimension", e1);
 		}
 
 		return employeeScoreMap;

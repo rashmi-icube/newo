@@ -1,6 +1,6 @@
 package org.icube.owen.survey;
 
-import java.sql.Date;
+import java.util.Date;
 import java.util.List;
 
 import org.icube.owen.TheBorg;

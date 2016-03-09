@@ -48,7 +48,8 @@ public class Initiative extends TheBorg {
 	 * @param partOfEmployeeList - applicable only for individual initiative should be null for team initiative list of employees for whom the initiative has been created
 	 */
 	public void setInitiativeProperties(String initiativeName, int initiativeTypeId, String initiativeCategory, Date initiativeStartDate,
-			Date initiativeEndDate, Date initiativeCreationDate, String initiativeComment, List<Filter> filterList, List<Employee> ownerOfList, List<Employee> partOfEmployeeList) {
+			Date initiativeEndDate, Date initiativeCreationDate, String initiativeComment, List<Filter> filterList, List<Employee> ownerOfList,
+			List<Employee> partOfEmployeeList) {
 		org.apache.log4j.Logger.getLogger(Initiative.class).debug("Setting initiative properties");
 		this.initiativeName = initiativeName;
 		this.initiativeTypeId = initiativeTypeId;
@@ -76,7 +77,8 @@ public class Initiative extends TheBorg {
 			String createInitQuery = "match (i:Init)  with CASE count(i) WHEN 0  THEN 1 ELSE max(i.Id)+1 END as uid "
 					+ "CREATE (i:Init {Id:uid,Status:'" + checkInitiativeStatus(initiativeStartDate) + "',Name:'" + initiativeName + "',Type:"
 					+ initiativeTypeId + ", Category:'" + initiativeCategory + "',StartDate:'" + initiativeStartDate.toString() + "',EndDate:'"
-					+ initiativeEndDate.toString() + "',CreatedOn:'" + initiativeCreationDate.toString() + "',Comment:'" + initiativeComment + "'}) return i.Id as Id";
+					+ initiativeEndDate.toString() + "',CreatedOn:'" + initiativeCreationDate.toString() + "',Comment:'" + initiativeComment
+					+ "'}) return i.Id as Id";
 
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Create initiative query : " + createInitQuery);
 			ResultSet res = dch.neo4jCon.createStatement().executeQuery(createInitQuery);
@@ -339,7 +341,8 @@ public class Initiative extends TheBorg {
 			dch.neo4jCon.createStatement().executeQuery(ownersOfQuery);
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Ownersof list deleted from initiative " + updatedInitiative.initiativeId);
 			updatedInitiative.setOwner(updatedInitiativeId, updatedOwnerOfList);
-			String query = "match(a:Init {Id:" + updatedInitiativeId + "}) set a.CreatedOn = '" + updatedInitiative.getInitiativeCreationDate().toString() + "', a.Name = '" + updatedInitiative.getInitiativeName().toString()
+			String query = "match(a:Init {Id:" + updatedInitiativeId + "}) set a.CreatedOn = '"
+					+ updatedInitiative.getInitiativeCreationDate().toString() + "', a.Name = '" + updatedInitiative.getInitiativeName().toString()
 					+ "',a.Status = '" + checkInitiativeStatus(updatedInitiative.getInitiativeStartDate()) + "'," + "a.Type = '"
 					+ updatedInitiative.getInitiativeTypeId() + "',a.Category = '" + updatedInitiative.getInitiativeCategory() + "',"
 					+ "a.Comment = '" + updatedInitiative.getInitiativeComment().toString() + "',a.EndDate = '"

@@ -17,7 +17,6 @@ import org.icube.owen.TheBorg;
 import org.icube.owen.employee.Employee;
 import org.icube.owen.helper.DatabaseConnectionHelper;
 import org.icube.owen.helper.UtilHelper;
-import org.icube.owen.metrics.MetricsList;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPInteger;
 import org.rosuda.REngine.RList;
@@ -211,7 +210,7 @@ public class Question extends TheBorg {
 			CallableStatement cstmt = conn.prepareCall("{call getEmpQuestionList(?,?)}");
 			cstmt.setInt(1, employeeId);
 			Date date = Date.from(Instant.now());
-			cstmt.setDate(2, (java.sql.Date) (date));
+			cstmt.setDate(2, UtilHelper.convertJavaDateToSqlDate(date));
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
 				Question q = new Question();
@@ -243,18 +242,18 @@ public class Question extends TheBorg {
 
 		try {
 			String s = "source(\"metric.r\")";
-			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("R Path for eval " + s);
+			org.apache.log4j.Logger.getLogger(Question.class).debug("R Path for eval " + s);
 			dch.rCon.eval(s);
-			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Filling up parameters for rscript function");
+			org.apache.log4j.Logger.getLogger(Question.class).debug("Filling up parameters for rscript function");
 			dch.rCon.assign("emp_id", new int[] { employeeId });
 			dch.rCon.assign("rel_id", new int[] { q.getRelationshipTypeId() });
-			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Calling the actual function in RScript SmartListResponse");
+			org.apache.log4j.Logger.getLogger(Question.class).debug("Calling the actual function in RScript SmartListResponse");
 			REXP employeeSmartList = dch.rCon.parseAndEval("try(eval(SmartListResponse(emp_id, rel_id)))");
 			if (employeeSmartList.inherits("try-error")) {
 				org.apache.log4j.Logger.getLogger(Question.class).error("Error: " + employeeSmartList.asString());
 				throw new Exception("Error: " + employeeSmartList.asString());
 			} else {
-				org.apache.log4j.Logger.getLogger(MetricsList.class).debug(
+				org.apache.log4j.Logger.getLogger(Question.class).debug(
 						"Retrieval of the employee smart list completed " + employeeSmartList.asList());
 			}
 

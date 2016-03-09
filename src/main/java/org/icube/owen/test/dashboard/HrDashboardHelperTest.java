@@ -3,7 +3,7 @@ package org.icube.owen.test.dashboard;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.sql.Date;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +17,7 @@ import org.icube.owen.metrics.Metrics;
 import org.junit.Test;
 
 public class HrDashboardHelperTest {
-	HrDashboardHelper dh = (HrDashboardHelper) ObjectFactory.getInstance("org.icube.owen.dashboard.DashboardHelper");
+	HrDashboardHelper dh = (HrDashboardHelper) ObjectFactory.getInstance("org.icube.owen.dashboard.HrDashboardHelper");
 	FilterList fl = (FilterList) ObjectFactory.getInstance("org.icube.owen.filter.FilterList");
 	List<Filter> filterMasterList = fl.getFilterValues();
 	Filter functionFilter = fl.getFilterValues("Function");
