@@ -239,7 +239,6 @@ public class EmployeeList extends TheBorg {
 		e.setFirstName(res.getString("first_name"));
 		e.setLastName(res.getString("last_name"));
 		e.setReportingManagerId(res.getString("reporting_emp_id"));
-		// TODO hpatel : fix null active values in the sql db
 		if (res.getString("status") != null && res.getString("status").equalsIgnoreCase("active")) {
 			e.setActive(true);
 		} else {

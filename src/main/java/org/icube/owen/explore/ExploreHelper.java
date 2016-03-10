@@ -14,12 +14,11 @@ import org.icube.owen.TheBorg;
 import org.icube.owen.employee.Employee;
 import org.icube.owen.filter.Filter;
 import org.icube.owen.helper.DatabaseConnectionHelper;
+import org.icube.owen.helper.UtilHelper;
 import org.icube.owen.metrics.Metrics;
-import org.icube.owen.metrics.MetricsList;
+import org.icube.owen.metrics.MetricsHelper;
 
 public class ExploreHelper extends TheBorg {
-
-	private int countAll = 0, dimensionValueId = 0, funcId = 0, posId = 0, zoneId = 0;
 
 	/**
 	 * Retrieve data for metrics 
@@ -27,39 +26,15 @@ public class ExploreHelper extends TheBorg {
 	 * @return metricsMapList - Map with (teamName, metricList) pair
 	 */
 	public Map<String, List<Metrics>> getTeamMetricsData(Map<String, List<Filter>> teamListMap) {
-		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+
 		Map<String, List<Metrics>> result = new HashMap<>();
 
 		for (String teamName : teamListMap.keySet()) {
 			List<Metrics> metricList = new ArrayList<>();
 			List<Filter> filterList = teamListMap.get(teamName);
-			parseTeamMap(filterList);
 			try {
-				if (countAll == 3) {
-					// if all selections are ALL then it is a organizational team metric
-					CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getOrganizationMetricValue()}");
-					ResultSet rs = cstmt.executeQuery();
-					metricList = fillMetricsData(rs, "Team");
-				} else if (countAll == 2) {
-					// if two of the filters are ALL then it is a dimension metric
-					CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getDimensionMetricValue(?)}");
-					cstmt.setInt(1, dimensionValueId);
-					ResultSet rs = cstmt.executeQuery();
-					metricList = fillMetricsData(rs, "Team");
-				} else if (countAll == 0) {
-					// if none of the filters is ALL then it is a cube metric
-					CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getTeamMetricValue(?, ?, ?)}");
-					cstmt.setInt(1, funcId);
-					cstmt.setInt(2, posId);
-					cstmt.setInt(3, zoneId);
-					ResultSet rs = cstmt.executeQuery();
-					metricList = fillMetricsData(rs, "Team");
-
-				} else {
-					// else call metric.R
-					MetricsList ml = new MetricsList();
-					metricList = ml.getInitiativeMetricsForTeam(0, filterList);
-				}
+				MetricsHelper mh = new MetricsHelper();
+				metricList = mh.getTeamMetricsList(filterList);
 			} catch (SQLException e) {
 				org.apache.log4j.Logger.getLogger(ExploreHelper.class).error("Exception while getting team metrics data : " + teamListMap.toString(),
 						e);
@@ -82,26 +57,26 @@ public class ExploreHelper extends TheBorg {
 		for (String teamName : teamListMap.keySet()) {
 			Map<Integer, List<Map<Date, Integer>>> timeSeriesMap = new HashMap<>();
 			List<Filter> filterList = teamListMap.get(teamName);
-			parseTeamMap(filterList);
+			Map<String, Object> parsedFilterListResult = UtilHelper.parseFilterList(filterList);
 			try {
-				if (countAll == 3) {
+				if ((int) parsedFilterListResult.get("countAll") == 3) {
 					// if all selections are ALL then it is a organizational team metric
 					CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getOrganizationMetricTimeSeries()}");
 					ResultSet rs = cstmt.executeQuery();
 					timeSeriesMap = getTimeSeriesMap(rs);
 
-				} else if (countAll == 2) {
+				} else if ((int) parsedFilterListResult.get("countAll") == 2) {
 					// if two of the filters are ALL then it is a dimension metric
 					CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getDimensionMetricTimeSeries(?)}");
-					cstmt.setInt(1, dimensionValueId);
+					cstmt.setInt(1, (int) parsedFilterListResult.get("dimensionValueId"));
 					ResultSet rs = cstmt.executeQuery();
 					timeSeriesMap = getTimeSeriesMap(rs);
-				} else if (countAll == 0) {
+				} else if ((int) parsedFilterListResult.get("countAll") == 0) {
 					// if none of the filters is ALL then it is a cube metric
 					CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getTeamMetricTimeSeries(?,?,?)}");
-					cstmt.setInt(1, funcId);
-					cstmt.setInt(2, posId);
-					cstmt.setInt(3, zoneId);
+					cstmt.setInt(1, (int) parsedFilterListResult.get("funcId"));
+					cstmt.setInt(2, (int) parsedFilterListResult.get("posId"));
+					cstmt.setInt(3, (int) parsedFilterListResult.get("zoneId"));
 					ResultSet rs = cstmt.executeQuery();
 					timeSeriesMap = getTimeSeriesMap(rs);
 
@@ -122,48 +97,6 @@ public class ExploreHelper extends TheBorg {
 		return result;
 	}
 
-	public List<Metrics> fillMetricsData(ResultSet rs, String category) throws SQLException {
-		List<Metrics> metricsList = new ArrayList<>();
-		while (rs.next()) {
-			Metrics m = new Metrics();
-			m.setId(rs.getInt("metric_id"));
-			m.setName(rs.getString("metric_name"));
-			m.setScore(rs.getInt("score"));
-			m.setDateOfCalculation(rs.getDate("calc_time"));
-			m.setCategory(category);
-			metricsList.add(m);
-		}
-		return metricsList;
-	}
-
-	private void parseTeamMap(List<Filter> filterList) {
-		countAll = 0;
-		dimensionValueId = 0;
-		funcId = 0;
-		posId = 0;
-		zoneId = 0;
-		for (Filter filter : filterList) {
-			if (filter.getFilterValues().containsKey(0)) {
-				countAll++;
-			} else {
-				if (filter.getFilterName().equalsIgnoreCase("Function")) {
-					funcId = filter.getFilterValues().keySet().iterator().next();
-				} else if (filter.getFilterName().equalsIgnoreCase("Position")) {
-					posId = filter.getFilterValues().keySet().iterator().next();
-				} else if (filter.getFilterName().equalsIgnoreCase("Zone")) {
-					zoneId = filter.getFilterValues().keySet().iterator().next();
-				}
-			}
-
-			// check for if only two filter values are 0
-			for (int filterValueId : filter.getFilterValues().keySet()) {
-				if (filterValueId > 0) {
-					dimensionValueId = filterValueId;
-				}
-			}
-		}
-	}
-
 	/**
 	 * Retrieves the individual metrics data
 	 * @param employeeList - list of employees selected
@@ -179,7 +112,8 @@ public class ExploreHelper extends TheBorg {
 				CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getIndividualMetricValue(?)}");
 				cstmt.setInt(1, e.getEmployeeId());
 				ResultSet rs = cstmt.executeQuery();
-				metricsList = fillMetricsData(rs, "Individual");
+				MetricsHelper mh = new MetricsHelper();
+				metricsList = mh.fillMetricsData(rs, "Individual");
 				result.put(e, metricsList);
 			}
 		} catch (SQLException e) {

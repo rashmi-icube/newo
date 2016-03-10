@@ -15,6 +15,7 @@ import org.icube.owen.dashboard.IndividualDashboardHelper;
 import org.icube.owen.employee.Employee;
 import org.icube.owen.initiative.Initiative;
 import org.icube.owen.metrics.Metrics;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class IndividualDashboardHelperTest {
@@ -81,7 +82,7 @@ public class IndividualDashboardHelperTest {
 
 	}
 
-	@Test
+	@Ignore
 	public void testChangePassword() {
 		boolean status = idh.changePassword(1, 3, "abc123", "fcjdrnf345");
 		assertTrue(status);

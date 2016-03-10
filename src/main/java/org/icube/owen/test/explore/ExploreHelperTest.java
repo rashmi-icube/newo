@@ -49,7 +49,7 @@ public class ExploreHelperTest {
 		}
 	}
 
-	private void checkMetricsList(List<Metrics> metricsList) {
+	public static void checkMetricsList(List<Metrics> metricsList) {
 		assertNotNull(metricsList);
 		for (Metrics m : metricsList) {
 			assertTrue(m.getId() > 0);

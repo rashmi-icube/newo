@@ -19,7 +19,6 @@ import org.icube.owen.helper.DatabaseConnectionHelper;
 
 public class Employee extends TheBorg {
 
-	// TODO: retrieve all employee details from SQL
 	// TODO hpatel: inactive employees to be filtered out
 	private int employeeId;
 	private String companyEmployeeId;

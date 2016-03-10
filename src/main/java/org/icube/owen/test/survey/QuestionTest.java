@@ -11,13 +11,12 @@ import java.util.Map;
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.employee.Employee;
 import org.icube.owen.survey.Question;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class QuestionTest {
 	Question q = (Question) ObjectFactory.getInstance("org.icube.owen.survey.Question");
 
-	@Ignore
+	@Test
 	public void testGetQuestion() {
 		Question q1 = q.getQuestion(1);
 		assertTrue(q1.getQuestionId() > 0);
@@ -33,7 +32,7 @@ public class QuestionTest {
 		assertTrue(!responseMap1.isEmpty());
 	}
 
-	@Ignore
+	@Test
 	public void testGetCurrentQuestion() {
 		Question q1 = q.getCurrentQuestion(1);
 		assertTrue(q1.getQuestionId() > 0);
@@ -41,20 +40,20 @@ public class QuestionTest {
 		assertTrue(q1.getSurveyBatchId() > 0);
 	}
 
-	@Ignore
+	@Test
 	public void testGetQuestionStatus() {
 		String status = q.getQuestionStatus(q.getQuestion(1).getStartDate(), q.getQuestion(1).getEndDate());
 		assertTrue(!status.isEmpty());
 	}
 
-	@Ignore
+	@Test
 	public void testGetEmployeeQuestionList() {
 		List<Question> ql = new ArrayList<Question>();
 		ql = q.getEmployeeQuestionList(1, 30);
 		assertNotNull(ql);
 	}
 
-	@Ignore
+	@Test
 	public void testGetSmartListForQuestion() {
 		Map<Integer, Employee> result = q.getSmartListForQuestion(1, 1, q.getQuestion(1));
 		assertNotNull(result);

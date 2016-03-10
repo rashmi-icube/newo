@@ -25,6 +25,7 @@ import org.icube.owen.initiative.Initiative;
 import org.icube.owen.initiative.InitiativeHelper;
 import org.icube.owen.initiative.InitiativeList;
 import org.icube.owen.metrics.Metrics;
+import org.icube.owen.metrics.MetricsHelper;
 import org.icube.owen.survey.Question;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPInteger;
@@ -40,14 +41,14 @@ public class IndividualDashboardHelper extends TheBorg {
 	public List<Metrics> getIndividualMetrics(int companyId, int employeeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
-		ExploreHelper eh = new ExploreHelper();
+		MetricsHelper mh = new MetricsHelper();
 		List<Metrics> metricsList = new ArrayList<>();
 		try {
 
 			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getIndividualMetricValueForIndividual(?)}");
 			cstmt.setInt(1, employeeId);
 			ResultSet rs = cstmt.executeQuery();
-			metricsList = eh.fillMetricsData(rs, "Individual");
+			metricsList = mh.fillMetricsData(rs, "Individual");
 
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while retrieving individual metrics data", e);
