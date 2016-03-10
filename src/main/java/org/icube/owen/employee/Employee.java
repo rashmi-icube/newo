@@ -25,10 +25,10 @@ public class Employee extends TheBorg {
 	private String firstName;
 	private String lastName;
 	private String reportingManagerId;
-	private long score;
+	private double score;
 	private boolean active;
 	private int companyId;
-
+    private String grade; // can be high/medium/low
 	public int getEmployeeId() {
 		return employeeId;
 	}
@@ -69,12 +69,20 @@ public class Employee extends TheBorg {
 		this.reportingManagerId = reportingManagerId;
 	}
 
-	public long getScore() {
+	public double getScore() {
 		return score;
 	}
 
-	public void setScore(long score) {
+	public void setScore(double score) {
 		this.score = score;
+	}
+
+	public String getGrade() {
+		return grade;
+	}
+
+	public void setGrade(String grade) {
+		this.grade = grade;
 	}
 
 	public boolean isActive() {
@@ -110,7 +118,7 @@ public class Employee extends TheBorg {
 			ResultSet res = cstmt.executeQuery();
 			org.apache.log4j.Logger.getLogger(Employee.class).debug("query : " + cstmt);
 			res.next();
-			e = el.setEmployeeDetails(res, false);
+			e = el.setEmployeeDetails(res);
 			org.apache.log4j.Logger.getLogger(Employee.class).debug(
 					"Employee  : " + e.getEmployeeId() + "-" + e.getFirstName() + "-" + e.getLastName());
 

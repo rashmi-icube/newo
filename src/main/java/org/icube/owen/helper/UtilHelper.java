@@ -2,6 +2,9 @@ package org.icube.owen.helper;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -89,5 +92,16 @@ public class UtilHelper {
 		result.put("zoneId", zoneId);
 
 		return result;
+	}
+
+	public static boolean hasColumn(ResultSet rs, String columnName) throws SQLException {
+		ResultSetMetaData rsmd = rs.getMetaData();
+		int columns = rsmd.getColumnCount();
+		for (int x = 1; x <= columns; x++) {
+			if (columnName.equals(rsmd.getColumnName(x))) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

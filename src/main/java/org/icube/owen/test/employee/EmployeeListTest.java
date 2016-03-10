@@ -36,7 +36,7 @@ public class EmployeeListTest {
 		List<Employee> empList = new ArrayList<Employee>();
 		List<Filter> filterList = new ArrayList<Filter>();
 		Map<Integer, String> filterValuesMap = new HashMap<>();
-		filterValuesMap.put(0, "All");
+		filterValuesMap.put(1, "HR");
 		Filter f = new Filter();
 		f.setFilterName("Function");
 		f.setFilterId(1);
