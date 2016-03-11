@@ -45,9 +45,8 @@ public class DatabaseConnectionHelper extends TheBorg {
 		try {
 
 			Class.forName("com.mysql.jdbc.Driver");
-			mysqlCon = DriverManager.getConnection(mysqlurl, user, password);
+			mysqlCon = (mysqlCon != null && !mysqlCon.isValid(0)) ? mysqlCon : DriverManager.getConnection(mysqlurl, user, password);
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Successfully connected to MySql with owen database");
-
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("An error occurred. Maybe user/password is invalid", e);
 		} catch (ClassNotFoundException e) {
@@ -57,7 +56,8 @@ public class DatabaseConnectionHelper extends TheBorg {
 		// master sql connection
 		try {
 			Class.forName("com.mysql.jdbc.Driver");
-			masterCon = DriverManager.getConnection(MASTER_URL, MASTER_USER, MASTER_PASSWORD);
+			masterCon = (masterCon != null && !masterCon.isValid(0)) ? masterCon : DriverManager.getConnection(MASTER_URL, MASTER_USER,
+					MASTER_PASSWORD);
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Successfully connected to MySql with owen master database");
 
 		} catch (SQLException e) {
@@ -82,14 +82,14 @@ public class DatabaseConnectionHelper extends TheBorg {
 				Class.forName("org.neo4j.jdbc.Driver");
 				String path = "jdbc:neo4j://" + url + ":" + port + "/";
 				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Neo4j connection path : " + path);
-				neo4jCon = new Driver().connect(path, new Properties());
+				neo4jCon = (neo4jCon != null && !neo4jCon.isValid(0)) ? neo4jCon : new Driver().connect(path, new Properties());
 				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Successfully connected to Neo4j with owen database");
 			} catch (Exception e) {
 				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("An error occurred while connecting to neo4j server", e);
 			}
 
 			// R connection
-			rCon = new RConnection();
+			rCon = (rCon != null && rCon.isConnected()) ? rCon : new RConnection();
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Successfully connected to R");
 			String rScriptPath = UtilHelper.getConfigProperty("r_script_path");
 			// String rScriptPath = "C:\\\\Users\\\\fermion10\\\\Documents\\\\Neo4j\\\\scripts";
@@ -134,6 +134,12 @@ public class DatabaseConnectionHelper extends TheBorg {
 			if (rCon.isConnected()) {
 				rCon.close();
 				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Connection to R closed!!!!");
+			}
+
+			for (int companyId : companySqlConnectionPool.keySet()) {
+				companySqlConnectionPool.get(companyId).close();
+				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug(
+						"Connection to company sql for companyId : " + companyId + " is closed!!!!");
 			}
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("An error occurred while attempting to close db connections", e);
