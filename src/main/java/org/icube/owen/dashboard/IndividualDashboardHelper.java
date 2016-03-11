@@ -48,7 +48,7 @@ public class IndividualDashboardHelper extends TheBorg {
 			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getIndividualMetricValueForIndividual(?)}");
 			cstmt.setInt(1, employeeId);
 			ResultSet rs = cstmt.executeQuery();
-			metricsList = mh.fillMetricsData(rs, "Individual");
+			metricsList = mh.fillMetricsData(0, rs, null, "Individual");
 
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while retrieving individual metrics data", e);

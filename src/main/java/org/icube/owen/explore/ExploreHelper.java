@@ -34,7 +34,7 @@ public class ExploreHelper extends TheBorg {
 			List<Filter> filterList = teamListMap.get(teamName);
 			try {
 				MetricsHelper mh = new MetricsHelper();
-				metricList = mh.getTeamMetricsList(filterList);
+				metricList = mh.getTeamMetricsList(0, UtilHelper.parseFilterList(filterList), false);
 			} catch (SQLException e) {
 				org.apache.log4j.Logger.getLogger(ExploreHelper.class).error("Exception while getting team metrics data : " + teamListMap.toString(),
 						e);
@@ -113,7 +113,7 @@ public class ExploreHelper extends TheBorg {
 				cstmt.setInt(1, e.getEmployeeId());
 				ResultSet rs = cstmt.executeQuery();
 				MetricsHelper mh = new MetricsHelper();
-				metricsList = mh.fillMetricsData(rs, "Individual");
+				metricsList = mh.fillMetricsData(0, rs, null, "Individual");
 				result.put(e, metricsList);
 			}
 		} catch (SQLException e) {

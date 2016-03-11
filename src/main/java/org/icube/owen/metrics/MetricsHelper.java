@@ -20,54 +20,89 @@ import org.rosuda.REngine.REXPString;
 import org.rosuda.REngine.RList;
 
 public class MetricsHelper {
-	public List<Metrics> getTeamMetricsList(List<Filter> filterList) throws SQLException {
+	@SuppressWarnings("unchecked")
+	public List<Metrics> getTeamMetricsList(int initiativeTypeId, Map<String, Object> parsedFilterListResult, boolean previousScoreNeeded)
+			throws SQLException {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Metrics> metricList = new ArrayList<>();
-		Map<String, Object> parsedFilterListResult = UtilHelper.parseFilterList(filterList);
-
+		Map<Integer, String> primaryMetricMap = new HashMap<>();
+		if (initiativeTypeId > 0) {
+			primaryMetricMap = getPrimaryMetricMap(initiativeTypeId);
+		}
 		if ((int) parsedFilterListResult.get("countAll") == 3) {
 			// if all selections are ALL then it is a organizational team metric
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getOrganizationMetricValue()}");
+			CallableStatement cstmt;
+			if (previousScoreNeeded) {
+				cstmt = dch.mysqlCon.prepareCall("{call getOrganizationMetricValueAggregate()}");
+			} else {
+				cstmt = dch.mysqlCon.prepareCall("{call getOrganizationMetricValue()}");
+			}
 			ResultSet rs = cstmt.executeQuery();
-			metricList = fillMetricsData(rs, "Team");
+			metricList = fillMetricsData(initiativeTypeId, rs, primaryMetricMap, "Team");
 		} else if ((int) parsedFilterListResult.get("countAll") == 2) {
 			// if two of the filters are ALL then it is a dimension metric
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getDimensionMetricValue(?)}");
-			cstmt.setInt(1, (int) parsedFilterListResult.get("dimensionValueId"));
+			CallableStatement cstmt;
+			if (previousScoreNeeded) {
+				cstmt = dch.mysqlCon.prepareCall("{call getDimensionMetricValueAggregate(?,?)}");
+				cstmt.setInt(1, (int) parsedFilterListResult.get("dimensionValueId"));
+				cstmt.setInt(2, (int) parsedFilterListResult.get("dimensionId"));
+			} else {
+				cstmt = dch.mysqlCon.prepareCall("{call getDimensionMetricValue(?)}");
+				cstmt.setInt(1, (int) parsedFilterListResult.get("dimensionValueId"));
+			}
+
 			ResultSet rs = cstmt.executeQuery();
-			metricList = fillMetricsData(rs, "Team");
+			metricList = fillMetricsData(initiativeTypeId, rs, primaryMetricMap, "Team");
 		} else if ((int) parsedFilterListResult.get("countAll") == 0) {
 			// if none of the filters is ALL then it is a cube metric
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getTeamMetricValue(?, ?, ?)}");
+			CallableStatement cstmt;
+			if (previousScoreNeeded) {
+				cstmt = dch.mysqlCon.prepareCall("{call getTeamMetricValueAggregate(?, ?, ?)}");
+			} else {
+				cstmt = dch.mysqlCon.prepareCall("{call getTeamMetricValue(?, ?, ?)}");
+			}
 			cstmt.setInt(1, (int) parsedFilterListResult.get("funcId"));
 			cstmt.setInt(2, (int) parsedFilterListResult.get("posId"));
 			cstmt.setInt(3, (int) parsedFilterListResult.get("zoneId"));
 			ResultSet rs = cstmt.executeQuery();
-			metricList = fillMetricsData(rs, "Team");
+			metricList = fillMetricsData(initiativeTypeId, rs, primaryMetricMap, "Team");
 
 		} else {
 			// else call metric.R
 			MetricsList ml = new MetricsList();
-			metricList = ml.getInitiativeMetricsForTeam(0, filterList);
+			metricList = ml.getInitiativeMetricsForTeam(0, (List<Filter>) parsedFilterListResult.get("filterList"));
 		}
 
 		return metricList;
 	}
 
-	public List<Metrics> fillMetricsData(ResultSet rs, String category) throws SQLException {
+	public List<Metrics> fillMetricsData(int initiativeTypeId, ResultSet rs, Map<Integer, String> primaryMetricMap, String category)
+			throws SQLException {
 		List<Metrics> metricsList = new ArrayList<>();
 		while (rs.next()) {
 			Metrics m = new Metrics();
 			m.setId(rs.getInt("metric_id"));
 			m.setName(rs.getString("metric_name"));
-			m.setScore(rs.getInt("score"));
+			m.setScore(rs.getInt("current_score"));
 			m.setDateOfCalculation(rs.getDate("calc_time"));
 			m.setCategory(category);
+			if (UtilHelper.hasColumn(rs, "previous_score")) {
+				m.setDirection(m.calculateMetricDirection(rs.getInt("current_score"), rs.getInt("previous_score")));
+			}
+			if (primaryMetricMap != null && primaryMetricMap.containsKey(rs.getInt("metric_id"))) {
+				m.setPrimary(true);
+			} else {
+				m.setPrimary(false);
+			}
+			if (UtilHelper.hasColumn(rs, "average_score")) {
+				m.setAverage(rs.getInt("average_score"));
+			}
 			metricsList.add(m);
 		}
 		return metricsList;
 	}
 
+	@SuppressWarnings("unchecked")
 	public List<Metrics> getDynamicTeamMetrics(int initiativeTypeId, Map<String, Object> parsedFilterListResult) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Metrics> metricsList = new ArrayList<>();

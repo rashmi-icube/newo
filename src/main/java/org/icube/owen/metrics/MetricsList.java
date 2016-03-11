@@ -33,13 +33,15 @@ public class MetricsList extends TheBorg {
 				if ((int) parsedFilterListResult.get("countAll") == 1) {
 					metricsList = mh.getDynamicTeamMetrics(initiativeTypeId, parsedFilterListResult);
 				} else {
-					metricsList = mh.getTeamMetricsList(filterList);
+					metricsList = mh.getTeamMetricsList(initiativeTypeId, parsedFilterListResult, true);
 				}
 			} else {
 				metricsList = mh.getDynamicTeamMetrics(initiativeTypeId, parsedFilterListResult);
 			}
 		} catch (Exception e) {
-
+			org.apache.log4j.Logger.getLogger(MetricsList.class).error(
+					"Exception while trying to retrieve metrics for category team and type ID " + initiativeTypeId, e);
+		
 		}
 
 		return metricsList;

@@ -102,12 +102,54 @@ public class Initiative extends TheBorg {
 					} else {
 						org.apache.log4j.Logger.getLogger(Initiative.class).error("Unsuccessful in setting part of initiative");
 					}
+
+					// storing the metric value
+					// TODO make this dynamic based on filter list
+					String funcQuery = "", posQuery = "", zoneQuery = "";
+					List<String> funcParam = new ArrayList<>();
+					List<String> zoneParam = new ArrayList<>();
+					List<String> posParam = new ArrayList<>();
+
+					for (Filter f : this.filterList) {
+						if (f.getFilterName().equalsIgnoreCase("Function")) {
+							funcParam.addAll(f.getFilterValues().values());
+						} else if (f.getFilterName().equalsIgnoreCase("Position")) {
+							posParam.addAll(f.getFilterValues().values());
+						} else if (f.getFilterName().equalsIgnoreCase("Zone")) {
+							zoneParam.addAll(f.getFilterValues().values());
+						}
+					}
+
+					if (!funcParam.contains(0)) {
+						funcQuery = "f.Id in " + funcParam.toString();
+					}
+					if (!zoneParam.contains(0)) {
+						zoneQuery = "z.Id in " + zoneParam.toString();
+					}
+
+					if (!posParam.contains(0)) {
+						posQuery = "p.Id in " + posParam.toString();
+					}
+					String query = "match (a:Employee)-[:has_functionality]->(f:Function), (p:Position)<-[:is_positioned]-(a)-[:from_zone]->(z:Zone) "
+							+ ((!zoneQuery.isEmpty() || !funcQuery.isEmpty() || !posQuery.isEmpty()) ? " where " : "")
+							+ (zoneQuery.isEmpty() ? "" : (zoneQuery + ((!funcQuery.isEmpty() || !posQuery.isEmpty() ? " and " : ""))))
+							+ (funcQuery.isEmpty() ? "" : funcQuery + (!posQuery.isEmpty() ? " and " : ""))
+							+ (posQuery.isEmpty() ? "" : (posQuery))
+							+ "  return count(a) as TeamSize";
+					
+					res = dch.neo4jCon.createStatement().executeQuery(query);
+					while (res.next()) {}
+
 				}
 				if (!this.ownerOfList.isEmpty() && setOwner(initiativeId, this.ownerOfList)) {
 					org.apache.log4j.Logger.getLogger(Initiative.class).debug("Success in setting owner for initiative");
 				} else {
 					org.apache.log4j.Logger.getLogger(Initiative.class).error("Unsuccessful in setting owner for initiative");
 				}
+				
+				 
+				
+				
 
 			} else {
 				org.apache.log4j.Logger.getLogger(Initiative.class).error("Unable to create initiative");

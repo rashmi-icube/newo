@@ -56,26 +56,26 @@ public class UtilHelper {
 	public static Map<String, Object> parseFilterList(List<Filter> filterList) {
 		Map<String, Object> result = new HashMap<>();
 
-		int funcListSize = 0, posListSize = 0, zoneListSize = 0, countAll = 0, dimensionValueId = 0, funcId = 0, posId = 0, zoneId = 0;
+		int funcListSize = 0, posListSize = 0, zoneListSize = 0, countAll = 0, dimensionId = 0, dimensionValueId = 0, funcId = 0, posId = 0, zoneId = 0;
 		for (Filter filter : filterList) {
 			if (filter.getFilterValues().containsKey(0)) {
 				countAll++;
-			} else {
-				if (filter.getFilterName().equalsIgnoreCase("Function")) {
-					funcId = filter.getFilterValues().keySet().iterator().next();
-					funcListSize++;
-				} else if (filter.getFilterName().equalsIgnoreCase("Position")) {
-					posId = filter.getFilterValues().keySet().iterator().next();
-					posListSize++;
-				} else if (filter.getFilterName().equalsIgnoreCase("Zone")) {
-					zoneId = filter.getFilterValues().keySet().iterator().next();
-					zoneListSize++;
-				}
+			}
+			if (filter.getFilterName().equalsIgnoreCase("Function")) {
+				funcId = filter.getFilterValues().keySet().iterator().next();
+				funcListSize = filter.getFilterValues().size();
+			} else if (filter.getFilterName().equalsIgnoreCase("Position")) {
+				posId = filter.getFilterValues().keySet().iterator().next();
+				posListSize = filter.getFilterValues().size();
+			} else if (filter.getFilterName().equalsIgnoreCase("Zone")) {
+				zoneId = filter.getFilterValues().keySet().iterator().next();
+				zoneListSize = filter.getFilterValues().size();
 			}
 
 			// check for if only two filter values are 0
 			for (int filterValueId : filter.getFilterValues().keySet()) {
 				if (filterValueId > 0) {
+					dimensionId = filter.getFilterId();
 					dimensionValueId = filterValueId;
 				}
 			}
@@ -86,6 +86,7 @@ public class UtilHelper {
 		result.put("posListSize", posListSize);
 		result.put("zoneListSize", zoneListSize);
 		result.put("countAll", countAll);
+		result.put("dimensionId", dimensionId);
 		result.put("dimensionValueId", dimensionValueId);
 		result.put("funcId", funcId);
 		result.put("posId", posId);
