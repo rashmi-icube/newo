@@ -7,9 +7,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
@@ -214,28 +212,30 @@ public class EmployeeList extends TheBorg {
 		}
 		return e;
 	}
-/*
-	*//**
-	 * Returns a list of string filter ids from a map of filters
-	 * 
-	 * @param filterMap - Map of filters
-	 * @return string list of filter keys
-	 *//*
+
+	/*
+		*//**
+		* Returns a list of string filter ids from a map of filters
+		* 
+		* @param filterMap - Map of filters
+		* @return string list of filter keys
+		*/
+	/*
 	private List<Integer> getFilterKeyList(Map<Integer, String> filterMap) {
-		List<Integer> filterKeysStringList = new ArrayList<>();
-		filterKeysStringList.addAll(filterMap.keySet());
-		return filterKeysStringList;
+	List<Integer> filterKeysStringList = new ArrayList<>();
+	filterKeysStringList.addAll(filterMap.keySet());
+	return filterKeysStringList;
 	}
-*/
+	*/
 	/**
 	 * Retrieves the employee list based on the dimension provided 
 	 * 
-	 * @return map[rank, employee object] - view of the employee list should be sorted by the rank
+	 * @return List of employee objects
 	 */
-	public Map<Integer, Employee> getEmployeeListByFilters(int companyId, List<Filter> filterList) {
+	public List<Employee> getEmployeeListByFilters(int companyId, List<Filter> filterList) {
 
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		Map<Integer, Employee> employeeScoreMap = new HashMap<>();
+		List<Employee> employeeList = new ArrayList<>();
 		Employee e = new Employee();
 		Connection conn;
 		try {
@@ -255,15 +255,14 @@ public class EmployeeList extends TheBorg {
 			cstmt.setInt(2, posId);
 			cstmt.setInt(3, zoneId);
 			ResultSet rs = cstmt.executeQuery();
-			int count = 1;
 			while (rs.next()) {
-				employeeScoreMap.put(count++, e.get(rs.getInt("emp_id")));
+				employeeList.add(e.get(rs.getInt("emp_id")));
 			}
 		} catch (SQLException e1) {
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).error("Exception while retrieving the employee list based on dimension", e1);
 		}
 
-		return employeeScoreMap;
+		return employeeList;
 
 	}
 }

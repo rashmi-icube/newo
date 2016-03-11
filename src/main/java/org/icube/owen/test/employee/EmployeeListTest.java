@@ -91,10 +91,10 @@ public class EmployeeListTest {
 		Filter filter = filterList.get(0);
 		if (filter.getFilterName().equalsIgnoreCase("Function")) {
 			filter.getFilterValues().clear();
-			filter.getFilterValues().put(1, "HR");
+			filter.getFilterValues().put(2, "Business");
 		}
 
-		Map<Integer, Employee> result = el.getEmployeeListByFilters(1, filterList);
+		List<Employee> result = el.getEmployeeListByFilters(1, filterList);
 		assertNotNull(result);
 	}
 

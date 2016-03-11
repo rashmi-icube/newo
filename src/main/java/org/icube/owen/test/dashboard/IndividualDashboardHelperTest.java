@@ -63,8 +63,8 @@ public class IndividualDashboardHelperTest {
 
 	@Test
 	public void testGetSmartList() {
-		Map<Integer, Employee> employeeScoreMap = idh.getSmartList(1, 1);
-		assertNotNull(employeeScoreMap);
+		List<Employee> employeeList = idh.getSmartList(1, 1);
+		assertNotNull(employeeList);
 
 	}
 

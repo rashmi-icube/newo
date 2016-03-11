@@ -16,7 +16,6 @@ import org.icube.owen.TheBorg;
 import org.icube.owen.employee.Employee;
 import org.icube.owen.filter.Filter;
 import org.icube.owen.helper.DatabaseConnectionHelper;
-import org.icube.owen.helper.UtilHelper;
 import org.icube.owen.metrics.Metrics;
 import org.icube.owen.metrics.MetricsList;
 
@@ -148,7 +147,7 @@ public class Initiative extends TheBorg {
 						cstmt.setInt("initiativeid", initiativeId);
 						cstmt.setInt("metricid", m.getId());
 						cstmt.setInt("metricvalue", m.getScore());
-						cstmt.setTimestamp("calctime",Timestamp.from(Instant.now()));
+						cstmt.setTimestamp("calctime", Timestamp.from(Instant.now()));
 						cstmt.setInt("noemp", teamSize);
 						ResultSet rs = cstmt.executeQuery();
 						while (rs.next()) {

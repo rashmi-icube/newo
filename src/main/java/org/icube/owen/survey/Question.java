@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import org.apache.commons.lang3.time.DateUtils;
 import org.icube.owen.ObjectFactory;
@@ -234,11 +235,12 @@ public class Question extends TheBorg {
 	/**
 	 * Returns the default smart list for the employee on the we question page
 	 * 
-	 * @return map[rank, employee object] - view of the employee list should be sorted by the rank
+	 * @return List of employee objects - view of the employee list should be sorted by the rank
 	 */
-	public Map<Integer, Employee> getSmartListForQuestion(int companyId, int employeeId, Question q) {
+	public List<Employee> getSmartListForQuestion(int companyId, int employeeId, Question q) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		Map<Integer, Employee> employeeScoreMap = new HashMap<>();
+		Map<Integer, Employee> employeeRankMap = new HashMap<>();
+		List<Employee> employeeList = new ArrayList<>();
 
 		try {
 			String s = "source(\"metric.r\")";
@@ -260,19 +262,22 @@ public class Question extends TheBorg {
 			RList result = employeeSmartList.asList();
 			REXPInteger empIdResult = (REXPInteger) result.get("emp_id");
 			int[] empIdArray = empIdResult.asIntegers();
-			REXPInteger rankResult = (REXPInteger) result.get("Rank");
+			REXPInteger rankResult = (REXPInteger) (result.get("Rank"));
 			int[] rankArray = rankResult.asIntegers();
 
-			for (int i = 0; i < rankArray.length; i++) {
+			for (int i = 0; i < empIdArray.length; i++) {
 				Employee e = new Employee();
 				e = e.get(empIdArray[i]);
-				employeeScoreMap.put(rankArray[i], e);
+				employeeRankMap.put(rankArray[i], e);
 			}
+			Map<Integer, Employee> sorted_map = new TreeMap<Integer, Employee>(employeeRankMap);
+			employeeList = new ArrayList<Employee>(sorted_map.values());
+
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(Question.class).error("Error while trying to retrieve the smart list for employee from question", e);
 		}
 
-		return employeeScoreMap;
+		return employeeList;
 	}
 
 }

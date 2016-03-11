@@ -55,7 +55,7 @@ public class QuestionTest {
 
 	@Test
 	public void testGetSmartListForQuestion() {
-		Map<Integer, Employee> result = q.getSmartListForQuestion(1, 1, q.getQuestion(1));
+		List<Employee> result = q.getSmartListForQuestion(1, 1, q.getQuestion(1));
 		assertNotNull(result);
 	}
 
