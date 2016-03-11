@@ -157,8 +157,6 @@ public class EmployeeList extends TheBorg {
 	 * Get a list of all employee objects
 	 * @return employeeList
 	 */
-
-	// TODO make a copy of this function to get the master list accepting the companyId as an argument
 	public List<Employee> getEmployeeMasterList() {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Employee> employeeList = new ArrayList<>();

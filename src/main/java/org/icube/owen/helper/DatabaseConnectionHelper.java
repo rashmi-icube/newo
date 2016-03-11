@@ -39,8 +39,6 @@ public class DatabaseConnectionHelper extends TheBorg {
 	private final static String MASTER_PASSWORD = UtilHelper.getConfigProperty("master_sql_password");
 
 	public DatabaseConnectionHelper() {
-
-		// TODO check if an active connection is available return active connection don't create a new mysql connection
 		// mysql connection
 		try {
 
