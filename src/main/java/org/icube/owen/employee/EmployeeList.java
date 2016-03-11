@@ -184,6 +184,36 @@ public class EmployeeList extends TheBorg {
 	}
 
 	/**
+	 * Retrieves the employee master list from the company db
+
+	 * @return list of employee objects
+	 */
+	public List<Employee> getEmployeeMasterList(int companyId) {
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
+		List<Employee> employeeList = new ArrayList<>();
+		try {
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("getEmployeeMasterList method started");
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getEmployeeList()}");
+			ResultSet res = cstmt.executeQuery();
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("query : " + cstmt);
+			while (res.next()) {
+				Employee e = setEmployeeDetails(res);
+				employeeList.add(e);
+			}
+
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("employeeList : " + employeeList.toString());
+
+		} catch (SQLException e) {
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).error("Exception while getting the employee master list", e);
+
+		}
+
+		return employeeList;
+
+	}
+
+	/**
 	 * Set the employee details based on the result from sql
 	 * @param res -  actual result from sql
 	 * @param setScore - if the score should be set for the employee or not
