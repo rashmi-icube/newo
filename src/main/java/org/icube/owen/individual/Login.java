@@ -4,22 +4,23 @@ import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Instant;
+import java.util.Date;
 
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
 import org.icube.owen.employee.Employee;
 import org.icube.owen.helper.DatabaseConnectionHelper;
+import org.icube.owen.helper.UtilHelper;
 
 public class Login extends TheBorg {
 
 	/**
-	 * Validates username and password for login page
-	 * @param emailId - email ID of the user
-	 * @param password - password of the user
+	 * Validates user name and password for login page
 	 * @return Employee object
 	 * @throws Exception - thrown when provided with invalid credentials
 	 */
-	public Employee login(String emailId, String password) throws Exception {
+	public Employee login(String emailId, String password, String ipAddress) throws Exception {
 		Employee e = new Employee();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Connection companySqlCon = null;
@@ -35,10 +36,11 @@ public class Login extends TheBorg {
 				companyId = rs.getInt("comp_id");
 				companySqlCon = dch.getCompanyConnection(companyId);
 			}
-
-			CallableStatement cstmt1 = companySqlCon.prepareCall("{call verifyLogin(?,?)}");
-			cstmt1.setString(1, emailId);
-			cstmt1.setString(2, password);
+			CallableStatement cstmt1 = companySqlCon.prepareCall("{call verifyLogin(?,?,?,?)}");
+			cstmt1.setString("loginid", emailId);
+			cstmt1.setString("pass", password);
+			cstmt1.setTimestamp("curr_time", UtilHelper.convertJavaDateToSqlTimestamp(Date.from(Instant.now())));
+			cstmt1.setString("ip", ipAddress);
 			ResultSet res = cstmt1.executeQuery();
 			if (res.next()) {
 				e = e.get(res.getInt("emp_id"));
@@ -54,4 +56,5 @@ public class Login extends TheBorg {
 		}
 		return e;
 	}
+
 }

@@ -79,25 +79,29 @@ public class MetricsHelper {
 	public List<Metrics> fillMetricsData(int initiativeTypeId, ResultSet rs, Map<Integer, String> primaryMetricMap, String category)
 			throws SQLException {
 		List<Metrics> metricsList = new ArrayList<>();
-		while (rs.next()) {
-			Metrics m = new Metrics();
-			m.setId(rs.getInt("metric_id"));
-			m.setName(rs.getString("metric_name"));
-			m.setScore(rs.getInt("current_score"));
-			m.setDateOfCalculation(rs.getDate("calc_time"));
-			m.setCategory(category);
-			if (UtilHelper.hasColumn(rs, "previous_score")) {
-				m.setDirection(m.calculateMetricDirection(rs.getInt("current_score"), rs.getInt("previous_score")));
+		if (rs != null) {
+			while (rs.next()) {
+				Metrics m = new Metrics();
+				m.setId(rs.getInt("metric_id"));
+				m.setName(rs.getString("metric_name"));
+				m.setScore(rs.getInt("current_score"));
+				m.setDateOfCalculation(rs.getDate("calc_time"));
+				m.setCategory(category);
+				if (UtilHelper.hasColumn(rs, "previous_score")) {
+					m.setDirection(m.calculateMetricDirection(rs.getInt("current_score"), rs.getInt("previous_score")));
+				}
+				if (primaryMetricMap != null && primaryMetricMap.containsKey(rs.getInt("metric_id"))) {
+					m.setPrimary(true);
+				} else {
+					m.setPrimary(false);
+				}
+				if (UtilHelper.hasColumn(rs, "average_score")) {
+					m.setAverage(rs.getInt("average_score"));
+				}
+				metricsList.add(m);
 			}
-			if (primaryMetricMap != null && primaryMetricMap.containsKey(rs.getInt("metric_id"))) {
-				m.setPrimary(true);
-			} else {
-				m.setPrimary(false);
-			}
-			if (UtilHelper.hasColumn(rs, "average_score")) {
-				m.setAverage(rs.getInt("average_score"));
-			}
-			metricsList.add(m);
+		} else {
+			org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("No metrics returned");
 		}
 		return metricsList;
 	}
@@ -156,7 +160,7 @@ public class MetricsHelper {
 
 			for (int i = 0; i < metricIdArray.length; i++) {
 				currentScoreMap.put(metricIdArray[i], (int) (scoreArray[i]));
-				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+				SimpleDateFormat sdf = new SimpleDateFormat(UtilHelper.dateTimeFormat);
 				dateOfCalcMap.put(metricIdArray[i], UtilHelper.convertJavaDateToSqlDate((java.util.Date) (sdf.parse(dateOfCalculationArray[i]))));
 			}
 

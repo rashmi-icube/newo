@@ -4,6 +4,7 @@ import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
@@ -133,8 +134,9 @@ public class Question extends TheBorg {
 	 */
 	public String getQuestionStatus(Date startDate, Date endDate) {
 		String status = "";
+		SimpleDateFormat sdf = new SimpleDateFormat(UtilHelper.dateFormat);
 
-		if (endDate.before(Date.from(Instant.now()))) {
+		if (!sdf.format(endDate).equals(sdf.format(Date.from(Instant.now()))) && endDate.before(Date.from(Instant.now()))) {
 			status = "completed";
 		} else if (startDate.after(Date.from(Instant.now()))) {
 			status = "upcoming";
@@ -182,8 +184,10 @@ public class Question extends TheBorg {
 	public Question getCurrentQuestion(int batchId) {
 		Question q = new Question();
 		QuestionList ql = new QuestionList();
+		SimpleDateFormat sdf = new SimpleDateFormat(UtilHelper.dateFormat);
 		for (Question q1 : ql.getQuestionListForBatch(batchId)) {
-			if ((q1.getStartDate().compareTo(Date.from(Instant.now())) <= 0) && (q1.getEndDate().after(Date.from(Instant.now())))) {
+			if ((q1.getStartDate().compareTo(Date.from(Instant.now())) <= 0)
+					&& (sdf.format(q1.getEndDate()).equals(sdf.format(Date.from(Instant.now()))) || q1.getEndDate().after(Date.from(Instant.now())))) {
 				q.setQuestionId(q1.getQuestionId());
 				q.setQuestionText(q1.getQuestionText());
 				q.setStartDate(q1.getStartDate());

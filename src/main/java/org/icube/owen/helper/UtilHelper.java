@@ -14,6 +14,9 @@ import org.icube.owen.filter.Filter;
 
 public class UtilHelper {
 
+	public static final String dateTimeFormat = "yyyy-MM-dd hh:mm:ss"; // 2016-01-01 00:00:00
+	public static final String dateFormat = "yyyy-MM-dd"; // 2016-01-01;
+
 	public static int[] getIntArrayFromIntegerList(List<Integer> integerList) {
 		int[] result = new int[integerList.size()];
 		for (int i = 0; i <= integerList.size() - 1; i++) {

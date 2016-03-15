@@ -5,12 +5,12 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
 import org.icube.owen.helper.DatabaseConnectionHelper;
+import org.icube.owen.helper.UtilHelper;
 
 public class InitiativeList extends TheBorg {
 
@@ -177,7 +177,7 @@ public class InitiativeList extends TheBorg {
 			i.setInitiativeStatus(res.getString("Status"));
 			i.setInitiativeCategory(res.getString("Category"));
 
-			SimpleDateFormat parserSDF = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzzz yyyy", Locale.ENGLISH);
+			SimpleDateFormat parserSDF = new SimpleDateFormat(UtilHelper.dateTimeFormat);
 			i.setInitiativeStartDate(parserSDF.parse(res.getString("StartDate")));
 			i.setInitiativeEndDate(parserSDF.parse(res.getString("EndDate")));
 			i.setInitiativeCreationDate(parserSDF.parse(res.getString("CreationDate")));

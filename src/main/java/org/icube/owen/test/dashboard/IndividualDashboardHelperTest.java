@@ -15,7 +15,6 @@ import org.icube.owen.dashboard.IndividualDashboardHelper;
 import org.icube.owen.employee.Employee;
 import org.icube.owen.initiative.Initiative;
 import org.icube.owen.metrics.Metrics;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class IndividualDashboardHelperTest {
@@ -23,15 +22,17 @@ public class IndividualDashboardHelperTest {
 
 	@Test
 	public void testGetActivityFeedList() {
-		List<ActivityFeed> afl = idh.getActivityFeedList(1, 208);
-		for (ActivityFeed af : afl) {
-			assertNotNull(af.getActivityType());
-			assertNotNull(af.getBodyText());
-			assertNotNull(af.getDate());
-			System.out.println(af.getDate());
-			assertNotNull(af.getHeaderText());
+		Map<Date, List<ActivityFeed>> result = idh.getActivityFeedList(1, 208, 1);
+		for (Date d : result.keySet()) {
+			List<ActivityFeed> afl = result.get(d);
+			for (ActivityFeed af : afl) {
+				assertNotNull(af.getActivityType());
+				assertNotNull(af.getBodyText());
+				assertNotNull(af.getDate());
+				assertNotNull(af.getHeaderText());
+				System.out.println(af.getActivityType() + " - " + af.getHeaderText() + " - " + af.getBodyText() + " - " + af.getDate());
+			}
 		}
-
 	}
 
 	@Test
@@ -55,7 +56,7 @@ public class IndividualDashboardHelperTest {
 	@Test
 	public void testIndividualInitiativeList() {
 		List<Initiative> initiativeList = new ArrayList<>();
-		initiativeList = idh.individualInitiativeList(208);
+		initiativeList = idh.getIndividualInitiativeList(208);
 		for (Initiative i : initiativeList) {
 			assertNotNull(i.get(i.getInitiativeId()));
 		}
@@ -82,9 +83,21 @@ public class IndividualDashboardHelperTest {
 
 	}
 
-	@Ignore
+	@Test
 	public void testChangePassword() {
-		boolean status = idh.changePassword(1, 3, "abc123", "fcjdrnf345");
+		boolean status = idh.changePassword(1, 100, "efg456", "abc123");
 		assertTrue(status);
+	}
+
+	@Test
+	public void testUpdateNotificationTimestamp() {
+		boolean status = idh.updateNotificationTimestamp(1, 1);
+		assertTrue(status);
+	}
+
+	@Test
+	public void testGetNotificationsCount() {
+		int count = idh.getNotificationsCount(1, 1);
+		assertTrue(count > 0);
 	}
 }
