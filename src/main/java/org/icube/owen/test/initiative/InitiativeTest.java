@@ -102,7 +102,7 @@ public class InitiativeTest {
 
 	@Test
 	public void testGetInitiativeTypeMap() {
-		Map<Integer, String> initiativeTypeMap = initiative.getInitiativeTypeMap("Individual");
+		assertNotNull(initiative.getInitiativeTypeMap("Individual"));
 	}
 
 	@Test

@@ -45,17 +45,21 @@ public class ExploreHelperTest {
 		assertTrue(!result.isEmpty());
 		for (Employee e : result.keySet()) {
 			List<Metrics> metricsList = result.get(e);
-			checkMetricsList(metricsList);
+			checkMetricsList(metricsList, false);
 		}
 	}
 
-	private void checkMetricsList(List<Metrics> metricsList) {
+	public static void checkMetricsList(List<Metrics> metricsList, boolean checkDirection) {
 		assertNotNull(metricsList);
 		for (Metrics m : metricsList) {
 			assertTrue(m.getId() > 0);
 			assertTrue(!m.getName().isEmpty());
-			assertTrue(m.getScore() >= 0);
+			assertTrue(m.getScore() >= -1);
 			assertTrue(m.getDateOfCalculation() != null);
+			if (checkDirection) {
+				assertNotNull(m.getDirection());
+
+			}
 		}
 	}
 
@@ -91,28 +95,28 @@ public class ExploreHelperTest {
 
 		Map<String, List<Metrics>> teamMetricsData = eh.getTeamMetricsData(teamListMap); // no filter is selected as ALL
 		for (String name : teamMetricsData.keySet()) {
-			checkMetricsList(teamMetricsData.get(name));
+			checkMetricsList(teamMetricsData.get(name), false);
 		}
 
 		filterList.get(0).getFilterValues().clear();
 		filterList.get(0).getFilterValues().put(0, "All");
 		teamMetricsData = eh.getTeamMetricsData(teamListMap); // 1 filter has selected as ALL
 		for (String name : teamMetricsData.keySet()) {
-			checkMetricsList(teamMetricsData.get(name));
+			checkMetricsList(teamMetricsData.get(name), false);
 		}
 
 		filterList.get(1).getFilterValues().clear();
 		filterList.get(1).getFilterValues().put(0, "All");
 		teamMetricsData = eh.getTeamMetricsData(teamListMap); // 2 filters have selected as ALL
 		for (String name : teamMetricsData.keySet()) {
-			checkMetricsList(teamMetricsData.get(name));
+			checkMetricsList(teamMetricsData.get(name), false);
 		}
 
 		filterList.get(2).getFilterValues().clear();
 		filterList.get(2).getFilterValues().put(0, "All");
 		teamMetricsData = eh.getTeamMetricsData(teamListMap); // 3 filters have selected as ALL
 		for (String name : teamMetricsData.keySet()) {
-			checkMetricsList(teamMetricsData.get(name));
+			checkMetricsList(teamMetricsData.get(name), false);
 		}
 	}
 
@@ -163,6 +167,7 @@ public class ExploreHelperTest {
 
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testGetTeamNetworkDiagram() {
 
@@ -245,6 +250,7 @@ public class ExploreHelperTest {
 
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testGetIndividualNetworkDiagram() {
 		List<Employee> employeeList = new ArrayList<>();

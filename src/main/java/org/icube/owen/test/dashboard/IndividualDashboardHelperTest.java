@@ -15,6 +15,7 @@ import org.icube.owen.dashboard.IndividualDashboardHelper;
 import org.icube.owen.employee.Employee;
 import org.icube.owen.initiative.Initiative;
 import org.icube.owen.metrics.Metrics;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class IndividualDashboardHelperTest {
@@ -62,8 +63,8 @@ public class IndividualDashboardHelperTest {
 
 	@Test
 	public void testGetSmartList() {
-		Map<Integer, Employee> employeeScoreMap = idh.getSmartList(1, 1);
-		assertNotNull(employeeScoreMap);
+		List<Employee> employeeList = idh.getSmartList(1, 1);
+		assertNotNull(employeeList);
 
 	}
 
@@ -81,7 +82,7 @@ public class IndividualDashboardHelperTest {
 
 	}
 
-	@Test
+	@Ignore
 	public void testChangePassword() {
 		boolean status = idh.changePassword(1, 3, "abc123", "fcjdrnf345");
 		assertTrue(status);

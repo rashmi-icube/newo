@@ -12,9 +12,11 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.TreeMap;
 
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
@@ -25,6 +27,7 @@ import org.icube.owen.initiative.Initiative;
 import org.icube.owen.initiative.InitiativeHelper;
 import org.icube.owen.initiative.InitiativeList;
 import org.icube.owen.metrics.Metrics;
+import org.icube.owen.metrics.MetricsHelper;
 import org.icube.owen.survey.Question;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPInteger;
@@ -40,14 +43,14 @@ public class IndividualDashboardHelper extends TheBorg {
 	public List<Metrics> getIndividualMetrics(int companyId, int employeeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
-		ExploreHelper eh = new ExploreHelper();
+		MetricsHelper mh = new MetricsHelper();
 		List<Metrics> metricsList = new ArrayList<>();
 		try {
 
 			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getIndividualMetricValueForIndividual(?)}");
 			cstmt.setInt(1, employeeId);
 			ResultSet rs = cstmt.executeQuery();
-			metricsList = eh.fillMetricsData(rs, "Individual");
+			metricsList = mh.fillMetricsData(0, rs, null, "Individual");
 
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while retrieving individual metrics data", e);
@@ -198,11 +201,12 @@ public class IndividualDashboardHelper extends TheBorg {
 	 * Retrieves the smart list of employees 
 	 * @param employeeId - Employee Id of the individual who is logged in 
 	 * @param metricId - Metric Id of the selected Metric
-	 * @return - A map of ranking and Employee object
+	 * @return - A list of Employee objects
 	 */
-	public Map<Integer, Employee> getSmartList(int employeeId, int metricId) {
+	public List<Employee> getSmartList(int employeeId, int metricId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		Map<Integer, Employee> employeeScoreMap = new HashMap<>();
+		Map<Integer, Employee> employeeRankMap = new LinkedHashMap<>();
+		List<Employee> employeeList = new ArrayList<>();
 		Map<Integer, Integer> MetricRelationshipTypeMap = getMetricRelationshipTypeMapping(1);
 		try {
 			String s = "source(\"metric.r\")";
@@ -227,17 +231,20 @@ public class IndividualDashboardHelper extends TheBorg {
 			REXPInteger rankResult = (REXPInteger) result.get("Rank");
 			int[] rankArray = rankResult.asIntegers();
 
-			for (int i = 0; i < rankArray.length; i++) {
+			for (int i = 0; i < empIdArray.length; i++) {
 				Employee e = new Employee();
 				e = e.get(empIdArray[i]);
-				employeeScoreMap.put(rankArray[i], e);
+				employeeRankMap.put(rankArray[i], e);
 			}
+			Map<Integer, Employee> sorted_map = new TreeMap<Integer, Employee>(employeeRankMap);
+			employeeList = new ArrayList<Employee>(sorted_map.values());
+
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error(
 					"Error while trying to retrieve the smart list for employee from question", e);
 		}
 
-		return employeeScoreMap;
+		return employeeList;
 	}
 
 	/**

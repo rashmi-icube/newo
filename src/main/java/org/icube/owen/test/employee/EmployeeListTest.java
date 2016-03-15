@@ -36,7 +36,7 @@ public class EmployeeListTest {
 		List<Employee> empList = new ArrayList<Employee>();
 		List<Filter> filterList = new ArrayList<Filter>();
 		Map<Integer, String> filterValuesMap = new HashMap<>();
-		filterValuesMap.put(0, "All");
+		filterValuesMap.put(1, "HR");
 		Filter f = new Filter();
 		f.setFilterName("Function");
 		f.setFilterId(1);
@@ -91,10 +91,10 @@ public class EmployeeListTest {
 		Filter filter = filterList.get(0);
 		if (filter.getFilterName().equalsIgnoreCase("Function")) {
 			filter.getFilterValues().clear();
-			filter.getFilterValues().put(1, "HR");
+			filter.getFilterValues().put(2, "Business");
 		}
 
-		Map<Integer, Employee> result = el.getEmployeeListByFilters(1, filterList);
+		List<Employee> result = el.getEmployeeListByFilters(1, filterList);
 		assertNotNull(result);
 	}
 
