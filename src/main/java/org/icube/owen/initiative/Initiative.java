@@ -407,8 +407,8 @@ public class Initiative extends TheBorg {
 			updatedInitiative.setOwner(updatedInitiativeId, updatedOwnerOfList);
 			String query = "match(a:Init {Id:" + updatedInitiativeId + "}) set a.CreatedOn = '"
 					+ sdf.format(updatedInitiative.getInitiativeCreationDate()) + "', a.Name = '" + updatedInitiative.getInitiativeName().toString()
-					+ "',a.Status = '" + checkInitiativeStatus(updatedInitiative.getInitiativeStartDate()) + "'," + "a.Type = '"
-					+ updatedInitiative.getInitiativeTypeId() + "',a.Category = '" + updatedInitiative.getInitiativeCategory() + "',"
+					+ "',a.Status = '" + checkInitiativeStatus(updatedInitiative.getInitiativeStartDate()) + "'," + "a.Type = "
+					+ updatedInitiative.getInitiativeTypeId() + ",a.Category = '" + updatedInitiative.getInitiativeCategory() + "',"
 					+ "a.Comment = '" + updatedInitiative.getInitiativeComment().toString() + "',a.EndDate = '"
 					+ sdf.format(UtilHelper.getEndOfDay(updatedInitiative.getInitiativeEndDate())) + "'," + "a.StartDate = '"
 					+ sdf.format(UtilHelper.getStartOfDay(updatedInitiative.getInitiativeStartDate())) + "' return a.Name as Name, "

@@ -14,6 +14,7 @@ import org.icube.owen.ObjectFactory;
 import org.icube.owen.employee.Employee;
 import org.icube.owen.filter.Filter;
 import org.icube.owen.initiative.Initiative;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class InitiativeTest {
@@ -113,7 +114,7 @@ public class InitiativeTest {
 
 	@Test
 	public void testUpdateInitiative() {
-		Initiative updatedinitiative = initiative.get(19);
+		Initiative updatedinitiative = initiative.get(18);
 		List<Employee> ownerOfList = new ArrayList<>();
 		Employee e = new Employee();
 		ownerOfList.add(e.get(7));
