@@ -65,6 +65,7 @@ JobAlert=function(CompanyId){
   team_metric_value$date=as.Date(team_metric_value$calc_time,format="%Y-%m-%d")
   
   team_metric_value=team_metric_value[,c("cube_id","metric_id","metric_value","date")]
+  latest_date=max(team_metric_value$date)
   
   d1=dcast(team_metric_value, cube_id+metric_id~date, value.var="metric_value")
   
@@ -89,32 +90,63 @@ JobAlert=function(CompanyId){
   for (i in 1:nrow(dalert)){
     # insert alert and get alert_id
     metric_id=dalert$metric_id[i]
-    
-    if(metric_id==8){
-      cube_id=dalert$cube_id[i]
+    cube_id=dalert$cube_id[i]
+    score=dalert[i,as.character(latest_date)]
+    delta_score=dalert$delta[i]
+    people_count=0
+    currtime=format(Sys.time(), "%Y-%m-%d %H:%M:%S")
+    status="Inactive"
+    if(metric_id==8){#Retention
+      
       emp_id_cube=employee$emp_id[employee$cube_id==cube_id]
       
       retention <-retention_ind[retention_ind$emp_id %in% emp_id_cube,]
       
       #to find people at risk based on Threshold
-      PeopleAtRisk=retention$emp_id[retention$metric_value<=variable$value[variable$variable_name=="Metric8RiskThreshold"]]
-      
+      PeopleAtAlert=retention$emp_id[retention$metric_value<=variable$value[variable$variable_name=="Metric8RiskThreshold"]]
+      people_count=length(PeopleAtAlert)
+
     }
     
-    if(metric_id==10){
-      cube_id=dalert$cube_id[i]
+    if(metric_id==10){#Sentiment
       emp_id_cube=employee$emp_id[employee$cube_id==cube_id]
       
       sentiment <-sentiment_ind[sentiment_ind$emp_id %in% emp_id_cube,]
       
       #to find people at risk based on Threshold
-      PeopleLowSen=sentiment$emp_id[sentiment$metric_value<=variable$value[variable$variable_name=="AlertSentimentThreshold"]]
+      PeopleAtAlert=sentiment$emp_id[sentiment$metric_value<=variable$value[variable$variable_name=="AlertSentimentThreshold"]]
+      
+      people_count=length(PeopleAtAlert)
+      #insert  people
       
     }
+   
+    dbBegin(mydb)
+    query=paste("insert into alert (cube_id,metric_id,score,delta_score,people_count,alert_time,status) 
+          values (",cube_id,",",metric_id,",",score,",",delta_score,",",people_count,",'",currtime,"','",status,"');",sep="")
+  
+    dbGetQuery(mydb,query)
+    
+    if (people_count>0){
+      query = "SELECT LAST_INSERT_ID();"
+    
+      res <- dbSendQuery(mydb,query)
+      
+      alert_id<- fetch(res,-1)
+      alert_id=alert_id[1,1]
+      #insert  people
+      values <- paste("(",alert_id,",",PeopleAtAlert,")", sep="", collapse=",")
+      
+      queryinsert <- paste("insert into alert_people (alert_id,emp_id) values ", values)
+      dbGetQuery(mydb,queryinsert)
+      
+      
+    }
+  
+    dbCommit(mydb)
+    
     
   }
-  
-  
   
   dbDisconnect(mydb)
 }
