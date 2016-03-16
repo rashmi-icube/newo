@@ -177,10 +177,11 @@ public class IndividualDashboardHelper extends TheBorg {
 
 			// return a sublist of result based on the page number
 			int feedThreshold = 25;
-			int fromIndex = pageNumber == 1 ? 0 : (pageNumber - 1) * ++feedThreshold;
+			int fromIndex = pageNumber == 1 ? 0 : (pageNumber - 1) * feedThreshold + 1;
 			int toIndex = pageNumber == 1 ? feedThreshold : pageNumber * feedThreshold;
 
-			ArrayList<ActivityFeed> afSubList = new ArrayList<ActivityFeed>(afList.subList(fromIndex, toIndex));
+			ArrayList<ActivityFeed> afSubList = new ArrayList<ActivityFeed>(afList.subList(fromIndex, toIndex > afList.size() ? afList.size() - 1
+					: toIndex));
 
 			for (ActivityFeed af1 : afSubList) {
 				Date d = DateUtils.truncate(af1.getDate(), Calendar.DAY_OF_MONTH);
