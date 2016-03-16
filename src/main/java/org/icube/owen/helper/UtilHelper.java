@@ -5,6 +5,8 @@ import java.io.InputStream;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,7 +16,7 @@ import org.icube.owen.filter.Filter;
 
 public class UtilHelper {
 
-	public static final String dateTimeFormat = "yyyy-MM-dd hh:mm:ss"; // 2016-01-01 00:00:00
+	public static final String dateTimeFormat = "yyyy-MM-dd HH:mm:ss"; // 2016-01-01 00:00:00
 	public static final String dateFormat = "yyyy-MM-dd"; // 2016-01-01;
 
 	public static int[] getIntArrayFromIntegerList(List<Integer> integerList) {
@@ -107,5 +109,25 @@ public class UtilHelper {
 			}
 		}
 		return false;
+	}
+
+	public static Date getStartOfDay(Date date) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		calendar.set(Calendar.HOUR_OF_DAY, 0);
+		calendar.set(Calendar.MINUTE, 0);
+		calendar.set(Calendar.SECOND, 0);
+		calendar.set(Calendar.MILLISECOND, 0);
+		return calendar.getTime();
+	}
+
+	public static Date getEndOfDay(Date date) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		calendar.set(Calendar.HOUR_OF_DAY, 23);
+		calendar.set(Calendar.MINUTE, 59);
+		calendar.set(Calendar.SECOND, 59);
+		calendar.set(Calendar.MILLISECOND, 999);
+		return calendar.getTime();
 	}
 }
