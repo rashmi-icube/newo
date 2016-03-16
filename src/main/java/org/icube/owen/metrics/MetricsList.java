@@ -41,7 +41,6 @@ public class MetricsList extends TheBorg {
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(MetricsList.class).error(
 					"Exception while trying to retrieve metrics for category team and type ID " + initiativeTypeId, e);
-		
 		}
 
 		return metricsList;

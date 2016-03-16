@@ -8,6 +8,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -18,11 +19,13 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.apache.commons.lang3.time.DateUtils;
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
 import org.icube.owen.employee.Employee;
 import org.icube.owen.explore.ExploreHelper;
 import org.icube.owen.helper.DatabaseConnectionHelper;
+import org.icube.owen.helper.UtilHelper;
 import org.icube.owen.initiative.Initiative;
 import org.icube.owen.initiative.InitiativeHelper;
 import org.icube.owen.initiative.InitiativeList;
@@ -46,7 +49,6 @@ public class IndividualDashboardHelper extends TheBorg {
 		MetricsHelper mh = new MetricsHelper();
 		List<Metrics> metricsList = new ArrayList<>();
 		try {
-
 			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getIndividualMetricValueForIndividual(?)}");
 			cstmt.setInt(1, employeeId);
 			ResultSet rs = cstmt.executeQuery();
@@ -86,7 +88,7 @@ public class IndividualDashboardHelper extends TheBorg {
 	 * @param employeeId - Employee Id of the individual who is logged in
 	 * @return A list of Initiative objects
 	 */
-	public List<Initiative> individualInitiativeList(int employeeId) {
+	public List<Initiative> getIndividualInitiativeList(int employeeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		InitiativeHelper ih = new InitiativeHelper();
 		InitiativeList il = new InitiativeList();
@@ -134,11 +136,11 @@ public class IndividualDashboardHelper extends TheBorg {
 	 * @param employeeId - Employee Id of the individual who is logged in (pass employeeId = 208 for testing)
 	 * @return A list of ActivityFeed objects
 	 */
-
-	public List<ActivityFeed> getActivityFeedList(int companyId, int employeeId) {
+	public Map<Date, List<ActivityFeed>> getActivityFeedList(int companyId, int employeeId, int pageNumber) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
-		List<ActivityFeed> result = new ArrayList<>();
+		Map<Date, List<ActivityFeed>> result = new HashMap<>();
+
 		org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Get ActivityFeed list");
 		try {
 			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getAppreciationActivity(?)}");
@@ -148,29 +150,50 @@ public class IndividualDashboardHelper extends TheBorg {
 					+ "}) return i.Name as Name ,i.CreatedOn as CreatedOn";
 			ResultSet res = dch.neo4jCon.createStatement().executeQuery(initiativeListQuery);
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Executed query for retrieving initiative list");
+			SimpleDateFormat parserSDF = new SimpleDateFormat(UtilHelper.dateTimeFormat, Locale.ENGLISH);
+			List<ActivityFeed> afList = new ArrayList<>();
 			while (res.next()) {
-				ActivityFeed afini = new ActivityFeed();
-				afini.setActivityType("Initiative");
-				afini.setHeaderText("Initiative created");
-				afini.setBodyText("You were added to the " + res.getString("Name") + " initiative");
-				SimpleDateFormat parserSDF = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzzz yyyy", Locale.ENGLISH);
-				afini.setDate(parserSDF.parse(res.getString("CreatedOn")));
-				result.add(afini);
+				ActivityFeed af = new ActivityFeed();
+				af.setActivityType("Initiative");
+				af.setHeaderText("Initiative created");
+				af.setBodyText("You were added to the " + res.getString("Name") + " initiative");
+				af.setDate(parserSDF.parse(res.getString("CreatedOn")));
+				afList.add(af);
 			}
 			while (rs.next()) {
-				ActivityFeed afapp = new ActivityFeed();
-				afapp.setHeaderText("Appreciation received");
-				afapp.setBodyText("You were appreciated for " + rs.getString("metric_name"));
-				afapp.setActivityType("Appreciation");
-				afapp.setDate(rs.getTimestamp("response_time"));
-				result.add(afapp);
+				ActivityFeed af = new ActivityFeed();
+				af.setHeaderText("Appreciation received");
+				af.setBodyText("You were appreciated for " + rs.getString("metric_name"));
+				af.setActivityType("Appreciation");
+				af.setDate(parserSDF.parse(rs.getString("response_time")));
+				afList.add(af);
 			}
 
-			Collections.sort(result, new Comparator<ActivityFeed>() {
+			Collections.sort(afList, new Comparator<ActivityFeed>() {
 				public int compare(ActivityFeed af1, ActivityFeed af2) {
 					return af1.getDate().compareTo(af2.getDate());
 				}
 			});
+
+			// return a sublist of result based on the page number
+			int feedThreshold = 25;
+			int fromIndex = pageNumber == 1 ? 0 : (pageNumber - 1) * feedThreshold + 1;
+			int toIndex = pageNumber == 1 ? feedThreshold : pageNumber * feedThreshold;
+
+			ArrayList<ActivityFeed> afSubList = new ArrayList<ActivityFeed>(afList.subList(fromIndex, toIndex > afList.size() ? afList.size() - 1
+					: toIndex));
+
+			for (ActivityFeed af1 : afSubList) {
+				Date d = DateUtils.truncate(af1.getDate(), Calendar.DAY_OF_MONTH);
+				if (result.containsKey(d)) {
+					result.get(d).add(af1);
+				} else {
+					List<ActivityFeed> resultAfList = new ArrayList<>();
+					resultAfList.add(af1);
+					result.put(d, resultAfList);
+				}
+			}
+			result.toString();
 
 		} catch (SQLException | ParseException e) {
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while retrieving the activity feed data", e);
@@ -314,5 +337,62 @@ public class IndividualDashboardHelper extends TheBorg {
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while validating password ", e);
 		}
 		return passwordChanged;
+	}
+
+	/**
+	 * Updates the timestamp when the user visits the individual dashboard page
+	 * Timestamp is used for getting the notification count on the individual dashboard page
+	 */
+	public boolean updateNotificationTimestamp(int companyId, int employeeId) {
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
+		boolean timestampUpdated = false;
+		try {
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call updateNotificationTime(?,?)}");
+			cstmt.setInt("empid", employeeId);
+			cstmt.setTimestamp("noti_time", UtilHelper.convertJavaDateToSqlTimestamp(Date.from(Instant.now())));
+			ResultSet rs = cstmt.executeQuery();
+			rs.next();
+			if (rs.getBoolean(1)) {
+				timestampUpdated = true;
+			}
+		} catch (Exception e) {
+			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while updating notification timestamp", e);
+		}
+		return timestampUpdated;
+	}
+
+	/**
+	 * Returns the notifications count for the individual dashboard page
+	 */
+	public Integer getNotificationsCount(int companyId, int employeeId) {
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
+		int notificationCount = 0;
+		Date lastNotificationDate = null;
+		try {
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getAppreciationActivityLatestCount(?)}");
+			cstmt.setInt("empid", employeeId);
+			ResultSet rs = cstmt.executeQuery();
+			while (rs.next()) {
+				notificationCount += rs.getInt("appreciation_count");
+				lastNotificationDate = rs.getDate("last_notified");
+			}
+
+			SimpleDateFormat sdf = new SimpleDateFormat(UtilHelper.dateTimeFormat);
+			String notificationCountQuery = "MATCH (e:Employee {emp_id:" + employeeId + "})-[:owner_of]->(i:Init) where i.CreatedOn>'"
+					+ sdf.format(lastNotificationDate) + "' return count(i) as initiative_count";
+			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug(
+					"Query to get notifications count from neo4j : " + notificationCountQuery);
+
+			ResultSet res = dch.neo4jCon.createStatement().executeQuery(notificationCountQuery);
+			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Executed query for retrieving initiative list");
+			while (res.next()) {
+				notificationCount += res.getInt("initiative_count");
+			}
+		} catch (Exception e) {
+			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while updating notification timestamp", e);
+		}
+		return notificationCount;
 	}
 }

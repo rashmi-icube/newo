@@ -28,7 +28,8 @@ public class Employee extends TheBorg {
 	private double score;
 	private boolean active;
 	private int companyId;
-    private String grade; // can be high/medium/low
+	private String grade; // can be high/medium/low
+
 	public int getEmployeeId() {
 		return employeeId;
 	}
@@ -149,6 +150,7 @@ public class Employee extends TheBorg {
 			org.apache.log4j.Logger.getLogger(Employee.class).debug("Successfully read the image for employeeId " + employeeId);
 		} catch (IOException e) {
 			org.apache.log4j.Logger.getLogger(Employee.class).error("Exception while retrieving employee image with employeeId : " + employeeId, e);
+			return image;
 		}
 
 		return image;

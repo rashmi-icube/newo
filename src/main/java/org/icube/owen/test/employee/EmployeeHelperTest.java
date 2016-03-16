@@ -16,11 +16,12 @@ import org.icube.owen.employee.EducationDetails;
 import org.icube.owen.employee.EmployeeHelper;
 import org.icube.owen.employee.LanguageDetails;
 import org.icube.owen.employee.WorkExperience;
+import org.icube.owen.helper.UtilHelper;
 import org.junit.Test;
 
 public class EmployeeHelperTest {
 	EmployeeHelper eh = (EmployeeHelper) ObjectFactory.getInstance("org.icube.owen.employee.EmployeeHelper");
-	DateFormat dateFormat = new SimpleDateFormat("MMMM d, yyyy", Locale.ENGLISH);
+	DateFormat dateFormat = new SimpleDateFormat(UtilHelper.dateFormat, Locale.ENGLISH);
 
 	@Test
 	public void testGetBasicEmployeeDetails() {
@@ -108,7 +109,7 @@ public class EmployeeHelperTest {
 		wex.setCompanyName("Avandeo");
 		wex.setDesignation("Senior Java Developer");
 		wex.setLocation("Shanghai");
-		wex.setStartDate(dateFormat.parse("June 15, 2012"));
+		wex.setStartDate(dateFormat.parse("2012-06-15"));
 		assertTrue(eh.addWorkExperience(1, wex));
 
 	}
@@ -119,8 +120,8 @@ public class EmployeeHelperTest {
 		ed.setEmployeeId(1);
 		ed.setInstitution("KC College");
 		ed.setCertification("BScIT");
-		ed.setStartDate(dateFormat.parse("June 15, 2005"));
-		ed.setEndDate(dateFormat.parse("April 15, 2008"));
+		ed.setStartDate(dateFormat.parse("2005-06-15"));
+		ed.setEndDate(dateFormat.parse("2008-04-15"));
 		ed.setLocation("Mumbai");
 		assertTrue(eh.addEducation(1, ed));
 	}

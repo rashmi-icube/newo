@@ -4,6 +4,7 @@ import java.sql.CallableStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
@@ -16,6 +17,7 @@ import org.icube.owen.TheBorg;
 import org.icube.owen.employee.Employee;
 import org.icube.owen.filter.Filter;
 import org.icube.owen.helper.DatabaseConnectionHelper;
+import org.icube.owen.helper.UtilHelper;
 import org.icube.owen.metrics.Metrics;
 import org.icube.owen.metrics.MetricsList;
 
@@ -77,10 +79,11 @@ public class Initiative extends TheBorg {
 		try {
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Creating the initiative");
 
+			SimpleDateFormat sdf = new SimpleDateFormat(UtilHelper.dateTimeFormat);
 			String createInitQuery = "match (i:Init)  with CASE count(i) WHEN 0  THEN 1 ELSE max(i.Id)+1 END as uid "
 					+ "CREATE (i:Init {Id:uid,Status:'" + checkInitiativeStatus(initiativeStartDate) + "',Name:'" + initiativeName + "',Type:"
-					+ initiativeTypeId + ", Category:'" + initiativeCategory + "',StartDate:'" + initiativeStartDate.toString() + "',EndDate:'"
-					+ initiativeEndDate.toString() + "',CreatedOn:'" + initiativeCreationDate.toString() + "',Comment:'" + initiativeComment
+					+ initiativeTypeId + ", Category:'" + initiativeCategory + "',StartDate:'" + sdf.format(initiativeStartDate) + "',EndDate:'"
+					+ sdf.format(initiativeEndDate) + "',CreatedOn:'" + sdf.format(initiativeCreationDate) + "',Comment:'" + initiativeComment
 					+ "'}) return i.Id as Id";
 
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Create initiative query : " + createInitQuery);
@@ -391,6 +394,7 @@ public class Initiative extends TheBorg {
 	 */
 	public boolean updateInitiative(Initiative updatedInitiative) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		SimpleDateFormat sdf = new SimpleDateFormat(UtilHelper.dateTimeFormat);
 		boolean status = false;
 		int updatedInitiativeId = updatedInitiative.getInitiativeId();
 		try {
@@ -401,12 +405,13 @@ public class Initiative extends TheBorg {
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Ownersof list deleted from initiative " + updatedInitiative.initiativeId);
 			updatedInitiative.setOwner(updatedInitiativeId, updatedOwnerOfList);
 			String query = "match(a:Init {Id:" + updatedInitiativeId + "}) set a.CreatedOn = '"
-					+ updatedInitiative.getInitiativeCreationDate().toString() + "', a.Name = '" + updatedInitiative.getInitiativeName().toString()
+					+ sdf.format(updatedInitiative.getInitiativeCreationDate()) + "', a.Name = '" + updatedInitiative.getInitiativeName().toString()
 					+ "',a.Status = '" + checkInitiativeStatus(updatedInitiative.getInitiativeStartDate()) + "'," + "a.Type = '"
 					+ updatedInitiative.getInitiativeTypeId() + "',a.Category = '" + updatedInitiative.getInitiativeCategory() + "',"
 					+ "a.Comment = '" + updatedInitiative.getInitiativeComment().toString() + "',a.EndDate = '"
-					+ updatedInitiative.getInitiativeEndDate().toString() + "'," + "a.StartDate = '"
-					+ updatedInitiative.getInitiativeStartDate().toString() + "' return a.Name as Name, " + "a.Type as Type,a.Category as Category, "
+					+ sdf.format(updatedInitiative.getInitiativeEndDate()) + "'," + "a.StartDate = '"
+					+ sdf.format(updatedInitiative.getInitiativeStartDate()) + "' return a.Name as Name, "
+					+ "a.Type as Type,a.Category as Category, "
 					+ "a.Status as Status,a.Comment as Comment,a.EndDate as endDate,a.StartDate as StartDate,a.CreatedOn as CreationDate";
 			dch.neo4jCon.createStatement().executeQuery(query);
 			status = true;
