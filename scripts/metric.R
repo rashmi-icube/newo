@@ -512,7 +512,7 @@ TeamSmartList=function(Function,Position,Zone,init_type_id){
   }
   
   # Social Cohesion
-  if(init_type_id==6){
+  if(init_type_id==7){
     #query to  get list of edges of social relation belonging to dynamic cube
     queryedge = paste("match (z:Zone)<-[:from_zone]-(a:Employee)-[:has_functionality]->(f:Function),
                       (z:Zone)<-[:from_zone]-(b:Employee)-[:has_functionality]->(f:Function),
