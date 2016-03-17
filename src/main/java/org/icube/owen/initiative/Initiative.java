@@ -82,9 +82,10 @@ public class Initiative extends TheBorg {
 			SimpleDateFormat sdf = new SimpleDateFormat(UtilHelper.dateTimeFormat);
 			String createInitQuery = "match (i:Init)  with CASE count(i) WHEN 0  THEN 1 ELSE max(i.Id)+1 END as uid "
 					+ "CREATE (i:Init {Id:uid,Status:'" + checkInitiativeStatus(initiativeStartDate) + "',Name:'" + initiativeName + "',Type:"
-					+ initiativeTypeId + ", Category:'" + initiativeCategory + "',StartDate:'" + sdf.format(initiativeStartDate) + "',EndDate:'"
-					+ sdf.format(initiativeEndDate) + "',CreatedOn:'" + sdf.format(initiativeCreationDate) + "',Comment:'" + initiativeComment
-					+ "'}) return i.Id as Id";
+					+ initiativeTypeId + ", Category:'" + initiativeCategory + "',StartDate:'"
+					+ sdf.format(UtilHelper.getStartOfDay(initiativeStartDate)) + "',EndDate:'"
+					+ sdf.format(UtilHelper.getEndOfDay(initiativeEndDate)) + "',CreatedOn:'" + sdf.format(initiativeCreationDate) + "',Comment:'"
+					+ initiativeComment + "'}) return i.Id as Id";
 
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Create initiative query : " + createInitQuery);
 			ResultSet res = dch.neo4jCon.createStatement().executeQuery(createInitQuery);
@@ -406,11 +407,11 @@ public class Initiative extends TheBorg {
 			updatedInitiative.setOwner(updatedInitiativeId, updatedOwnerOfList);
 			String query = "match(a:Init {Id:" + updatedInitiativeId + "}) set a.CreatedOn = '"
 					+ sdf.format(updatedInitiative.getInitiativeCreationDate()) + "', a.Name = '" + updatedInitiative.getInitiativeName().toString()
-					+ "',a.Status = '" + checkInitiativeStatus(updatedInitiative.getInitiativeStartDate()) + "'," + "a.Type = '"
-					+ updatedInitiative.getInitiativeTypeId() + "',a.Category = '" + updatedInitiative.getInitiativeCategory() + "',"
+					+ "',a.Status = '" + checkInitiativeStatus(updatedInitiative.getInitiativeStartDate()) + "'," + "a.Type = "
+					+ updatedInitiative.getInitiativeTypeId() + ",a.Category = '" + updatedInitiative.getInitiativeCategory() + "',"
 					+ "a.Comment = '" + updatedInitiative.getInitiativeComment().toString() + "',a.EndDate = '"
-					+ sdf.format(updatedInitiative.getInitiativeEndDate()) + "'," + "a.StartDate = '"
-					+ sdf.format(updatedInitiative.getInitiativeStartDate()) + "' return a.Name as Name, "
+					+ sdf.format(UtilHelper.getEndOfDay(updatedInitiative.getInitiativeEndDate())) + "'," + "a.StartDate = '"
+					+ sdf.format(UtilHelper.getStartOfDay(updatedInitiative.getInitiativeStartDate())) + "' return a.Name as Name, "
 					+ "a.Type as Type,a.Category as Category, "
 					+ "a.Status as Status,a.Comment as Comment,a.EndDate as endDate,a.StartDate as StartDate,a.CreatedOn as CreationDate";
 			dch.neo4jCon.createStatement().executeQuery(query);

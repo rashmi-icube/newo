@@ -64,8 +64,8 @@ public class BatchList extends TheBorg {
 				List<Question> questionList = new ArrayList<Question>();
 				while (rs1.next()) {
 					Question q = new Question();
-					q.setEndDate(rs1.getDate("end_date"));
-					q.setStartDate(rs1.getDate("start_date"));
+					q.setEndDate(UtilHelper.getEndOfDay(rs1.getDate("end_date")));
+					q.setStartDate(UtilHelper.getStartOfDay(rs1.getDate("start_date")));
 					q.setQuestionText(rs1.getString("question"));
 					q.setQuestionId(rs1.getInt("que_id"));
 					q.setResponsePercentage(rs1.getDouble("resp"));
@@ -138,8 +138,8 @@ public class BatchList extends TheBorg {
 			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call updateBatch(?, ?, ?, ?)}");
 			cstmt.setInt(1, batch.getBatchId());
 			cstmt.setInt(2, changedFrequency.getValue());
-			cstmt.setDate(3, UtilHelper.convertJavaDateToSqlDate(batch.getStartDate()));
-			cstmt.setDate(4, UtilHelper.convertJavaDateToSqlDate(previousEndDate));
+			cstmt.setDate(3, UtilHelper.convertJavaDateToSqlDate(UtilHelper.getStartOfDay(batch.getStartDate())));
+			cstmt.setDate(4, UtilHelper.convertJavaDateToSqlDate(UtilHelper.getEndOfDay(previousEndDate)));
 			cstmt.executeQuery();
 			org.apache.log4j.Logger.getLogger(BatchList.class).debug("Successfully changed frequency for batch " + batch.getBatchId());
 			isChanged = true;
@@ -157,14 +157,14 @@ public class BatchList extends TheBorg {
 
 		case WEEKLY: // 7
 			if (isCurrent) {
-				Date endDate = (DateUtils.addDays(q.getStartDate(), 6));
-				Date actualEndDate = endDate.before(Date.from(Instant.now())) ? (Date.from(Instant.now())) : endDate;
+				Date endDate = UtilHelper.getEndOfDay(DateUtils.addDays(q.getStartDate(), 6));
+				Date actualEndDate = UtilHelper.getEndOfDay(endDate.before(Date.from(Instant.now())) ? (Date.from(Instant.now())) : endDate);
 				q.setEndDate(actualEndDate);
 				previousEndDate = actualEndDate;
 			} else {
-				Date startDate = (DateUtils.addDays(previousEndDate, 1));
+				Date startDate = UtilHelper.getStartOfDay(DateUtils.addDays(previousEndDate, 1));
 				q.setStartDate(startDate);
-				Date endDate = (DateUtils.addDays(startDate, 6));
+				Date endDate = UtilHelper.getEndOfDay(DateUtils.addDays(startDate, 6));
 				q.setEndDate(endDate);
 				previousEndDate = endDate;
 			}
@@ -172,43 +172,43 @@ public class BatchList extends TheBorg {
 			break;
 		case BIWEEKLY: // 14
 			if (isCurrent) {
-				Date endDate = (DateUtils.addDays(q.getStartDate(), 13));
-				Date actualEndDate = endDate.before(Date.from(Instant.now())) ? (Date.from(Instant.now())) : endDate;
+				Date endDate = UtilHelper.getEndOfDay(DateUtils.addDays(q.getStartDate(), 13));
+				Date actualEndDate = UtilHelper.getEndOfDay(endDate.before(Date.from(Instant.now())) ? (Date.from(Instant.now())) : endDate);
 				q.setEndDate(actualEndDate);
 				previousEndDate = actualEndDate;
 
 			} else {
-				Date startDate = (DateUtils.addDays(previousEndDate, 1));
+				Date startDate = UtilHelper.getStartOfDay(DateUtils.addDays(previousEndDate, 1));
 				q.setStartDate(startDate);
-				Date endDate = (DateUtils.addDays(startDate, 13));
+				Date endDate = UtilHelper.getEndOfDay(DateUtils.addDays(startDate, 13));
 				q.setEndDate(endDate);
 				previousEndDate = endDate;
 			}
 			break;
 		case MONTHLY: // 1 month
 			if (isCurrent) {
-				Date endDate = (DateUtils.addDays(DateUtils.addMonths(q.getStartDate(), 1), -1));
-				Date actualEndDate = endDate.before(Date.from(Instant.now())) ? (Date.from(Instant.now())) : endDate;
+				Date endDate = UtilHelper.getEndOfDay(DateUtils.addDays(DateUtils.addMonths(q.getStartDate(), 1), -1));
+				Date actualEndDate = UtilHelper.getEndOfDay(endDate.before(Date.from(Instant.now())) ? (Date.from(Instant.now())) : endDate);
 				q.setEndDate(actualEndDate);
 				previousEndDate = actualEndDate;
 			} else {
-				Date startDate = (DateUtils.addDays(previousEndDate, 1));
+				Date startDate = UtilHelper.getStartOfDay(DateUtils.addDays(previousEndDate, 1));
 				q.setStartDate(startDate);
-				Date endDate = (DateUtils.addDays(DateUtils.addMonths(q.getStartDate(), 1), -1));
+				Date endDate = UtilHelper.getEndOfDay(DateUtils.addDays(DateUtils.addMonths(q.getStartDate(), 1), -1));
 				q.setEndDate(endDate);
 				previousEndDate = endDate;
 			}
 			break;
 		case QUARTERLY: // 3 months
 			if (isCurrent) {
-				Date endDate = (DateUtils.addDays(DateUtils.addMonths(q.getStartDate(), 3), -1));
-				Date actualEndDate = endDate.before(Date.from(Instant.now())) ? (Date.from(Instant.now())) : endDate;
+				Date endDate = UtilHelper.getEndOfDay(DateUtils.addDays(DateUtils.addMonths(q.getStartDate(), 3), -1));
+				Date actualEndDate = UtilHelper.getEndOfDay(endDate.before(Date.from(Instant.now())) ? (Date.from(Instant.now())) : endDate);
 				q.setEndDate(actualEndDate);
 				previousEndDate = actualEndDate;
 			} else {
-				Date startDate = (DateUtils.addDays(previousEndDate, 1));
+				Date startDate = UtilHelper.getStartOfDay(DateUtils.addDays(previousEndDate, 1));
 				q.setStartDate(startDate);
-				Date endDate = (DateUtils.addDays(DateUtils.addMonths(q.getStartDate(), 3), -1));
+				Date endDate = UtilHelper.getEndOfDay(DateUtils.addDays(DateUtils.addMonths(q.getStartDate(), 3), -1));
 				q.setEndDate(endDate);
 				previousEndDate = endDate;
 			}
