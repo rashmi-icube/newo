@@ -449,6 +449,7 @@ SmartListResponse=function(emp_id,rel_id){
 
 TeamSmartList=function(Function,Position,Zone,init_type_id){
   # condition to replace all(0) with der dimension_id
+  cat("\nData Received Function=",Function,"Position=",Position,"Zone=",Zone,"init_type=",init_type_id,file="Rlog.txt",sep=" ",append=TRUE)
   if(Function==0 || Position==0 || Zone==0){
     mydb = dbConnect(MySQL(), user=mysqlusername, password=mysqlpasswod, dbname=mysqldbname, host=mysqlhost, port=mysqlport)
     if(Function==0){
@@ -456,18 +457,21 @@ TeamSmartList=function(Function,Position,Zone,init_type_id){
       res <- dbSendQuery(mydb,query)
       Func=fetch(res,-1)
       Function=Func$dimension_val_id
+      cat("\nFunction 0 replaced with all id",Function,file="Rlog.txt",sep=" ",append=TRUE)
     }
     if(Position==0){
       query="SELECT dimension_val_id FROM dimension_value where dimension_id=2;"
       res <- dbSendQuery(mydb,query)
       Pos=fetch(res,-1)
       Position=Pos$dimension_val_id
+      cat("\nPosition 0 replaced with all id",Position,file="Rlog.txt",sep=" ",append=TRUE)
     }
     if(Zone==0){
       query="SELECT dimension_val_id FROM dimension_value where dimension_id=3;"
       res <- dbSendQuery(mydb,query)
       Zon=fetch(res,-1)
       Zone=Zon$dimension_val_id
+      cat("\nPosition 0 replaced with all id",Zone,file="Rlog.txt",sep=" ",append=TRUE)
     }
     dbDisconnect(mydb)
   }
@@ -486,7 +490,7 @@ TeamSmartList=function(Function,Position,Zone,init_type_id){
   
   # performance
   if(init_type_id==6){
-    
+    cat("\n calculating for type 6",file="Rlog.txt",sep=" ",append=TRUE)  
     #query to  get list of edges of learning relation belonging to dynamic cube
     queryedge = paste("match (z:Zone)<-[:from_zone]-(a:Employee)-[:has_functionality]->(f:Function),
                       (z:Zone)<-[:from_zone]-(b:Employee)-[:has_functionality]->(f:Function),
@@ -508,11 +512,13 @@ TeamSmartList=function(Function,Position,Zone,init_type_id){
     names(op)="Score"
     # add column emp_id
     op$emp_id=row.names(op)
+    cat("\n done calculating for type 6",file="Rlog.txt",sep=" ",append=TRUE)  
     
   }
   
   # Social Cohesion
   if(init_type_id==7){
+    cat("\n calculating for type 7",file="Rlog.txt",sep=" ",append=TRUE)  
     #query to  get list of edges of social relation belonging to dynamic cube
     queryedge = paste("match (z:Zone)<-[:from_zone]-(a:Employee)-[:has_functionality]->(f:Function),
                       (z:Zone)<-[:from_zone]-(b:Employee)-[:has_functionality]->(f:Function),
@@ -534,11 +540,12 @@ TeamSmartList=function(Function,Position,Zone,init_type_id){
     names(op)="Score"
     # add column emp_id
     op$emp_id=row.names(op)
-    
+    cat("\n done calculating for type 7",file="Rlog.txt",sep=" ",append=TRUE)  
   }
   
   # Retention and Sentiment
   if(init_type_id==8 || init_type_id==10){
+    cat("\n calculating for type 8,10",file="Rlog.txt",sep=" ",append=TRUE)  
     #query to  get list of edges of mentor relation belonging to dynamic cube
     queryedge = paste("match (z:Zone)<-[:from_zone]-(a:Employee)-[:has_functionality]->(f:Function),
                       (z:Zone)<-[:from_zone]-(b:Employee)-[:has_functionality]->(f:Function),
@@ -558,11 +565,12 @@ TeamSmartList=function(Function,Position,Zone,init_type_id){
     names(op)="Score"
     # add column emp_id
     op$emp_id=row.names(op)
-    
+    cat("\n done calculating for type 8,10",file="Rlog.txt",sep=" ",append=TRUE)  
   }
   
   # innovation
   if(init_type_id==9){
+    cat("\n calculating for type 9",file="Rlog.txt",sep=" ",append=TRUE)  
     # sql db connection
     mydb = dbConnect(MySQL(), user=mysqlusername, password=mysqlpasswod, dbname=mysqldbname, host=mysqlhost, port=mysqlport)
     
@@ -579,6 +587,7 @@ TeamSmartList=function(Function,Position,Zone,init_type_id){
     op<- fetch(res,-1)
     #disconnect sql data
     dbDisconnect(mydb)
+    cat("\n done calculating for type 10",file="Rlog.txt",sep=" ",append=TRUE)  
   }
   
   # Rank Score in descending order
@@ -586,10 +595,9 @@ TeamSmartList=function(Function,Position,Zone,init_type_id){
   # flag high medium low
   op$flag=ifelse(op$Rank<=nrow(op)/3,"High",ifelse(op$Rank<=nrow(op)*2/3,"Medium","Low"))
   # return op
-  
   op$emp_id=as.integer(op$emp_id)
   op$Rank=as.integer(op$Rank)
-  
+  cat("\n Returning op for Team SmartList",file="Rlog.txt",sep=" ",append=TRUE)  
   return(op)
 }
 
