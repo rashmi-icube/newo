@@ -11,6 +11,8 @@ import java.util.Properties;
 
 import org.icube.owen.TheBorg;
 import org.neo4j.jdbc.Driver;
+import org.rosuda.REngine.REXP;
+import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
 
@@ -22,6 +24,8 @@ public class DatabaseConnectionHelper extends TheBorg {
 	public Map<Integer, String> companyImagePath;
 	public Connection neo4jCon;
 	public RConnection rCon;
+
+	// Fermion Server
 	/*private final static String mysqlurl = "jdbc:mysql://192.168.1.6:3306/owen";
 	private final static String user = "icube";
 	private final static String password = "icube123";
@@ -29,6 +33,15 @@ public class DatabaseConnectionHelper extends TheBorg {
 	private final static String MASTER_URL = "jdbc:mysql://192.168.1.6:3306/owen_master";
 	private final static String MASTER_USER = "icube";
 	private final static String MASTER_PASSWORD = "icube123";*/
+
+	// Production Server
+	/*private final static String mysqlurl = "jdbc:mysql://192.168.1.12:3306/owen";
+	private final static String user = "owen_user";
+	private final static String password = "icube2014";
+
+	private final static String MASTER_URL = "jdbc:mysql://192.168.1.12:3306/owen_master";
+	private final static String MASTER_USER = "owen_user";
+	private final static String MASTER_PASSWORD = "icube2014";*/
 
 	private final static String mysqlurl = UtilHelper.getConfigProperty("mysql_url");
 	private final static String user = UtilHelper.getConfigProperty("mysql_user");
@@ -90,11 +103,23 @@ public class DatabaseConnectionHelper extends TheBorg {
 			rCon = (rCon != null && rCon.isConnected()) ? rCon : new RConnection();
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Successfully connected to R");
 			String rScriptPath = UtilHelper.getConfigProperty("r_script_path");
+			// Fermion Server
 			// String rScriptPath = "C:\\\\Users\\\\fermion10\\\\Documents\\\\Neo4j\\\\scripts";
+			// Production Server
+			// String rScriptPath = "C:\\\\Users\\\\addos\\\\Desktop\\\\Owen\\\\RScripts";
 			String workingDir = "setwd(\"" + rScriptPath + "\")";
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Trying to load the RScript file at " + rScriptPath);
 			rCon.eval(workingDir);
-			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Successfully loaded rScript: source(\"//" + rScriptPath);
+			String s = "source(\"metric.r\")";
+			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("R Path for eval " + s + ".... Loading now ...");
+
+			REXP loadRScript = rCon.eval(s);
+			if (loadRScript.inherits("try-error")) {
+				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("Error: " + loadRScript.asString());
+				throw new REXPMismatchException(loadRScript, "Error: " + loadRScript.asString());
+			} else {
+				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Successfully loaded metric.r script");
+			}
 
 			companySqlConnectionPool = new HashMap<>();
 			companyImagePath = new HashMap<>();
@@ -103,6 +128,8 @@ public class DatabaseConnectionHelper extends TheBorg {
 					"An error occurred while attempting to get neo4j connection details", e);
 		} catch (RserveException e) {
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("An error occurred while trying to connect to R", e);
+		} catch (REXPMismatchException e) {
+			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("An error occurred while trying to loading the R script", e);
 		}
 
 	}

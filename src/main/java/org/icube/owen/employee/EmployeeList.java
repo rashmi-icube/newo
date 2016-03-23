@@ -37,6 +37,7 @@ public class EmployeeList extends TheBorg {
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("getEmployeeSmartListForTeam method started");
 			String s = "source(\"metric.r\")";
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("R Path for eval " + s);
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("R Connection Available : " + dch.rCon.isConnected());
 			dch.rCon.eval(s);
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("Filling up parameters for rscript function");
 			List<Integer> funcList = new ArrayList<>();
@@ -51,6 +52,10 @@ public class EmployeeList extends TheBorg {
 					zoneList.addAll(f.getFilterValues().keySet());
 				}
 			}
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug(
+					"Parameters for R function :  /n Function : " + funcList.toString() + "/n Position : " + posList.toString() + " /n Zone : "
+							+ zoneList.toString() + "/n Initiative Type Id : " + initiativeType);
+
 			dch.rCon.assign("Function", UtilHelper.getIntArrayFromIntegerList(funcList));
 			dch.rCon.assign("Position", UtilHelper.getIntArrayFromIntegerList(posList));
 			dch.rCon.assign("Zone", UtilHelper.getIntArrayFromIntegerList(zoneList));
