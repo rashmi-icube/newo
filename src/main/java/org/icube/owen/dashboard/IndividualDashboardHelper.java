@@ -35,6 +35,7 @@ import org.icube.owen.survey.Question;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPInteger;
 import org.rosuda.REngine.RList;
+import org.rosuda.REngine.Rserve.RConnection;
 
 public class IndividualDashboardHelper extends TheBorg {
 
@@ -232,14 +233,15 @@ public class IndividualDashboardHelper extends TheBorg {
 		List<Employee> employeeList = new ArrayList<>();
 		Map<Integer, Integer> MetricRelationshipTypeMap = getMetricRelationshipTypeMapping(1);
 		try {
+			RConnection rCon = dch.getRConn();
 			String s = "source(\"metric.r\")";
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("R Path for eval " + s);
-			dch.rCon.eval(s);
+			rCon.eval(s);
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Filling up parameters for rscript function");
-			dch.rCon.assign("emp_id", new int[] { employeeId });
-			dch.rCon.assign("rel_id", new int[] { MetricRelationshipTypeMap.get(metricId) });
+			rCon.assign("emp_id", new int[] { employeeId });
+			rCon.assign("rel_id", new int[] { MetricRelationshipTypeMap.get(metricId) });
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Calling the actual function in RScript SmartListResponse");
-			REXP employeeSmartList = dch.rCon.parseAndEval("try(eval(SmartListResponse(emp_id, rel_id)))");
+			REXP employeeSmartList = rCon.parseAndEval("try(eval(SmartListResponse(emp_id, rel_id)))");
 			if (employeeSmartList.inherits("try-error")) {
 				org.apache.log4j.Logger.getLogger(Question.class).error("Error: " + employeeSmartList.asString());
 				throw new Exception("Error: " + employeeSmartList.asString());
@@ -265,6 +267,10 @@ public class IndividualDashboardHelper extends TheBorg {
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error(
 					"Error while trying to retrieve the smart list for employee from question", e);
+		}
+		finally
+		{
+			dch.releaseRcon();
 		}
 
 		return employeeList;

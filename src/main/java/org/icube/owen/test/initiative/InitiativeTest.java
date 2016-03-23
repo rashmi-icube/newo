@@ -6,14 +6,12 @@ import static org.junit.Assert.assertTrue;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.employee.Employee;
-import org.icube.owen.filter.Filter;
 import org.icube.owen.initiative.Initiative;
+import org.icube.owen.test.TestHelper;
 import org.junit.Test;
 
 public class InitiativeTest {
@@ -28,34 +26,12 @@ public class InitiativeTest {
 		ownerOfList.add(e.get(18));
 		ownerOfList.add(e.get(3));
 		partOfEmployeeList.add(e.get(16));
-		List<Filter> filterList = new ArrayList<Filter>();
-		Map<Integer, String> filterValuesMap = new HashMap<>();
-		filterValuesMap.put(0, "All");
-		Filter f = new Filter();
-		f.setFilterName("Function");
-		f.setFilterId(1);
-		f.setFilterValues(filterValuesMap);
-		filterList.add(f);
-		Map<Integer, String> filterValuesMap1 = new HashMap<>();
-		filterValuesMap1.put(0, "All");
-		Filter f1 = new Filter();
-		f1.setFilterName("Position");
-		f1.setFilterId(2);
-		f1.setFilterValues(filterValuesMap1);
-		filterList.add(f1);
-		Map<Integer, String> filterValuesMap2 = new HashMap<>();
-		filterValuesMap2.put(0, "All");
-		Filter f2 = new Filter();
-		f2.setFilterName("Zone");
-		f2.setFilterId(3);
-		f2.setFilterValues(filterValuesMap2);
-		filterList.add(f2);
 
 		initiative.setInitiativeProperties("1Individual", 1, "Individual", Date.from(Instant.now()), Date.from(Instant.now()), Date.from(Instant
 				.now()), "You are owners of the initiative", null, ownerOfList, partOfEmployeeList);
 		initiative.create();
 		initiative.setInitiativeProperties("1Team", 6, "Team", Date.from(Instant.now()), Date.from(Instant.now()), Date.from(Instant.now()),
-				"You are owners of the initiative", filterList, ownerOfList, null);
+				"You are owners of the initiative", TestHelper.getAllForAllFilters(), ownerOfList, null);
 		initiative.create();
 		initiative.setInitiativeProperties("3Individual", 3, "Individual", Date.from(Instant.now()), Date.from(Instant.now()), Date.from(Instant
 				.now()), "You are owners of the initiative", null, ownerOfList, partOfEmployeeList);
@@ -70,23 +46,23 @@ public class InitiativeTest {
 		initiative.create();
 
 		initiative.setInitiativeProperties("1Team", 6, "Team", Date.from(Instant.now()), Date.from(Instant.now()), Date.from(Instant.now()),
-				"You are owners of the initiative", filterList, ownerOfList, null);
+				"You are owners of the initiative", TestHelper.getAllForOneFilter(), ownerOfList, null);
 		initiative.create();
 
 		initiative.setInitiativeProperties("2Team", 7, "Team", Date.from(Instant.now()), Date.from(Instant.now()), Date.from(Instant.now()),
-				"You are owners of the initiative", filterList, ownerOfList, null);
+				"You are owners of the initiative", TestHelper.getAllForTwoFilters(), ownerOfList, null);
 		initiative.create();
 
 		initiative.setInitiativeProperties("3Team", 8, "Team", Date.from(Instant.now()), Date.from(Instant.now()), Date.from(Instant.now()),
-				"You are owners of the initiative", filterList, ownerOfList, null);
+				"You are owners of the initiative", TestHelper.getOneForEachFilter(), ownerOfList, null);
 		initiative.create();
 
 		initiative.setInitiativeProperties("4Team", 9, "Team", Date.from(Instant.now()), Date.from(Instant.now()), Date.from(Instant.now()),
-				"You are owners of the initiative", filterList, ownerOfList, null);
+				"You are owners of the initiative", TestHelper.getTwoForEachFilter(), ownerOfList, null);
 		initiative.create();
 
 		initiative.setInitiativeProperties("5Team", 10, "Team", Date.from(Instant.now()), Date.from(Instant.now()), Date.from(Instant.now()),
-				"You are owners of the initiative", filterList, ownerOfList, null);
+				"You are owners of the initiative", TestHelper.getAllForAllFilters(), ownerOfList, null);
 		initiative.create();
 
 	}

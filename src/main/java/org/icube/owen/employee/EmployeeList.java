@@ -20,6 +20,7 @@ import org.rosuda.REngine.REXPDouble;
 import org.rosuda.REngine.REXPInteger;
 import org.rosuda.REngine.REXPString;
 import org.rosuda.REngine.RList;
+import org.rosuda.REngine.Rserve.RConnection;
 
 public class EmployeeList extends TheBorg {
 
@@ -34,11 +35,12 @@ public class EmployeeList extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Employee> employeeSmartList = new ArrayList<Employee>();
 		try {
+			RConnection rCon = dch.getRConn();
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("getEmployeeSmartListForTeam method started");
 			String s = "source(\"metric.r\")";
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("R Path for eval " + s);
-			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("R Connection Available : " + dch.rCon.isConnected());
-			dch.rCon.eval(s);
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("R Connection Available : " + rCon.isConnected());
+			rCon.eval(s);
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("Filling up parameters for rscript function");
 			List<Integer> funcList = new ArrayList<>();
 			List<Integer> posList = new ArrayList<>();
@@ -56,13 +58,13 @@ public class EmployeeList extends TheBorg {
 					"Parameters for R function :  /n Function : " + funcList.toString() + "/n Position : " + posList.toString() + " /n Zone : "
 							+ zoneList.toString() + "/n Initiative Type Id : " + initiativeType);
 
-			dch.rCon.assign("Function", UtilHelper.getIntArrayFromIntegerList(funcList));
-			dch.rCon.assign("Position", UtilHelper.getIntArrayFromIntegerList(posList));
-			dch.rCon.assign("Zone", UtilHelper.getIntArrayFromIntegerList(zoneList));
-			dch.rCon.assign("init_type_id", new int[] { initiativeType });
+			rCon.assign("Function", UtilHelper.getIntArrayFromIntegerList(funcList));
+			rCon.assign("Position", UtilHelper.getIntArrayFromIntegerList(posList));
+			rCon.assign("Zone", UtilHelper.getIntArrayFromIntegerList(zoneList));
+			rCon.assign("init_type_id", new int[] { initiativeType });
 
 			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Calling the actual function in RScript TeamSmartList");
-			REXP employeeSmartListForTeam = dch.rCon.parseAndEval("try(eval(TeamSmartList(Function, Position, Zone, init_type_id)))");
+			REXP employeeSmartListForTeam = rCon.parseAndEval("try(eval(TeamSmartList(Function, Position, Zone, init_type_id)))");
 			if (employeeSmartListForTeam.inherits("try-error")) {
 				org.apache.log4j.Logger.getLogger(EmployeeList.class).error("Error: " + employeeSmartListForTeam.asString());
 				throw new Exception("Error: " + employeeSmartListForTeam.asString());
@@ -96,6 +98,10 @@ public class EmployeeList extends TheBorg {
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).error("Error while trying to retrieve the smart list for team ", e);
 		}
 
+		finally {
+			dch.releaseRcon();
+		}
+
 		return employeeSmartList;
 
 	}
@@ -114,14 +120,15 @@ public class EmployeeList extends TheBorg {
 			partOfEmployeeIdList.add(e.getEmployeeId());
 		}
 		try {
-			String s = "source(\"metric.r\")";
+			RConnection rCon = dch.getRConn();
+			/*String s = "source(\"metric.r\")";
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("R Path for eval " + s);
-			dch.rCon.eval(s);
+			rCon.eval(s);*/
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("Filling up parameters for rscript function");
-			dch.rCon.assign("emp_id", new int[] { partOfEmployeeIdList.get(0) });
-			dch.rCon.assign("init_type_id", new int[] { initiativeType });
+			rCon.assign("emp_id", new int[] { partOfEmployeeIdList.get(0) });
+			rCon.assign("init_type_id", new int[] { initiativeType });
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("Calling the actual function in RScript IndividualSmartList");
-			REXP employeeSmartList = dch.rCon.parseAndEval("try(eval(IndividualSmartList(emp_id, init_type_id)))");
+			REXP employeeSmartList = rCon.parseAndEval("try(eval(IndividualSmartList(emp_id, init_type_id)))");
 			if (employeeSmartList.inherits("try-error")) {
 				org.apache.log4j.Logger.getLogger(EmployeeList.class).error("Error: " + employeeSmartList.asString());
 				throw new Exception("Error: " + employeeSmartList.asString());
@@ -153,6 +160,10 @@ public class EmployeeList extends TheBorg {
 			}));
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).error("Error while trying to retrieve the smart list for employee ", e);
+		}
+
+		finally {
+			ObjectFactory.getDBHelper().releaseRcon();
 		}
 
 		return individualSmartList;

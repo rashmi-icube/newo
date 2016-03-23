@@ -113,17 +113,17 @@ public class Initiative extends TheBorg {
 					// storing the metric value
 					// TODO make this dynamic based on filter list
 					String funcQuery = "", posQuery = "", zoneQuery = "";
-					List<String> funcParam = new ArrayList<>();
-					List<String> zoneParam = new ArrayList<>();
-					List<String> posParam = new ArrayList<>();
+					List<Integer> funcParam = new ArrayList<>();
+					List<Integer> zoneParam = new ArrayList<>();
+					List<Integer> posParam = new ArrayList<>();
 
 					for (Filter f : this.filterList) {
 						if (f.getFilterName().equalsIgnoreCase("Function") && !f.getFilterValues().keySet().contains(0)) {
-							funcParam.addAll(f.getFilterValues().values());
+							funcParam.addAll(f.getFilterValues().keySet());
 						} else if (f.getFilterName().equalsIgnoreCase("Position") && !f.getFilterValues().keySet().contains(0)) {
-							posParam.addAll(f.getFilterValues().values());
+							posParam.addAll(f.getFilterValues().keySet());
 						} else if (f.getFilterName().equalsIgnoreCase("Zone") && !f.getFilterValues().keySet().contains(0)) {
-							zoneParam.addAll(f.getFilterValues().values());
+							zoneParam.addAll(f.getFilterValues().keySet());
 						}
 					}
 
@@ -198,7 +198,7 @@ public class Initiative extends TheBorg {
 			params.put("initiativeId", initiativeId);
 			for (int i = 0; i < filterList.size(); i++) {
 				Filter f = filterList.get(i);
-				params.put(f.getFilterName(), getFilterValueList(f.getFilterValues()));
+				params.put(f.getFilterName(), getFilterValueIdList(f.getFilterValues()));
 			}
 
 			// TODO make this dynamic based on filter list
@@ -277,7 +277,7 @@ public class Initiative extends TheBorg {
 	 * Get list of string filterValues from a map of filterValues
 	 * 
 	 */
-	private List<Integer> getFilterValueList(Map<Integer, String> filterValues) {
+	private List<Integer> getFilterValueIdList(Map<Integer, String> filterValues) {
 		List<Integer> filterValueStringList = new ArrayList<>();
 		filterValueStringList.addAll(filterValues.keySet());
 		return filterValueStringList;

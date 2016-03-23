@@ -18,6 +18,7 @@ import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPDouble;
 import org.rosuda.REngine.REXPString;
 import org.rosuda.REngine.RList;
+import org.rosuda.REngine.Rserve.RConnection;
 
 public class MetricsHelper {
 	@SuppressWarnings("unchecked")
@@ -116,9 +117,11 @@ public class MetricsHelper {
 			primaryMetricMap = getPrimaryMetricMap(initiativeTypeId);
 		}
 		try {
+			
+			RConnection rCon = dch.getRConn();
 			String s = "source(\"metric.r\")";
 			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("R Path for eval " + s);
-			dch.rCon.eval(s);
+			rCon.eval(s);
 			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Filling up parameters for rscript function");
 			List<Integer> funcList = new ArrayList<>();
 			List<Integer> posList = new ArrayList<>();
@@ -133,12 +136,12 @@ public class MetricsHelper {
 					zoneList.addAll(f.getFilterValues().keySet());
 				}
 			}
-			dch.rCon.assign("funcList", UtilHelper.getIntArrayFromIntegerList(funcList));
-			dch.rCon.assign("posList", UtilHelper.getIntArrayFromIntegerList(posList));
-			dch.rCon.assign("zoneList", UtilHelper.getIntArrayFromIntegerList(zoneList));
+			rCon.assign("funcList", UtilHelper.getIntArrayFromIntegerList(funcList));
+			rCon.assign("posList", UtilHelper.getIntArrayFromIntegerList(posList));
+			rCon.assign("zoneList", UtilHelper.getIntArrayFromIntegerList(zoneList));
 
 			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Calling the actual function in RScript TeamMetric");
-			REXP teamMetricScore = dch.rCon.parseAndEval("try(eval(TeamMetric(funcList, posList, zoneList)))");
+			REXP teamMetricScore = rCon.parseAndEval("try(eval(TeamMetric(funcList, posList, zoneList)))");
 			if (teamMetricScore.inherits("try-error")) {
 				org.apache.log4j.Logger.getLogger(MetricsList.class).error("Error: " + teamMetricScore.asString());
 				throw new Exception("Error: " + teamMetricScore.asString());
@@ -170,6 +173,9 @@ public class MetricsHelper {
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(MetricsList.class).error(
 					"Exception while trying to retrieve metrics for category team and type ID " + initiativeTypeId, e);
+		}
+		finally {
+			dch.releaseRcon();
 		}
 		return metricsList;
 	}
