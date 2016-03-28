@@ -236,7 +236,7 @@ update_neo=function(CompanyId){
     print("Last batch committed.")
     print("All done! for ")
     print(relname)
-    return("TRUE")
+    
   }
   
 }
@@ -739,24 +739,30 @@ JobIndividulaMetric=function(CompanyId){
   
   currdate=uniquedate[1]
   previousdate=uniquedate[2]
+  if (is.na(previousdate)) {
+    op=data.frame(metric_value=0,emp_id=vertexlist1$a.emp_id)
+  }else{
+    strengthall$date=as.Date(as.POSIXct(strengthall$calc_time))
+    
+    currstrength=strengthall[strengthall$date==currdate,c("emp_id","nw_metric_value")]
+    
+    prevstrength=strengthall[strengthall$date==previousdate,c("emp_id","nw_metric_value")]
+    
+    instrength=merge(currstrength,prevstrength,by="emp_id")
+    names(instrength)[2:3]=c("current","previous")
+    
+    instrength$perc=(instrength$current-instrength$previous)/instrength$previous  
+    instrength$perc=instrength$perc+1
+    instrength$perc[is.na(instrength$perc)]=0
+    
+    instrength$perc[instrength$perc>1]=1
+    
+    instrength$metric_value=round(instrength$perc*100,0)
+    
+    op=instrength[,c("metric_value","emp_id")]
+    
+  }
   
-  strengthall$date=as.Date(as.POSIXct(strengthall$calc_time))
-  
-  currstrength=strengthall[strengthall$date==currdate,c("emp_id","nw_metric_value")]
-  
-  prevstrength=strengthall[strengthall$date==previousdate,c("emp_id","nw_metric_value")]
-  
-  instrength=merge(currstrength,prevstrength,by="emp_id")
-  names(instrength)[2:3]=c("current","previous")
-  
-  instrength$perc=(instrength$current-instrength$previous)/instrength$previous  
-  instrength$perc=instrength$perc+1
-  
-  instrength$perc[instrength$perc>1]=1
-  
-  instrength$metric_value=round(instrength$perc*100,0)
-  
-  op=instrength[,c("metric_value","emp_id")]
   
   op$metric_id=3
   
@@ -1109,16 +1115,19 @@ JobTeamMetric=function(CompanyId){
         riskemp=PeopleAtRisk$emp_id[i]
         # retention risk rate of emp who is inflencing
         riskrate=1-(PeopleAtRisk$metric_value[i]/100)
-        for(j in 1:nrow(peopleNotRisk)){
-          # emp who is inflenced
-          meemp=peopleNotRisk$emp_id[j]
-          # percent of inflence on me by influencer
-          meinfluence=influence(meemp,riskemp,edgelist) 
-          # product of inflencer retention , inflence percentage
-          merisk=riskrate*meinfluence
-          #add to fraction 
-          fraction=fraction+merisk
+        if (nrow(peopleNotRisk)>0){
+          for(j in 1:nrow(peopleNotRisk)){
+            # emp who is inflenced
+            meemp=peopleNotRisk$emp_id[j]
+            # percent of inflence on me by influencer
+            meinfluence=influence(meemp,riskemp,edgelist) 
+            # product of inflencer retention , inflence percentage
+            merisk=riskrate*meinfluence
+            #add to fraction 
+            fraction=fraction+merisk
+          }
         }
+        
       }
     }  
     #Retention of tean = count of people at rsik + fraction of people whom they influence
@@ -1521,7 +1530,8 @@ JobDimensionMetric=function(CompanyId){
         riskemp=PeopleAtRisk$emp_id[i]
         # retention risk rate of emp who is inflencing
         riskrate=1-(PeopleAtRisk$metric_value[i]/100)
-        for(j in 1:nrow(peopleNotRisk)){
+        if (nrow(peopleNotRisk)>0){
+          for(j in 1:nrow(peopleNotRisk)){
           # emp who is inflenced
           meemp=peopleNotRisk$emp_id[j]
           # percent of inflence on me by influencer
@@ -1530,6 +1540,7 @@ JobDimensionMetric=function(CompanyId){
           merisk=riskrate*meinfluence
           #add to fraction 
           fraction=fraction+merisk
+          }
         }
       }
     }  
@@ -1960,7 +1971,8 @@ JobInitiativeMetric=function(CompanyId){
         riskemp=PeopleAtRisk$emp_id[i]
         # retention risk rate of emp who is inflencing
         riskrate=1-(PeopleAtRisk$metric_value[i]/100)
-        for(j in 1:nrow(peopleNotRisk)){
+        if (nrow(peopleNotRisk)>0){
+          for(j in 1:nrow(peopleNotRisk)){
           # emp who is inflenced
           meemp=peopleNotRisk$emp_id[j]
           # percent of inflence on me by influencer
@@ -1969,6 +1981,7 @@ JobInitiativeMetric=function(CompanyId){
           merisk=riskrate*meinfluence
           #add to fraction 
           fraction=fraction+merisk
+          }
         }
       }
     }  
@@ -2018,10 +2031,10 @@ JobInitiativeMetric=function(CompanyId){
     #add column for emp_id
     between$emp_id=row.names(between)
     
-    # calcualte mu(mean) for betweeness
-    mu=mean(between$Betweenness)
-    # calculate threshold i.e mu+sigma
-    threshold=mu+sd(between$Betweenness)
+#     # calcualte mu(mean) for betweeness
+#     mu=mean(between$Betweenness)
+#     # calculate threshold i.e mu+sigma
+#     threshold=mu+sd(between$Betweenness)
     
     #list of innovators in organization i.e betweenness above threshold
     innovators=between$emp_id[between$Rank<(nrow(between)*variable$value[variable$variable_name=="Metric9InnovatorPercentile"])]
@@ -2173,9 +2186,10 @@ JobAlert=function(CompanyId){
   
   d1=dcast(team_metric_value, cube_id+metric_id~date, value.var="metric_value")
   
-  d1$delta_n=d1[,ncol(d1)]-d1[,ncol(d1)-1]
-  d1$delta_n_1=d1[,ncol(d1)-2]-d1[,ncol(d1)-3]
-  d1$delta_n_2=d1[,ncol(d1)-4]-d1[,ncol(d1)-5]
+  if (ncol(d1)<=3){
+    dbDisconnect(mydb)
+    return()
+  }
   
   # variable
   
@@ -2185,73 +2199,85 @@ JobAlert=function(CompanyId){
   
   Threshold=variable$value[variable$variable_id==10]
   
-  d1$a1=ifelse(d1$delta_n<=(Threshold*-1),1,0)
-  d1$a2=ifelse(d1$delta_n<0 & d1$delta_n_1<0 & d1$delta_n_2<0,1,0)
-  d1$a=ifelse(d1$a1==1,1,ifelse(d1$a2==1,1,0))
-  dalert=d1[d1$a==1,]
-  dalert$delta=ifelse(dalert$a1==0 & dalert$a2==1,dalert$delta_n+dalert$delta_n_1+dalert$delta_n_2,dalert$delta_n)
+  d1$delta_n=d1[,ncol(d1)]-d1[,ncol(d1)-1]
   
-  for (i in 1:nrow(dalert)){
-    # insert alert and get alert_id
-    metric_id=dalert$metric_id[i]
-    cube_id=dalert$cube_id[i]
-    score=dalert[i,as.character(latest_date)]
-    delta_score=dalert$delta[i]
-    people_count=0
-    currtime=format(Sys.time(), "%Y-%m-%d %H:%M:%S")
-    status="Inactive"
-    if(metric_id==8){#Retention
-      
-      emp_id_cube=employee$emp_id[employee$cube_id==cube_id]
-      
-      retention <-retention_ind[retention_ind$emp_id %in% emp_id_cube,]
-      
-      #to find people at risk based on Threshold
-      PeopleAtAlert=retention$emp_id[retention$metric_value<=variable$value[variable$variable_name=="Metric8RiskThreshold"]]
-      people_count=length(PeopleAtAlert)
-      
-    }
+  if (ncol(d1)>=7){
+    d1$delta_n_1=d1[,ncol(d1)-2]-d1[,ncol(d1)-3]
+    d1$delta_n_2=d1[,ncol(d1)-4]-d1[,ncol(d1)-5]
     
-    if(metric_id==10){#Sentiment
-      emp_id_cube=employee$emp_id[employee$cube_id==cube_id]
-      
-      sentiment <-sentiment_ind[sentiment_ind$emp_id %in% emp_id_cube,]
-      
-      #to find people at risk based on Threshold
-      PeopleAtAlert=sentiment$emp_id[sentiment$metric_value<=variable$value[variable$variable_name=="AlertSentimentThreshold"]]
-      
-      people_count=length(PeopleAtAlert)
-      #insert  people
-      
-    }
-    
-    dbBegin(mydb)
-    query=paste("insert into alert (cube_id,metric_id,score,delta_score,people_count,alert_time,status) 
-                values (",cube_id,",",metric_id,",",score,",",delta_score,",",people_count,",'",currtime,"','",status,"');",sep="")
-    
-    dbGetQuery(mydb,query)
-    
-    if (people_count>0){
-      query = "SELECT LAST_INSERT_ID();"
-      
-      res <- dbSendQuery(mydb,query)
-      
-      alert_id<- fetch(res,-1)
-      alert_id=alert_id[1,1]
-      #insert  people
-      values <- paste("(",alert_id,",",PeopleAtAlert,")", sep="", collapse=",")
-      
-      queryinsert <- paste("insert into alert_people (alert_id,emp_id) values ", values)
-      dbGetQuery(mydb,queryinsert)
-      
-      
-    }
-    
-    dbCommit(mydb)
-    
-    
+    d1$a1=ifelse(d1$delta_n<=(Threshold*-1),1,0)
+    d1$a2=ifelse(d1$delta_n<0 & d1$delta_n_1<0 & d1$delta_n_2<0,1,0)
+    d1$a=ifelse(d1$a1==1,1,ifelse(d1$a2==1,1,0))
+    dalert=d1[d1$a==1,]
+    dalert$delta=ifelse(dalert$a1==0 & dalert$a2==1,dalert$delta_n+dalert$delta_n_1+dalert$delta_n_2,dalert$delta_n)
+  }else{
+    d1$a1=ifelse(d1$delta_n<=(Threshold*-1),1,0)
+    dalert=d1[d1$a1==1,]
+    dalert$delta=dalert$delta_n
   }
   
+  if (nrow(dalert)>0){
+    for (i in 1:nrow(dalert)){
+      # insert alert and get alert_id
+      metric_id=dalert$metric_id[i]
+      cube_id=dalert$cube_id[i]
+      score=dalert[i,as.character(latest_date)]
+      delta_score=dalert$delta[i]
+      people_count=0
+      currtime=format(Sys.time(), "%Y-%m-%d %H:%M:%S")
+      status="Inactive"
+      if(metric_id==8){#Retention
+        
+        emp_id_cube=employee$emp_id[employee$cube_id==cube_id]
+        
+        retention <-retention_ind[retention_ind$emp_id %in% emp_id_cube,]
+        
+        #to find people at risk based on Threshold
+        PeopleAtAlert=retention$emp_id[retention$metric_value<=variable$value[variable$variable_name=="Metric8RiskThreshold"]]
+        people_count=length(PeopleAtAlert)
+        
+      }
+      
+      if(metric_id==10){#Sentiment
+        emp_id_cube=employee$emp_id[employee$cube_id==cube_id]
+        
+        sentiment <-sentiment_ind[sentiment_ind$emp_id %in% emp_id_cube,]
+        
+        #to find people at risk based on Threshold
+        PeopleAtAlert=sentiment$emp_id[sentiment$metric_value<=variable$value[variable$variable_name=="AlertSentimentThreshold"]]
+        
+        people_count=length(PeopleAtAlert)
+        #insert  people
+        
+      }
+      
+      dbBegin(mydb)
+      query=paste("insert into alert (cube_id,metric_id,score,delta_score,people_count,alert_time,status) 
+                  values (",cube_id,",",metric_id,",",score,",",delta_score,",",people_count,",'",currtime,"','",status,"');",sep="")
+      
+      dbGetQuery(mydb,query)
+      
+      if (people_count>0){
+        query = "SELECT LAST_INSERT_ID();"
+        
+        res <- dbSendQuery(mydb,query)
+        
+        alert_id<- fetch(res,-1)
+        alert_id=alert_id[1,1]
+        #insert  people
+        values <- paste("(",alert_id,",",PeopleAtAlert,")", sep="", collapse=",")
+        
+        queryinsert <- paste("insert into alert_people (alert_id,emp_id) values ", values)
+        dbGetQuery(mydb,queryinsert)
+        
+        
+      }
+      
+      dbCommit(mydb)
+      
+      
+    }
+  }  
   dbDisconnect(mydb)
 }
 
