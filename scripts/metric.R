@@ -463,6 +463,8 @@ SmartListResponse=function(emp_id,rel_id){
   return(op)
 }
 
+
+#Team
 TeamSmartList=function(Function,Position,Zone,init_type_id){
   # condition to replace all(0) with der dimension_id
   cat("\nData Received Function=",Function,"Position=",Position,"Zone=",Zone,"init_type=",init_type_id,file="Rlog.txt",sep=" ",append=TRUE)
@@ -609,13 +611,15 @@ TeamSmartList=function(Function,Position,Zone,init_type_id){
   # Rank Score in descending order
   op$Rank=rank(-op$Score,ties.method= "random")
   # flag high medium low
-  op$flag=ifelse(op$Rank<=nrow(op)/3,"High",ifelse(op$Rank<=nrow(op)*2/3,"Medium","Low"))
+  op$flag=ifelse(op$Rank<=nrow(op)/3,"High fit",ifelse(op$Rank<=nrow(op)*2/3,"Med fit","Low fit"))
   # return op
   op$emp_id=as.integer(op$emp_id)
   op$Rank=as.integer(op$Rank)
   cat("\n Returning op for Team SmartList",file="Rlog.txt",sep=" ",append=TRUE)  
   return(op)
 }
+
+# individual
 
 IndividualSmartList=function(emp_id,init_type_id){
   # connect neo
@@ -730,7 +734,7 @@ IndividualSmartList=function(emp_id,init_type_id){
   # rank score
   op$Rank=rank(-op$Score,ties.method= "random")
   # flag high medium low
-  op$flag=ifelse(op$Rank<=nrow(op)/3,"High",ifelse(op$Rank<=nrow(op)*2/3,"Medium","Low"))
+  op$flag=ifelse(op$Rank<=nrow(op)/3,"High fit",ifelse(op$Rank<=nrow(op)*2/3,"Med fit","Low fit"))
   
   op$emp_id=as.integer(op$emp_id)
   op$Rank=as.integer(op$Rank)
@@ -738,3 +742,4 @@ IndividualSmartList=function(emp_id,init_type_id){
   # return op
   return(op)
 }
+
