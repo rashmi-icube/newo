@@ -47,7 +47,7 @@ calcualte_edge=function(CompanyId){
   
   question$start_date=as.Date(question$start_date,format="%Y-%m-%d")
   question$end_date=as.Date(question$end_date,format="%Y-%m-%d")
-  question$end_date=as.Date(question$end_date,format="%Y-%m-%d")
+  
   
   question=question[question$end_date<Sys.Date(),]
   
@@ -67,6 +67,8 @@ calcualte_edge=function(CompanyId){
   res <- dbSendQuery(mydb,query)
   appreciation_response=fetch(res,-1)
   
+  appreciation_response$response_time=strptime(appreciation_response$response_time,format="%Y-%m-%d  %H:%M:%S")
+  
   for  (j in 1:4){
     rel_id=j
     que_sub=question[question$rel_id==j,]
@@ -75,7 +77,7 @@ calcualte_edge=function(CompanyId){
       que_id=que_sub$que_id[k]
       startdate=que_sub$start_date[k]
       appreciation_response$que_id[appreciation_response$rel_id==j & 
-                                     appreciation_response$response_time>=startdate]=que_id
+                                     as.Date(appreciation_response$response_time)>=startdate]=que_id
     }
   }
   
@@ -84,8 +86,145 @@ calcualte_edge=function(CompanyId){
   response=rbind(we_response[,c("emp_id","que_id","response_time","target_emp_id","rel_id","weight")],
                  appreciation_response[,c("emp_id","que_id","response_time","target_emp_id","rel_id","weight")])
   
+  
+  opcal=data.frame(emp_id=as.numeric(),target_emp_id=as.numeric(),
+                   rel_id=as.numeric(),weight=as.numeric())
+  
+  for ( j in 1:4){
+    currrel=j
+    que_rel=question$que_id[question$rel_id==currrel]
+    que_rel=sort(que_rel,decreasing = TRUE)
+    decayweight=0
+    d=1
+    op=data.frame()
+    for(x in 1:length(que_rel)){
+      decayweight=decayweight+decay^(x-1)
+      currque=que_rel[x]
+      sub=response[response$rel_id==currrel & response$que_id==currque,]
+      sub$response_time=as.POSIXct(sub$response_time)
+      sub <- sub %>%
+        group_by(emp_id,target_emp_id) %>%
+        filter(response_time == max(response_time))
+      sub$weight=sub$weight*d
+      op=rbind(op,sub)
+      d=d*decay
+    }
+    
+    op1=aggregate(op$weight,by=list(emp_id=op$emp_id,target_emp_id=op$target_emp_id,rel_id=op$rel_id),sum)
+    names(op1)[4]="weight"
+    op1$weight=op1$weight/decayweight
+    
+    opcal=rbind(opcal,op1)
+  }
+  
+  
+  TableName=paste("calculated_edge_",format(Sys.Date(), "%Y_%m_%d"),sep = "")
+  
+  query=paste("CREATE TABLE ",TableName,"(
+              `emp_from` int(11) NOT NULL,
+              `emp_to` int(11) NOT NULL,
+              `rel_id` int(11) NOT NULL,
+              `weight` double DEFAULT NULL,
+              KEY `emp_from` (`emp_from`),
+              KEY `emp_to` (`emp_to`),
+              CONSTRAINT ",TableName,"_ibfk_1 FOREIGN KEY (`emp_from`) REFERENCES `employee` (`emp_id`),
+              CONSTRAINT ",TableName,"_ibfk_2 FOREIGN KEY (`emp_to`) REFERENCES `employee` (`emp_id`)
+  );",sep="")
+
+  dbGetQuery(mydb,query)
+  
+  values <- paste("(",opcal$emp_id,",",opcal$target_emp_id,"," ,opcal$rel_id,",",opcal$weight,")", sep="", collapse=",")
+  
+  queryinsert <- paste("insert into ",TableName," values ", values,sep = "")
+  
+  dbGetQuery(mydb,queryinsert)
+  dbDisconnect(mydb)
+} 
+
+calcualte_edge_old=function(CompanyId){
+  # connect to Owen_master sqldb
+  mydb = dbConnect(MySQL(), user=mysqlusername, password=mysqlpasswod, dbname=mysqldbname, host=mysqlhost, port=mysqlport)
+  
+  # get company's connection details
+  query=paste("call getCompanyConfig(",CompanyId,");",sep = "")
+  res <- dbSendQuery(mydb,query)
+  CompanyConfig=fetch(res,-1)
+  
+  dbDisconnect(mydb)
+  
+  comp_sql_dbname=CompanyConfig$comp_sql_dbname[1]
+  comp_sql_server=CompanyConfig$sql_server[1]
+  comp_sql_user_id=CompanyConfig$sql_user_id[1]
+  comp_sql_password=CompanyConfig$sql_password[1]
+  # connect to Company's sqldb
+  mydb = dbConnect(MySQL(), user=comp_sql_user_id, password=comp_sql_password, dbname=comp_sql_dbname, host=comp_sql_server, port=mysqlport)
+  
+  # get decay variable
+  query="SELECT * FROM variable where variable_id=9;"
+  res <- dbSendQuery(mydb,query)
+  decay=fetch(res,-1)
+  decay=decay$value[1]
+  
+  # get quesion list for batch 1 and we type
+  query="SELECT * FROM question where survey_batch_id=1 and que_type=1;"
+  res <- dbSendQuery(mydb,query)
+  question=fetch(res,-1)
+  
+  question$start_date=as.Date(question$start_date,format="%Y-%m-%d")
+  question$end_date=as.Date(question$end_date,format="%Y-%m-%d")
+  #question$end_date=as.Date(question$end_date,format="%Y-%m-%d")
+  
+  # filter question which are completed
+  question=question[question$end_date<Sys.Date(),]
+    
+  # filter top latest 4 question for each rel_id
+  question <- question %>%
+    group_by(rel_id) %>%
+    top_n(n = 4, wt = que_id)
+  
+  # we_response form sql for filtered question
+  query=paste("SELECT * FROM we_response where que_id in (",paste(question$que_id,collapse = ","),")")
+  res <- dbSendQuery(mydb,query)
+  we_response=fetch(res,-1)
+  
+  we_response$response_time=strptime(we_response$response_time,format="%Y-%m-%d  %H:%M:%S")
+  #we_response$response_time=strptime(we_response$response_time,format="%Y-%m-%d  %H:%M:%S")
+  
+  # oldest date of question started
+  startdate=min(question$start_date)
+  
+  # appreciatio from sql from startdate to today
+  query=paste("SELECT * FROM appreciation_response where date(response_time)>'",startdate,"'",sep = "")
+  res <- dbSendQuery(mydb,query)
+  appreciation_response=fetch(res,-1)
+  
+  #appreciation_response$response_time=strptime(appreciation_response$response_time,format="%Y-%m-%d  %H:%M:%S")
+  
+  
+  # to link appreciatio response to latest question
+  for  (j in 1:4){
+    rel_id=j
+    que_sub=question[question$rel_id==j,]
+    que_sub=que_sub[order(que_sub$que_id),]
+    for (k in 1:nrow(que_sub)){
+      que_id=que_sub$que_id[k]
+      startdate=que_sub$start_date[k]
+      appreciation_response$que_id[appreciation_response$rel_id==j & 
+                                     as.Date(appreciation_response$response_time)>=startdate]=que_id
+    }
+  }
+  
+  # remove appreciation which is not linked to any question
+  appreciation_response=appreciation_response[!is.na(appreciation_response$que_id),]
+  
+  # combine we_response and appreciation_response
+  response=rbind(we_response[,c("emp_id","que_id","response_time","target_emp_id","rel_id","weight")],
+                 appreciation_response[,c("emp_id","que_id","response_time","target_emp_id","rel_id","weight")])
+  
+  # list of employee who responded
   emp_id_list=unique(response$emp_id)
   
+  # deacay Function
   decayfun=function(D,currdecay,que){
     if (length(que_rel)>=que){
       currque=que_rel[que]
@@ -102,6 +241,7 @@ calcualte_edge=function(CompanyId){
     }
   }
   
+  #empty dataframe
   opcal=data.frame(emp_id=as.numeric(),target_emp_id=as.numeric(),
                    rel_id=as.numeric(),weight=as.numeric())
   
@@ -209,11 +349,12 @@ update_neo=function(CompanyId){
     query = paste("MATCH (a:Employee {emp_id:{from}}),(b:Employee {emp_id:{to}})
                   CREATE (a)-[r:",relname," {weight:toFloat({wt})}]->(b)",sep="")
     
+    
     tx = newTransaction(graph)
     
     for (i in 1:nrow(edgelistrel)) {
       # Upload in blocks of 1000.
-      if(i %% 1000 == 0) {
+      if(i %% 100 == 0) {
         # Commit current transaction.
         commit(tx)
         print(paste("Batch", i / 1000, "committed."))
