@@ -22,10 +22,11 @@ public class DatabaseConnectionHelper extends TheBorg {
 	public Connection masterCon;
 	public Map<Integer, Connection> companySqlConnectionPool;
 	public Map<Integer, String> companyImagePath;
-	public Connection neo4jCon;
-	public RConnection rCon;
+	private Connection neo4jCon;
+	private RConnection rCon;
 
 	private boolean rConInUse = false;
+	private boolean neoConInUse = false;
 
 	// Fermion Server
 	/*private final static String mysqlurl = "jdbc:mysql://192.168.1.6:3306/owen";
@@ -208,6 +209,7 @@ public class DatabaseConnectionHelper extends TheBorg {
 		while (rConInUse)
 			try {
 				Thread.sleep(100);
+				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Waiting for R connection");
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -217,6 +219,25 @@ public class DatabaseConnectionHelper extends TheBorg {
 	}
 
 	public void releaseRcon() {
+		org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Releasing R connection");
 		rConInUse = false;
+	}
+
+	public Connection getNeoConn() {
+		while (neoConInUse)
+			try {
+				Thread.sleep(100);
+				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Waiting for neo4j connection");
+
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		neoConInUse = true;
+		return neo4jCon;
+	}
+
+	public void releaseNeoCon() {
+		org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Releasing neo4j connection");
+		neoConInUse = false;
 	}
 }
