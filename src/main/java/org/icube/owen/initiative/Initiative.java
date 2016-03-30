@@ -88,7 +88,7 @@ public class Initiative extends TheBorg {
 					+ initiativeComment + "'}) return i.Id as Id";
 
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Create initiative query : " + createInitQuery);
-			ResultSet res = dch.neo4jCon.createStatement().executeQuery(createInitQuery);
+			ResultSet res = dch.getNeoConn().createStatement().executeQuery(createInitQuery);
 			while (res.next()) {
 				initiativeId = res.getInt("Id");
 			}
@@ -138,7 +138,7 @@ public class Initiative extends TheBorg {
 							+ (posQuery.isEmpty() ? "" : (posQuery))
 							+ "  return count(a) as TeamSize";
 
-					res = dch.neo4jCon.createStatement().executeQuery(query);
+					res = dch.getNeoConn().createStatement().executeQuery(query);
 
 					while (res.next()) {
 						teamSize = res.getInt("TeamSize");
@@ -179,6 +179,8 @@ public class Initiative extends TheBorg {
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception in Create initiative query", e);
 
+		} finally {
+			dch.releaseNeoCon();
 		}
 		org.apache.log4j.Logger.getLogger(Initiative.class).debug("Initiative ID : " + initiativeId);
 
@@ -231,16 +233,18 @@ public class Initiative extends TheBorg {
 			}
 
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Function query : " + funcQuery);
-			dch.neo4jCon.createStatement().executeQuery(funcQuery);
+			dch.getNeoConn().createStatement().executeQuery(funcQuery);
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Position query : " + posQuery);
-			dch.neo4jCon.createStatement().executeQuery(posQuery);
+			dch.getNeoConn().createStatement().executeQuery(posQuery);
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Zone query : " + zoneQuery);
-			dch.neo4jCon.createStatement().executeQuery(zoneQuery);
+			dch.getNeoConn().createStatement().executeQuery(zoneQuery);
 
 			return true;
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception while setting part of for initiative ID" + initiativeId, e);
 			return false;
+		} finally {
+			dch.releaseNeoCon();
 		}
 
 	}
@@ -263,12 +267,14 @@ public class Initiative extends TheBorg {
 			String query = "Match (i:Init),(e:Employee) where i.Id = " + initiativeId + " and e.emp_id in " + empIdList.toString()
 					+ " Create e-[:part_of]->i";
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Creating part_of connections query : " + query);
-			dch.neo4jCon.createStatement().executeQuery(query);
+			dch.getNeoConn().createStatement().executeQuery(query);
 			return true;
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(Initiative.class).error(
 					"Exception while creating part_of connections for initiative : " + initiativeId, e);
 			return false;
+		} finally {
+			dch.releaseNeoCon();
 		}
 	}
 
@@ -301,11 +307,13 @@ public class Initiative extends TheBorg {
 			String query = "Match (i:Init),(e:Employee) where i.Id = " + initiativeId + " and e.emp_id in " + empIdList.toString()
 					+ " Create e-[:owner_of]->i";
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Creating connections for initiative query : " + query);
-			dch.neo4jCon.createStatement().executeQuery(query);
+			dch.getNeoConn().createStatement().executeQuery(query);
 			return true;
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception while creating owner for initiative : " + initiativeId, e);
 			return false;
+		} finally {
+			dch.releaseNeoCon();
 		}
 	}
 
@@ -330,12 +338,14 @@ public class Initiative extends TheBorg {
 					+ "else collect(distinct(a.Id))  end as PartOfID,collect(distinct(a.Name))as PartOfName, labels(a) as Filters, "
 					+ "collect(distinct (o.emp_id)) as OwnersOf,i.Comment as Comments,i.Type as Type,i.Category as Category,i.Status as Status";
 			org.apache.log4j.Logger.getLogger(Initiative.class).error("Query : " + query);
-			ResultSet res = dch.neo4jCon.createStatement().executeQuery(query);
+			ResultSet res = dch.getNeoConn().createStatement().executeQuery(query);
 			res.next();
 			il.setInitiativeValues(res, i);
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception while retrieving the initiative with ID" + initiativeId, e);
 
+		} finally {
+			dch.releaseNeoCon();
 		}
 		return i;
 	}
@@ -376,13 +386,15 @@ public class Initiative extends TheBorg {
 		try {
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Starting to delete the initiative ID " + initiativeId);
 			String query = "match(a:Init {Id:" + initiativeId + "}) set a.Status = 'Deleted' return a.Status as currentStatus";
-			dch.neo4jCon.createStatement().executeQuery(query);
+			dch.getNeoConn().createStatement().executeQuery(query);
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Deleted initiative with ID " + initiativeId);
 			status = true;
 
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception in deleting initiative", e);
 
+		} finally {
+			dch.releaseNeoCon();
 		}
 		return status;
 	}
@@ -402,7 +414,7 @@ public class Initiative extends TheBorg {
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Started update of The initiative with ID " + updatedInitiative.initiativeId);
 			List<Employee> updatedOwnerOfList = updatedInitiative.getOwnerOfList();
 			String ownersOfQuery = "match(i:Init {Id:" + updatedInitiativeId + "})<-[r:owner_of]-(e:Employee) delete r";
-			dch.neo4jCon.createStatement().executeQuery(ownersOfQuery);
+			dch.getNeoConn().createStatement().executeQuery(ownersOfQuery);
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Ownersof list deleted from initiative " + updatedInitiative.initiativeId);
 			updatedInitiative.setOwner(updatedInitiativeId, updatedOwnerOfList);
 			String query = "match(a:Init {Id:" + updatedInitiativeId + "}) set a.CreatedOn = '"
@@ -414,12 +426,14 @@ public class Initiative extends TheBorg {
 					+ sdf.format(UtilHelper.getStartOfDay(updatedInitiative.getInitiativeStartDate())) + "' return a.Name as Name, "
 					+ "a.Type as Type,a.Category as Category, "
 					+ "a.Status as Status,a.Comment as Comment,a.EndDate as endDate,a.StartDate as StartDate,a.CreatedOn as CreationDate";
-			dch.neo4jCon.createStatement().executeQuery(query);
+			dch.getNeoConn().createStatement().executeQuery(query);
 			status = true;
 
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Updated initiative with ID " + updatedInitiativeId);
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception in updating initiative " + updatedInitiativeId, e);
+		} finally {
+			dch.releaseNeoCon();
 		}
 		return status;
 	}
@@ -448,13 +462,15 @@ public class Initiative extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		try {
 			String query = "match(a:Init {Id:" + initiativeId + "}) set a.Status = 'Completed'";
-			dch.neo4jCon.createStatement().executeQuery(query);
+			dch.getNeoConn().createStatement().executeQuery(query);
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Changed the status of initiative with ID " + initiativeId + " to Completed");
 
 			return true;
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception in changing the status to Completed for initiative " + initiativeId,
 					e);
+		} finally {
+			dch.releaseNeoCon();
 		}
 
 		return false;

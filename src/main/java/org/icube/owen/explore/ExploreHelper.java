@@ -231,7 +231,7 @@ public class ExploreHelper extends TheBorg {
 		try {
 			List<Integer> empIdList = new ArrayList<>();
 			org.apache.log4j.Logger.getLogger(ExploreHelper.class).debug("getTeamNetworkDiagram query for all teams  : " + query);
-			ResultSet res = dch.neo4jCon.createStatement().executeQuery(query);
+			ResultSet res = dch.getNeoConn().createStatement().executeQuery(query);
 			while (res.next()) {
 				empIdList.add(res.getInt("emp_id"));
 				Node n = new Node();
@@ -248,6 +248,8 @@ public class ExploreHelper extends TheBorg {
 			edgeList = getEdges(empIdList, relationshipType);
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(ExploreHelper.class).error("Error while retrieving team networks diagram", e);
+		} finally {
+			dch.releaseNeoCon();
 		}
 
 		result.put("nodeList", nodeList);
@@ -313,7 +315,7 @@ public class ExploreHelper extends TheBorg {
 		try {
 			List<Integer> empIdList = new ArrayList<>();
 			org.apache.log4j.Logger.getLogger(ExploreHelper.class).debug("getIndividualNetworkDiagram query  : " + query);
-			ResultSet res = dch.neo4jCon.createStatement().executeQuery(query);
+			ResultSet res = dch.getNeoConn().createStatement().executeQuery(query);
 			while (res.next()) {
 				empIdList.add(res.getInt("emp_id"));
 				Node n = new Node();
@@ -330,6 +332,8 @@ public class ExploreHelper extends TheBorg {
 			edgeList = getEdges(empIdList, relationshipTypeMap);
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(ExploreHelper.class).error("Error while retrieving individual networks diagram", e);
+		} finally {
+			dch.releaseNeoCon();
 		}
 
 		result.put("nodeList", nodeList);
@@ -352,7 +356,7 @@ public class ExploreHelper extends TheBorg {
 
 		org.apache.log4j.Logger.getLogger(ExploreHelper.class).debug("getEdges query for all teams  : " + query);
 		try {
-			ResultSet res = dch.neo4jCon.createStatement().executeQuery(query);
+			ResultSet res = dch.getNeoConn().createStatement().executeQuery(query);
 			while (res.next()) {
 				Edge e = new Edge();
 				e.setFromEmployeId(res.getInt("from"));
@@ -364,6 +368,8 @@ public class ExploreHelper extends TheBorg {
 			}
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(ExploreHelper.class).error("Exception whil getting edgeList", e);
+		} finally {
+			dch.releaseNeoCon();
 		}
 
 		return result;

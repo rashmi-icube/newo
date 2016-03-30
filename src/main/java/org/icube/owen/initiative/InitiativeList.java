@@ -85,7 +85,7 @@ public class InitiativeList extends TheBorg {
 				throw new Exception();
 			}
 
-			ResultSet res = dch.neo4jCon.createStatement().executeQuery(initiativeListQuery);
+			ResultSet res = dch.getNeoConn().createStatement().executeQuery(initiativeListQuery);
 			org.apache.log4j.Logger.getLogger(InitiativeList.class).debug(
 					"Executed query for retrieving initiative list with " + viewByCriteria + " : " + viewByValue);
 			while (res.next()) {
@@ -117,6 +117,8 @@ public class InitiativeList extends TheBorg {
 					"List of initiatives of " + viewByCriteria + viewByValue + ": " + initiativeList.toString());
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(InitiativeList.class).error("Exception while getting the initiative list", e);
+		} finally {
+			dch.releaseNeoCon();
 		}
 		return initiativeList;
 
@@ -139,7 +141,7 @@ public class InitiativeList extends TheBorg {
 					+ "else collect(distinct(a.Id))  end as PartOfID,collect(distinct(a.Name))as PartOfName, labels(a) as Filters, "
 					+ "collect(distinct (o.emp_id)) as OwnersOf,i.Comment as Comments,i.Type as Type,i.Category as Category,i.Status as Status";
 
-			ResultSet res = dch.neo4jCon.createStatement().executeQuery(initiativeListQuery);
+			ResultSet res = dch.getNeoConn().createStatement().executeQuery(initiativeListQuery);
 			org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Executed query for retrieving initiative list");
 			while (res.next()) {
 
@@ -162,6 +164,8 @@ public class InitiativeList extends TheBorg {
 			org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("List of initiatives : " + initiativeList.toString());
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(InitiativeList.class).error("Exception while getting the initiative list", e);
+		} finally {
+			dch.releaseNeoCon();
 		}
 		Collections.sort(initiativeList, (o1, o2) -> o1.getInitiativeEndDate().compareTo(o2.getInitiativeEndDate()));
 		return initiativeList;
