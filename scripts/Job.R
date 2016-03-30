@@ -139,6 +139,7 @@ calcualte_edge=function(CompanyId){
   
   dbGetQuery(mydb,queryinsert)
   dbDisconnect(mydb)
+  return(TRUE)
 } 
 
 calcualte_edge_old=function(CompanyId){
@@ -379,7 +380,7 @@ update_neo=function(CompanyId){
     print(relname)
     
   }
-  
+  return(TRUE)
 }
 
 JobIndNwMetric=function(CompanyId){
@@ -516,7 +517,7 @@ JobIndNwMetric=function(CompanyId){
   dbGetQuery(mydb,query)
   
   dbDisconnect(mydb)
-  
+  return(TRUE)
 }
 
 JobCubeNwMetric=function(CompanyId){
@@ -643,7 +644,7 @@ JobCubeNwMetric=function(CompanyId){
   dbGetQuery(mydb,query)
   
   dbDisconnect(mydb)
-  
+  return(TRUE)
 }
 
 JobDimensionNwMetric=function(CompanyId){
@@ -784,7 +785,7 @@ JobDimensionNwMetric=function(CompanyId){
   dbGetQuery(mydb,query)
   
   dbDisconnect(mydb)
-  
+  return(TRUE)
 }
 
 JobIndividulaMetric=function(CompanyId){
@@ -989,6 +990,7 @@ JobIndividulaMetric=function(CompanyId){
   dbGetQuery(mydb,query)
   
   dbDisconnect(mydb)
+  return(TRUE)
 }
 
 JobTeamMetric=function(CompanyId){
@@ -1388,7 +1390,7 @@ JobTeamMetric=function(CompanyId){
   dbGetQuery(mydb,query)
   
   dbDisconnect(mydb)
-  
+  return(TRUE)
 }
 
 JobDimensionMetric=function(CompanyId){
@@ -1825,6 +1827,7 @@ JobDimensionMetric=function(CompanyId){
   dbGetQuery(mydb,query)
   
   dbDisconnect(mydb)
+  return(TRUE)
   
 }
 
@@ -2265,6 +2268,7 @@ JobInitiativeMetric=function(CompanyId){
   
   
   dbDisconnect(mydb)
+  return(TRUE)
 }
 
 JobAlert=function(CompanyId){
@@ -2420,6 +2424,7 @@ JobAlert=function(CompanyId){
     }
   }  
   dbDisconnect(mydb)
+  return(TRUE)
 }
 
 JobInitStatus=function(CompanyId){
@@ -2446,4 +2451,5 @@ JobInitStatus=function(CompanyId){
               set i.Status='Active'",sep="")
   
   cypher(graph, query)
+  return(TRUE)
 }
