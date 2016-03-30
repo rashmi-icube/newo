@@ -143,9 +143,9 @@ public class Employee extends TheBorg {
 		Image image = null;
 
 		try {
-			File sourceimage = new File(imagePath + companyId + "_" + employeeId + ".jpg");
-			org.apache.log4j.Logger.getLogger(Employee.class).debug(
-					"Path for retrieving the image for employeeId " + employeeId + " : " + sourceimage.getAbsolutePath());
+			String filePath = imagePath + companyId + "_" + employeeId + ".jpg";
+			org.apache.log4j.Logger.getLogger(Employee.class).debug("Path for retrieving the image for employeeId : " + filePath);
+			File sourceimage = new File(filePath);
 			image = ImageIO.read(sourceimage);
 			org.apache.log4j.Logger.getLogger(Employee.class).debug("Successfully read the image for employeeId " + employeeId);
 		} catch (IOException e) {
