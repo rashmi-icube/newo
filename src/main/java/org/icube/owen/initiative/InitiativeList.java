@@ -3,6 +3,7 @@ package org.icube.owen.initiative;
 import java.sql.ResultSet;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -109,6 +110,9 @@ public class InitiativeList extends TheBorg {
 			for (int initiativeId : initiativeIdMap.keySet()) {
 				initiativeList.add(initiativeIdMap.get(initiativeId));
 			}
+
+			Collections.sort(initiativeList, (o1, o2) -> o1.getInitiativeEndDate().compareTo(o2.getInitiativeEndDate()));
+
 			org.apache.log4j.Logger.getLogger(InitiativeList.class).debug(
 					"List of initiatives of " + viewByCriteria + viewByValue + ": " + initiativeList.toString());
 		} catch (Exception e) {
@@ -159,6 +163,7 @@ public class InitiativeList extends TheBorg {
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(InitiativeList.class).error("Exception while getting the initiative list", e);
 		}
+		Collections.sort(initiativeList, (o1, o2) -> o1.getInitiativeEndDate().compareTo(o2.getInitiativeEndDate()));
 		return initiativeList;
 
 	}

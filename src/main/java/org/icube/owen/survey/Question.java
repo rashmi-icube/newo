@@ -156,9 +156,9 @@ public class Question extends TheBorg {
 			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getResponseData(?)}");
 			cstmt.setInt(1, q.getQuestionId());
 			ResultSet rs = cstmt.executeQuery();
-			if (rs.next()) {
+			if (rs != null) {
 				while (rs.next()) {
-					java.util.Date utilDate = new java.util.Date(rs.getDate("date").getTime());
+					Date utilDate = new Date(rs.getDate("date").getTime());
 					responseMap.put(utilDate, rs.getInt("responses"));
 				}
 			} else {
@@ -191,6 +191,7 @@ public class Question extends TheBorg {
 				q.setResponsePercentage(q1.getResponsePercentage());
 				q.setQuestionType(q1.getQuestionType());
 				q.setSurveyBatchId(q1.getSurveyBatchId());
+				org.apache.log4j.Logger.getLogger(Question.class).debug("Retrieved the current question " + q.getQuestionId());
 			}
 		}
 		return q;
@@ -277,7 +278,7 @@ public class Question extends TheBorg {
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(Question.class).error("Error while trying to retrieve the smart list for employee from question", e);
 		}
-		
+
 		finally {
 			ObjectFactory.getDBHelper().releaseRcon();
 		}
