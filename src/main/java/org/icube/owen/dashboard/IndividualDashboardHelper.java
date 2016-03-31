@@ -3,6 +3,7 @@ package org.icube.owen.dashboard;
 import java.sql.CallableStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -103,8 +104,8 @@ public class IndividualDashboardHelper extends TheBorg {
 					+ " where i=ini return i.Name as Name,i.StartDate as StartDate, i.EndDate as EndDate, i.CreatedOn as CreationDate,"
 					+ "i.Id as Id,case i.Category when 'Individual' then collect(distinct(a.emp_id)) else collect(distinct(a.Id))  end as PartOfID,collect(distinct(a.Name))as PartOfName, "
 					+ "labels(a) as Filters,collect(distinct (o.emp_id)) as OwnersOf,i.Comment as Comments,i.Type as Type,i.Category as Category,i.Status as Status;";
-
-			ResultSet res = dch.getNeoConn().createStatement().executeQuery(initiativeListQuery);
+			Statement stmt = dch.neo4jCon.createStatement();
+			ResultSet res = stmt.executeQuery(initiativeListQuery);
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Executed query for retrieving initiative list");
 			while (res.next()) {
 
@@ -125,10 +126,9 @@ public class IndividualDashboardHelper extends TheBorg {
 				initiativeList.add(initiativeIdMap.get(initiativeId));
 			}
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("List of initiatives : " + initiativeList.toString());
+			stmt.close();
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while getting the initiative list", e);
-		} finally {
-			dch.releaseNeoCon();
 		}
 
 		return initiativeList;
@@ -152,7 +152,8 @@ public class IndividualDashboardHelper extends TheBorg {
 			ResultSet rs = cstmt.executeQuery();
 			String initiativeListQuery = "MATCH (i:Init {Status:'Active'})<-[:owner_of]-(e:Employee {emp_id:" + employeeId
 					+ "}) return i.Name as Name ,i.CreatedOn as CreatedOn";
-			ResultSet res = dch.getNeoConn().createStatement().executeQuery(initiativeListQuery);
+			Statement stmt = dch.neo4jCon.createStatement();
+			ResultSet res = stmt.executeQuery(initiativeListQuery);
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Executed query for retrieving initiative list");
 			SimpleDateFormat parserSDF = new SimpleDateFormat(UtilHelper.dateTimeFormat, Locale.ENGLISH);
 			List<ActivityFeed> afList = new ArrayList<>();
@@ -198,11 +199,9 @@ public class IndividualDashboardHelper extends TheBorg {
 				}
 			}
 			result.toString();
-
+			stmt.close();
 		} catch (SQLException | ParseException e) {
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while retrieving the activity feed data", e);
-		} finally {
-			dch.releaseNeoCon();
 		}
 
 		return result;
@@ -393,16 +392,15 @@ public class IndividualDashboardHelper extends TheBorg {
 					+ sdf.format(lastNotificationDate) + "' return count(i) as initiative_count";
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug(
 					"Query to get notifications count from neo4j : " + notificationCountQuery);
-
-			ResultSet res = dch.getNeoConn().createStatement().executeQuery(notificationCountQuery);
+			Statement stmt = dch.neo4jCon.createStatement();
+			ResultSet res = stmt.executeQuery(notificationCountQuery);
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Executed query for retrieving initiative list");
 			while (res.next()) {
 				notificationCount += res.getInt("initiative_count");
 			}
+			stmt.close();
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while updating notification timestamp", e);
-		} finally {
-			dch.releaseNeoCon();
 		}
 		return notificationCount;
 	}

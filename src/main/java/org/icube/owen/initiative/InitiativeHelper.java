@@ -3,6 +3,7 @@ package org.icube.owen.initiative;
 import java.sql.CallableStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -84,7 +85,8 @@ public class InitiativeHelper extends TheBorg {
 			String query = "match (i:Init) where i.Status='Active' or i.Status='Completed' with  distinct(i.Status) as stat match (z:Init) "
 					+ "with distinct(z.Category) as cat,stat match (j:Init {Category:cat}) with distinct(j.Type) as TYP,stat,cat optional "
 					+ "match (a:Init) where a.Status=stat and a.Type=TYP return cat as category,TYP as initiativeType,stat as status ,count(a) as totalInitiatives";
-			ResultSet res = dch.getNeoConn().createStatement().executeQuery(query);
+			Statement stmt = dch.neo4jCon.createStatement();
+			ResultSet res = stmt.executeQuery(query);
 			while (res.next()) {
 				Map<String, Object> initiativeCountMap = new HashMap<>();
 				initiativeCountMap.put("status", res.getString("status"));
@@ -93,10 +95,9 @@ public class InitiativeHelper extends TheBorg {
 				initiativeCountMap.put("totalInitiatives", res.getInt("totalInitiatives"));
 				initiativeCountMapList.add(initiativeCountMap);
 			}
+			stmt.close();
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(InitiativeHelper.class).error("Exception while getting the initiative list", e);
-		} finally {
-			dch.releaseNeoCon();
 		}
 		return initiativeCountMapList;
 	}

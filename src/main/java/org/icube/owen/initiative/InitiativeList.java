@@ -1,6 +1,7 @@
 package org.icube.owen.initiative;
 
 import java.sql.ResultSet;
+import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -84,8 +85,8 @@ public class InitiativeList extends TheBorg {
 				org.apache.log4j.Logger.getLogger(InitiativeList.class).error("Incorrect criteria has been given " + viewByCriteria);
 				throw new Exception();
 			}
-
-			ResultSet res = dch.getNeoConn().createStatement().executeQuery(initiativeListQuery);
+			Statement stmt = dch.neo4jCon.createStatement();
+			ResultSet res = stmt.executeQuery(initiativeListQuery);
 			org.apache.log4j.Logger.getLogger(InitiativeList.class).debug(
 					"Executed query for retrieving initiative list with " + viewByCriteria + " : " + viewByValue);
 			while (res.next()) {
@@ -115,10 +116,9 @@ public class InitiativeList extends TheBorg {
 
 			org.apache.log4j.Logger.getLogger(InitiativeList.class).debug(
 					"List of initiatives of " + viewByCriteria + viewByValue + ": " + initiativeList.toString());
+			stmt.close();
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(InitiativeList.class).error("Exception while getting the initiative list", e);
-		} finally {
-			dch.releaseNeoCon();
 		}
 		return initiativeList;
 
@@ -140,8 +140,8 @@ public class InitiativeList extends TheBorg {
 					+ "i.StartDate as StartDate, i.EndDate as EndDate, i.CreatedOn as CreationDate, case i.Category when 'Individual' then collect(distinct(a.emp_id)) "
 					+ "else collect(distinct(a.Id))  end as PartOfID,collect(distinct(a.Name))as PartOfName, labels(a) as Filters, "
 					+ "collect(distinct (o.emp_id)) as OwnersOf,i.Comment as Comments,i.Type as Type,i.Category as Category,i.Status as Status";
-
-			ResultSet res = dch.getNeoConn().createStatement().executeQuery(initiativeListQuery);
+			Statement stmt = dch.neo4jCon.createStatement();
+			ResultSet res = stmt.executeQuery(initiativeListQuery);
 			org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Executed query for retrieving initiative list");
 			while (res.next()) {
 
@@ -162,10 +162,9 @@ public class InitiativeList extends TheBorg {
 				initiativeList.add(initiativeIdMap.get(initiativeId));
 			}
 			org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("List of initiatives : " + initiativeList.toString());
+			stmt.close();
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(InitiativeList.class).error("Exception while getting the initiative list", e);
-		} finally {
-			dch.releaseNeoCon();
 		}
 		Collections.sort(initiativeList, (o1, o2) -> o1.getInitiativeEndDate().compareTo(o2.getInitiativeEndDate()));
 		return initiativeList;

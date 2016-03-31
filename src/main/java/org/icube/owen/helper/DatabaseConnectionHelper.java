@@ -22,11 +22,10 @@ public class DatabaseConnectionHelper extends TheBorg {
 	public Connection masterCon;
 	public Map<Integer, Connection> companySqlConnectionPool;
 	public Map<Integer, String> companyImagePath;
-	private Connection neo4jCon;
+	public Connection neo4jCon;
 	private RConnection rCon;
 
 	private boolean rConInUse = false;
-	private boolean neoConInUse = false;
 
 	// Fermion Server
 	/*private final static String mysqlurl = "jdbc:mysql://192.168.1.6:3306/owen";
@@ -38,21 +37,21 @@ public class DatabaseConnectionHelper extends TheBorg {
 	private final static String MASTER_PASSWORD = "icube123";*/
 
 	// Production Server
-	private final static String mysqlurl = "jdbc:mysql://192.168.1.12:3306/owen";
+	/*private final static String mysqlurl = "jdbc:mysql://192.168.1.12:3306/owen";
 	private final static String user = "owen_user";
 	private final static String password = "icube2014";
 
 	private final static String MASTER_URL = "jdbc:mysql://192.168.1.12:3306/owen_master";
 	private final static String MASTER_USER = "owen_user";
-	private final static String MASTER_PASSWORD = "icube2014";
+	private final static String MASTER_PASSWORD = "icube2014";*/
 
-	/*private final static String mysqlurl = UtilHelper.getConfigProperty("mysql_url");
+	private final static String mysqlurl = UtilHelper.getConfigProperty("mysql_url");
 	private final static String user = UtilHelper.getConfigProperty("mysql_user");
 	private final static String password = UtilHelper.getConfigProperty("mysql_password");
 
 	private final static String MASTER_URL = UtilHelper.getConfigProperty("master_sql_url");
 	private final static String MASTER_USER = UtilHelper.getConfigProperty("master_sql_user");
-	private final static String MASTER_PASSWORD = UtilHelper.getConfigProperty("master_sql_password");*/
+	private final static String MASTER_PASSWORD = UtilHelper.getConfigProperty("master_sql_password");
 
 	public DatabaseConnectionHelper() {
 		// mysql connection
@@ -105,11 +104,11 @@ public class DatabaseConnectionHelper extends TheBorg {
 			// R connection
 			rCon = (rCon != null && rCon.isConnected()) ? rCon : new RConnection();
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Successfully connected to R");
-			// String rScriptPath = UtilHelper.getConfigProperty("r_script_path");
+			String rScriptPath = UtilHelper.getConfigProperty("r_script_path");
 			// Fermion Server
 			// String rScriptPath = "C:\\\\Users\\\\fermion10\\\\Documents\\\\Neo4j\\\\scripts";
 			// Production Server
-			String rScriptPath = "C:\\\\Users\\\\addos\\\\Desktop\\\\Owen\\\\RScripts";
+			// String rScriptPath = "C:\\\\Users\\\\addos\\\\Desktop\\\\Owen\\\\RScripts";
 			String workingDir = "setwd(\"" + rScriptPath + "\")";
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Trying to load the RScript file at " + rScriptPath);
 			rCon.eval(workingDir);
@@ -221,23 +220,5 @@ public class DatabaseConnectionHelper extends TheBorg {
 	public void releaseRcon() {
 		org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Releasing R connection");
 		rConInUse = false;
-	}
-
-	public Connection getNeoConn() {
-		while (neoConInUse)
-			try {
-				Thread.sleep(100);
-				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Waiting for neo4j connection");
-
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		neoConInUse = true;
-		return neo4jCon;
-	}
-
-	public void releaseNeoCon() {
-		org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Releasing neo4j connection");
-		neoConInUse = false;
 	}
 }

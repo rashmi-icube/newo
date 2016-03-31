@@ -1,9 +1,9 @@
 package org.icube.owen.initiative;
 
 import java.sql.CallableStatement;
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -89,8 +89,8 @@ public class Initiative extends TheBorg {
 					+ initiativeComment + "'}) return i.Id as Id";
 
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Create initiative query : " + createInitQuery);
-			Connection myNeo4jCon = dch.getNeoConn();
-			ResultSet res = myNeo4jCon.createStatement().executeQuery(createInitQuery);
+			Statement stmt = dch.neo4jCon.createStatement();
+			ResultSet res = stmt.executeQuery(createInitQuery);
 			while (res.next()) {
 				initiativeId = res.getInt("Id");
 			}
@@ -140,7 +140,7 @@ public class Initiative extends TheBorg {
 							+ (posQuery.isEmpty() ? "" : (posQuery))
 							+ "  return count(a) as TeamSize";
 
-					res = myNeo4jCon.createStatement().executeQuery(query);
+					res = stmt.executeQuery(query);
 
 					while (res.next()) {
 						teamSize = res.getInt("TeamSize");
@@ -177,12 +177,11 @@ public class Initiative extends TheBorg {
 			} else {
 				org.apache.log4j.Logger.getLogger(Initiative.class).error("Unable to create initiative");
 			}
+			stmt.close();
 
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception in Create initiative query", e);
 
-		} finally {
-			dch.releaseNeoCon();
 		}
 		org.apache.log4j.Logger.getLogger(Initiative.class).debug("Initiative ID : " + initiativeId);
 
@@ -233,19 +232,17 @@ public class Initiative extends TheBorg {
 						+ " Create p-[:part_of]->i";
 
 			}
-			Connection myNeo4jCon = dch.getNeoConn();
+			Statement stmt = dch.neo4jCon.createStatement();
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Function query : " + funcQuery);
-			myNeo4jCon.createStatement().executeQuery(funcQuery);
+			stmt.executeQuery(funcQuery);
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Position query : " + posQuery);
-			myNeo4jCon.createStatement().executeQuery(posQuery);
+			stmt.executeQuery(posQuery);
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Zone query : " + zoneQuery);
-			myNeo4jCon.createStatement().executeQuery(zoneQuery);
-
+			stmt.executeQuery(zoneQuery);
+			stmt.close();
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception while setting part of for initiative ID" + initiativeId, e);
 			return false;
-		} finally {
-			dch.releaseNeoCon();
 		}
 		return true;
 
@@ -269,14 +266,14 @@ public class Initiative extends TheBorg {
 			String query = "Match (i:Init),(e:Employee) where i.Id = " + initiativeId + " and e.emp_id in " + empIdList.toString()
 					+ " Create e-[:part_of]->i";
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Creating part_of connections query : " + query);
-			dch.getNeoConn().createStatement().executeQuery(query);
+			Statement stmt = dch.neo4jCon.createStatement();
+			stmt.executeQuery(query);
+			stmt.close();
 			return true;
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(Initiative.class).error(
 					"Exception while creating part_of connections for initiative : " + initiativeId, e);
 			return false;
-		} finally {
-			dch.releaseNeoCon();
 		}
 	}
 
@@ -309,13 +306,12 @@ public class Initiative extends TheBorg {
 			String query = "Match (i:Init),(e:Employee) where i.Id = " + initiativeId + " and e.emp_id in " + empIdList.toString()
 					+ " Create e-[:owner_of]->i";
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Creating connections for initiative query : " + query);
-			dch.getNeoConn().createStatement().executeQuery(query);
-
+			Statement stmt = dch.neo4jCon.createStatement();
+			stmt.executeQuery(query);
+			stmt.close();
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception while creating owner for initiative : " + initiativeId, e);
 			return false;
-		} finally {
-			dch.releaseNeoCon();
 		}
 		return true;
 	}
@@ -341,14 +337,14 @@ public class Initiative extends TheBorg {
 					+ "else collect(distinct(a.Id))  end as PartOfID,collect(distinct(a.Name))as PartOfName, labels(a) as Filters, "
 					+ "collect(distinct (o.emp_id)) as OwnersOf,i.Comment as Comments,i.Type as Type,i.Category as Category,i.Status as Status";
 			org.apache.log4j.Logger.getLogger(Initiative.class).error("Query : " + query);
-			ResultSet res = dch.getNeoConn().createStatement().executeQuery(query);
+			Statement stmt = dch.neo4jCon.createStatement();
+			ResultSet res = stmt.executeQuery(query);
 			res.next();
 			il.setInitiativeValues(res, i);
+			stmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception while retrieving the initiative with ID" + initiativeId, e);
 
-		} finally {
-			dch.releaseNeoCon();
 		}
 		return i;
 	}
@@ -389,15 +385,14 @@ public class Initiative extends TheBorg {
 		try {
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Starting to delete the initiative ID " + initiativeId);
 			String query = "match(a:Init {Id:" + initiativeId + "}) set a.Status = 'Deleted' return a.Status as currentStatus";
-			dch.getNeoConn().createStatement().executeQuery(query);
+			Statement stmt = dch.neo4jCon.createStatement();
+			stmt.executeQuery(query);
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Deleted initiative with ID " + initiativeId);
 			status = true;
-
+			stmt.close();
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception in deleting initiative", e);
 
-		} finally {
-			dch.releaseNeoCon();
 		}
 		return status;
 	}
@@ -417,7 +412,8 @@ public class Initiative extends TheBorg {
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Started update of The initiative with ID " + updatedInitiative.initiativeId);
 			List<Employee> updatedOwnerOfList = updatedInitiative.getOwnerOfList();
 			String ownersOfQuery = "match(i:Init {Id:" + updatedInitiativeId + "})<-[r:owner_of]-(e:Employee) delete r";
-			dch.getNeoConn().createStatement().executeQuery(ownersOfQuery);
+			Statement stmt = dch.neo4jCon.createStatement();
+			stmt.executeQuery(ownersOfQuery);
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Ownersof list deleted from initiative " + updatedInitiative.initiativeId);
 			updatedInitiative.setOwner(updatedInitiativeId, updatedOwnerOfList);
 			String query = "match(a:Init {Id:" + updatedInitiativeId + "}) set a.CreatedOn = '"
@@ -429,14 +425,12 @@ public class Initiative extends TheBorg {
 					+ sdf.format(UtilHelper.getStartOfDay(updatedInitiative.getInitiativeStartDate())) + "' return a.Name as Name, "
 					+ "a.Type as Type,a.Category as Category, "
 					+ "a.Status as Status,a.Comment as Comment,a.EndDate as endDate,a.StartDate as StartDate,a.CreatedOn as CreationDate";
-			dch.getNeoConn().createStatement().executeQuery(query);
+			stmt.executeQuery(query);
 			status = true;
-
+			stmt.close();
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Updated initiative with ID " + updatedInitiativeId);
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception in updating initiative " + updatedInitiativeId, e);
-		} finally {
-			dch.releaseNeoCon();
 		}
 		return status;
 	}
@@ -463,20 +457,20 @@ public class Initiative extends TheBorg {
 	 */
 	public boolean complete(int initiativeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		boolean status = false;
 		try {
 			String query = "match(a:Init {Id:" + initiativeId + "}) set a.Status = 'Completed'";
-			dch.getNeoConn().createStatement().executeQuery(query);
+			Statement stmt = dch.neo4jCon.createStatement();
+			stmt.executeQuery(query);
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Changed the status of initiative with ID " + initiativeId + " to Completed");
-
-			return true;
+			stmt.close();
+			status = true;
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception in changing the status to Completed for initiative " + initiativeId,
 					e);
-		} finally {
-			dch.releaseNeoCon();
 		}
 
-		return false;
+		return status;
 	}
 
 	public String getInitiativeName() {

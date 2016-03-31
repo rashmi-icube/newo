@@ -83,7 +83,8 @@ public class FilterList extends TheBorg {
 				}
 
 				f.setFilterValues(filterValuesMap);
-				org.apache.log4j.Logger.getLogger(FilterList.class).debug(f.getFilterName() + " - " + f.getFilterValues().toString());
+				org.apache.log4j.Logger.getLogger(FilterList.class).debug(
+						f.getFilterId() + " - " + f.getFilterName() + " - " + f.getFilterValues().toString());
 				allFiltersList.add(f);
 				rs.first();
 
