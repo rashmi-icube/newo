@@ -178,6 +178,7 @@ public class ExploreHelper extends TheBorg {
 	 * @return map with node list and edge list
 	 */
 	public Map<String, List<?>> getTeamNetworkDiagram(Map<String, List<Filter>> teamListMap, Map<Integer, String> relationshipType) {
+		org.apache.log4j.Logger.getLogger(ExploreHelper.class).debug("Entering getTeamNetworkDiagram method");
 		Map<String, List<?>> result = new HashMap<>();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		String query = "";
@@ -255,7 +256,7 @@ public class ExploreHelper extends TheBorg {
 
 		result.put("nodeList", nodeList);
 		result.put("edgeList", edgeList);
-
+		org.apache.log4j.Logger.getLogger(ExploreHelper.class).debug("Exiting getTeamNetworkDiagram method");
 		return result;
 
 	}
@@ -266,6 +267,7 @@ public class ExploreHelper extends TheBorg {
 	 * @return map with node list and edge list
 	 */
 	public Map<String, List<?>> getIndividualNetworkDiagram(List<Employee> employeeList, Map<Integer, String> relationshipTypeMap) {
+		org.apache.log4j.Logger.getLogger(ExploreHelper.class).debug("Entering getIndividualNetworkDiagram method");
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Map<String, List<?>> result = new HashMap<>();
 		List<Node> nodeList = new ArrayList<>();
@@ -339,6 +341,7 @@ public class ExploreHelper extends TheBorg {
 
 		result.put("nodeList", nodeList);
 		result.put("edgeList", edgeList);
+		org.apache.log4j.Logger.getLogger(ExploreHelper.class).debug("Entering getIndividualNetworkDiagram method");
 		return result;
 	}
 
