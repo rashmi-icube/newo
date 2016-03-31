@@ -30,6 +30,7 @@ public class HrDashboardHelper extends TheBorg {
 			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getDimensionMetricValueAggregate(?, ?)}");
 			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).debug("Filter Value ID : " + filter.getFilterValues().keySet().iterator().next().intValue());
 			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).debug("Filter ID : " + filter.getFilterId());
+			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).debug("Filter Name : " + filter.getFilterName());
 			cstmt.setInt("dimvalid", filter.getFilterValues().keySet().iterator().next().intValue());
 			cstmt.setInt("dimid", filter.getFilterId());
 			ResultSet rs = cstmt.executeQuery();
