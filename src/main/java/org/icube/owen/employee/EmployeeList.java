@@ -207,6 +207,7 @@ public class EmployeeList extends TheBorg {
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("query : " + cstmt);
 			while (res.next()) {
 				Employee e = setEmployeeDetails(res);
+				e.setCompanyId(companyId);
 				employeeList.add(e);
 			}
 
@@ -248,6 +249,9 @@ public class EmployeeList extends TheBorg {
 		} else {
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("Employee  : " + e.getEmployeeId() + "-" + e.getFirstName());
 		}
+		
+		//TODO hard coding the company ID
+		e.setCompanyId(1);
 		return e;
 	}
 
@@ -294,7 +298,9 @@ public class EmployeeList extends TheBorg {
 			cstmt.setInt(3, zoneId);
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
-				employeeList.add(e.get(rs.getInt("emp_id")));
+				e = e.get(rs.getInt("emp_id"));
+				e.setCompanyId(companyId);
+				employeeList.add(e);
 			}
 		} catch (SQLException e1) {
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).error("Exception while retrieving the employee list based on dimension", e1);
