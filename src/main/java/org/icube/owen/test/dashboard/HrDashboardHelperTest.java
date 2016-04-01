@@ -38,6 +38,7 @@ public class HrDashboardHelperTest {
 			assertNotNull(m.getName());
 			assertNotNull(m.getDateOfCalculation());
 			assertNotNull(m.getScore());
+			assertNotNull(m.getAverage());
 		}
 	}
 

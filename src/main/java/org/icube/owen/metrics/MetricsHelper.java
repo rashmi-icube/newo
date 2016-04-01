@@ -127,9 +127,7 @@ public class MetricsHelper {
 		try {
 
 			RConnection rCon = dch.getRConn();
-			String s = "source(\"metric.r\")";
-			org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("R Path for eval " + s);
-			rCon.eval(s);
+			org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("R Connection Available : " + rCon.isConnected());
 			org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Filling up parameters for rscript function");
 			List<Integer> funcList = new ArrayList<>();
 			List<Integer> posList = new ArrayList<>();

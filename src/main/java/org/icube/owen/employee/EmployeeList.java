@@ -36,11 +36,7 @@ public class EmployeeList extends TheBorg {
 		List<Employee> employeeSmartList = new ArrayList<Employee>();
 		try {
 			RConnection rCon = dch.getRConn();
-			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("getEmployeeSmartListForTeam method started");
-			String s = "source(\"metric.r\")";
-			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("R Path for eval " + s);
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("R Connection Available : " + rCon.isConnected());
-			rCon.eval(s);
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("Filling up parameters for rscript function");
 			List<Integer> funcList = new ArrayList<>();
 			List<Integer> posList = new ArrayList<>();
@@ -121,9 +117,7 @@ public class EmployeeList extends TheBorg {
 		}
 		try {
 			RConnection rCon = dch.getRConn();
-			/*String s = "source(\"metric.r\")";
-			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("R Path for eval " + s);
-			rCon.eval(s);*/
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("R Connection Available : " + rCon.isConnected());
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("Filling up parameters for rscript function");
 			rCon.assign("emp_id", new int[] { partOfEmployeeIdList.get(0) });
 			rCon.assign("init_type_id", new int[] { initiativeType });

@@ -245,9 +245,7 @@ public class Question extends TheBorg {
 
 		try {
 			RConnection rCon = dch.getRConn();
-			String s = "source(\"metric.r\")";
-			org.apache.log4j.Logger.getLogger(Question.class).debug("R Path for eval " + s);
-			rCon.eval(s);
+			org.apache.log4j.Logger.getLogger(Question.class).debug("R Connection Available : " + rCon.isConnected());
 			org.apache.log4j.Logger.getLogger(Question.class).debug("Filling up parameters for rscript function");
 			rCon.assign("emp_id", new int[] { employeeId });
 			rCon.assign("rel_id", new int[] { q.getRelationshipTypeId() });
