@@ -164,6 +164,8 @@ public class Employee extends TheBorg {
 	 * @return boolean value if the image is stored or not
 	 */
 	public boolean saveImage(int companyId, int employeeId, Image image) {
+		org.apache.log4j.Logger.getLogger(Employee.class).debug("Entering the save employee image function");
+
 		boolean imageSaved = false;
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
@@ -189,7 +191,7 @@ public class Employee extends TheBorg {
 		} catch (Exception ex) {
 			org.apache.log4j.Logger.getLogger(Employee.class).error("Exception while saving employee image with employeeId : " + employeeId, ex);
 		}
-
+		org.apache.log4j.Logger.getLogger(Employee.class).debug("Exiting the save employee image function" + imageSaved);
 		return imageSaved;
 	}
 }
