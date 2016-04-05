@@ -23,7 +23,14 @@ public class TheWallHelper extends TheBorg {
 			List<Filter> filterList) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Map<String, Object>> result = new ArrayList<>();
-		Map<String, Object> parsedFilterMap = UtilHelper.parseFilterList(filterList);
+		Map<String, Object> parsedFilterMap = new HashMap<>();
+		if (filterList == null || filterList.isEmpty()) {
+			parsedFilterMap.put("funcId", 0);
+			parsedFilterMap.put("posId", 0);
+			parsedFilterMap.put("zoneId", 0);
+		} else {
+			parsedFilterMap = UtilHelper.parseFilterList(filterList);
+		}
 		try {
 			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getWallFeedIndividual(?,?,?,?,?,?,?,?)}");
 			cstmt.setInt("fun", (int) parsedFilterMap.get("funcId"));
@@ -60,7 +67,14 @@ public class TheWallHelper extends TheBorg {
 			List<Filter> filterList) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Map<String, Object>> result = new ArrayList<>();
-		Map<String, Object> parsedFilterMap = UtilHelper.parseFilterList(filterList);
+		Map<String, Object> parsedFilterMap = new HashMap<>();
+		if (filterList == null || filterList.isEmpty()) {
+			parsedFilterMap.put("funcId", 0);
+			parsedFilterMap.put("posId", 0);
+			parsedFilterMap.put("zoneId", 0);
+		} else {
+			parsedFilterMap = UtilHelper.parseFilterList(filterList);
+		}
 		try {
 			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getWallFeedTeam(?,?,?,?,?,?,?,?)}");
 			cstmt.setInt("fun", (int) parsedFilterMap.get("funcId"));
