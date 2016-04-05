@@ -372,6 +372,7 @@ public class IndividualDashboardHelper extends TheBorg {
 	 * Returns the notifications count for the individual dashboard page
 	 */
 	public Integer getNotificationsCount(int companyId, int employeeId) {
+		//TODO ERROR
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
 		int notificationCount = 0;

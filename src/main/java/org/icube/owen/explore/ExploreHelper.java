@@ -197,11 +197,15 @@ public class ExploreHelper extends TheBorg {
 					zoneList.add(filter.getFilterValues().keySet().iterator().next());
 				}
 			}
+
+			org.apache.log4j.Logger.getLogger(ExploreHelper.class).debug(
+					"Filter list for " + teamName + " : " + " Function : " + funcList.toString() + " Position : " + posList.toString() + " Zone : "
+							+ zoneList.toString());
 			String funcQuery = "", posQuery = "", zoneQuery = "";
 			if (funcList.contains(0)) {
 				funcQuery = "";
 			} else {
-				funcQuery = "f.Id = " + funcList.toString();
+				funcQuery = "f.Id = " + funcList.get(0);
 			}
 
 			if (zoneList.contains(0)) {
