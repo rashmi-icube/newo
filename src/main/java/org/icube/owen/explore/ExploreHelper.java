@@ -251,8 +251,10 @@ public class ExploreHelper extends TheBorg {
 				n.setTeamName(res.getString("team"));
 				nodeList.add(n);
 			}
+			org.apache.log4j.Logger.getLogger(ExploreHelper.class).debug("Node list size : " + nodeList.size());
 
 			edgeList = getEdges(empIdList, relationshipType);
+			org.apache.log4j.Logger.getLogger(ExploreHelper.class).debug("Edge list size : " + edgeList.size());
 			stmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(ExploreHelper.class).error("Error while retrieving team networks diagram", e);
