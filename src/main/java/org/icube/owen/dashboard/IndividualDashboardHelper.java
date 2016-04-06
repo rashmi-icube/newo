@@ -301,14 +301,14 @@ public class IndividualDashboardHelper extends TheBorg {
 				rs.next();
 				if (rs.getString("op").equalsIgnoreCase("true")) {
 					responseSaved = true;
-					org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Successfully saved the response ");
+					org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Successfully saved the appreciation ");
 				} else {
-					org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Error in saving the response ");
+					org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Error in saving the appreciation ");
 				}
 
 			}
 		} catch (SQLException e) {
-			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while saving the response ", e);
+			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while saving the appreciation ", e);
 		}
 		return responseSaved;
 	}
@@ -335,8 +335,8 @@ public class IndividualDashboardHelper extends TheBorg {
 			if (rs.getBoolean(1)) {
 				passwordChanged = true;
 			} else {
-				org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Invalid username/password");
-				throw new Exception("Invalid credentials!!!");
+				org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Current password is incorrect");
+				throw new Exception("Current password is incorrect");
 			}
 
 		} catch (Exception e) {

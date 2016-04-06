@@ -44,6 +44,8 @@ public class TheWallHelper extends TheBorg {
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
 				Map<String, Object> employeeDetailsMap = new HashMap<>();
+				//TODO hard coding the company ID
+				employeeDetailsMap.put("companyId", 1);
 				employeeDetailsMap.put("employeeId", rs.getInt("emp_id"));
 				employeeDetailsMap.put("metricScore", rs.getInt("metric_value"));
 				employeeDetailsMap.put("firstName", rs.getString("first_name"));
