@@ -100,7 +100,7 @@ public class TheWallHelper extends TheBorg {
 					f.setFilterId(rs.getInt("dimension_id_" + i));
 					f.setFilterName(rs.getString("dimension_name_" + i));
 					Map<Integer, String> filterValueMap = new HashMap<>();
-					filterValueMap.put(rs.getInt("dimension_val_id_" + 1), rs.getString("dimension_val_name_" + i));
+					filterValueMap.put(rs.getInt("dimension_val_id_" + i), rs.getString("dimension_val_name_" + i));
 					f.setFilterValues(filterValueMap);
 					resultFilterList.add(f);
 				}
