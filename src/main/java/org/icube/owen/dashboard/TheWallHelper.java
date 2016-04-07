@@ -44,12 +44,14 @@ public class TheWallHelper extends TheBorg {
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
 				Map<String, Object> employeeDetailsMap = new HashMap<>();
-				//TODO hard coding the company ID
+				// TODO hard coding the company ID
 				employeeDetailsMap.put("companyId", 1);
 				employeeDetailsMap.put("employeeId", rs.getInt("emp_id"));
 				employeeDetailsMap.put("metricScore", rs.getInt("metric_value"));
 				employeeDetailsMap.put("firstName", rs.getString("first_name"));
 				employeeDetailsMap.put("lastName", rs.getString("last_name"));
+				employeeDetailsMap.put("metricId", rs.getInt("metric_id"));
+				employeeDetailsMap.put("initiativeTypeId", rs.getInt("init_type_id"));
 				employeeDetailsMap.put("function", rs.getString("Function"));
 				employeeDetailsMap.put("position", rs.getString("Position"));
 				employeeDetailsMap.put("zone", rs.getString("Zone"));
@@ -92,9 +94,19 @@ public class TheWallHelper extends TheBorg {
 				Map<String, Object> teamDetailsMap = new HashMap<>();
 				teamDetailsMap.put("cubeId", rs.getInt("cube_id"));
 				teamDetailsMap.put("metricScore", rs.getInt("metric_value"));
-				teamDetailsMap.put("function", rs.getString("Function"));
-				teamDetailsMap.put("position", rs.getString("Position"));
-				teamDetailsMap.put("zone", rs.getString("Zone"));
+				List<Filter> resultFilterList = new ArrayList<>();
+				for (int i = 1; i <= 3; i++) {
+					Filter f = new Filter();
+					f.setFilterId(rs.getInt("dimension_id_" + i));
+					f.setFilterName(rs.getString("dimension_name_" + i));
+					Map<Integer, String> filterValueMap = new HashMap<>();
+					filterValueMap.put(rs.getInt("dimension_val_id_" + 1), rs.getString("dimension_val_name_" + i));
+					f.setFilterValues(filterValueMap);
+					resultFilterList.add(f);
+				}
+				teamDetailsMap.put("filterList", resultFilterList);
+				teamDetailsMap.put("metricId", rs.getInt("metric_id"));
+				teamDetailsMap.put("initiativeTypeId", rs.getInt("init_type_id"));
 				result.add(teamDetailsMap);
 			}
 
