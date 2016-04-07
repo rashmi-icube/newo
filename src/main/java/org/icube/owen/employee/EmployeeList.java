@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
@@ -76,20 +78,22 @@ public class EmployeeList extends TheBorg {
 			int[] scoreArray = scoreResult.asIntegers();
 			REXPString gradeRseult = (REXPString) result.get("flag");
 			String[] gradeArray = gradeRseult.asStrings();
+			REXPInteger rank = (REXPInteger) result.get("Rank");
+			int[] rankArray = rank.asIntegers();
+			Map<Integer, Employee> empMap = new TreeMap<>();
 
 			for (int i = 0; i < empIdArray.length; i++) {
 				Employee e = new Employee();
 				e = e.get(empIdArray[i]);
 				e.setGrade(gradeArray[i]);
 				e.setScore(scoreArray[i]);
+				empMap.put(rankArray[i], e);
+			}
+
+			for (Employee e : empMap.values()) {
 				employeeSmartList.add(e);
 			}
 
-			Collections.sort(employeeSmartList, Collections.reverseOrder(new Comparator<Employee>() {
-				public int compare(Employee e1, Employee e2) {
-					return Double.compare(e1.getScore(), e2.getScore());
-				}
-			}));
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).error("Error while trying to retrieve the smart list for team ", e);
 		}
