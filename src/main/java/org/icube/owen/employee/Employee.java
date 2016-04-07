@@ -29,6 +29,9 @@ public class Employee extends TheBorg {
 	private boolean active;
 	private int companyId;
 	private String grade; // can be high/medium/low
+	private String function;
+	private String position;
+	private String zone;
 
 	public int getEmployeeId() {
 		return employeeId;
@@ -84,6 +87,30 @@ public class Employee extends TheBorg {
 
 	public void setGrade(String grade) {
 		this.grade = grade;
+	}
+
+	public String getFunction() {
+		return function;
+	}
+
+	public void setFunction(String function) {
+		this.function = function;
+	}
+
+	public String getPosition() {
+		return position;
+	}
+
+	public void setPosition(String position) {
+		this.position = position;
+	}
+
+	public String getZone() {
+		return zone;
+	}
+
+	public void setZone(String zone) {
+		this.zone = zone;
 	}
 
 	public boolean isActive() {

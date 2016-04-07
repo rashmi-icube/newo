@@ -242,6 +242,9 @@ public class EmployeeList extends TheBorg {
 			e.setActive(false);
 		}
 
+		e.setFunction(res.getString("Function"));
+		e.setPosition(res.getString("Position"));
+		e.setZone(res.getString("Zone"));
 		if (UtilHelper.hasColumn(res, "score") && res.getDouble("score") >= 0) {
 			e.setScore(res.getDouble("score"));
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug(
@@ -249,8 +252,8 @@ public class EmployeeList extends TheBorg {
 		} else {
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("Employee  : " + e.getEmployeeId() + "-" + e.getFirstName());
 		}
-		
-		//TODO hard coding the company ID
+
+		// TODO hard coding the company ID
 		e.setCompanyId(1);
 		return e;
 	}
