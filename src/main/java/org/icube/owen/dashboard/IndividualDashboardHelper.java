@@ -3,6 +3,7 @@ package org.icube.owen.dashboard;
 import java.sql.CallableStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -35,6 +36,7 @@ import org.icube.owen.survey.Question;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPInteger;
 import org.rosuda.REngine.RList;
+import org.rosuda.REngine.Rserve.RConnection;
 
 public class IndividualDashboardHelper extends TheBorg {
 
@@ -102,8 +104,8 @@ public class IndividualDashboardHelper extends TheBorg {
 					+ " where i=ini return i.Name as Name,i.StartDate as StartDate, i.EndDate as EndDate, i.CreatedOn as CreationDate,"
 					+ "i.Id as Id,case i.Category when 'Individual' then collect(distinct(a.emp_id)) else collect(distinct(a.Id))  end as PartOfID,collect(distinct(a.Name))as PartOfName, "
 					+ "labels(a) as Filters,collect(distinct (o.emp_id)) as OwnersOf,i.Comment as Comments,i.Type as Type,i.Category as Category,i.Status as Status;";
-
-			ResultSet res = dch.neo4jCon.createStatement().executeQuery(initiativeListQuery);
+			Statement stmt = dch.neo4jCon.createStatement();
+			ResultSet res = stmt.executeQuery(initiativeListQuery);
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Executed query for retrieving initiative list");
 			while (res.next()) {
 
@@ -124,9 +126,11 @@ public class IndividualDashboardHelper extends TheBorg {
 				initiativeList.add(initiativeIdMap.get(initiativeId));
 			}
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("List of initiatives : " + initiativeList.toString());
+			stmt.close();
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while getting the initiative list", e);
 		}
+
 		return initiativeList;
 
 	}
@@ -148,7 +152,8 @@ public class IndividualDashboardHelper extends TheBorg {
 			ResultSet rs = cstmt.executeQuery();
 			String initiativeListQuery = "MATCH (i:Init {Status:'Active'})<-[:owner_of]-(e:Employee {emp_id:" + employeeId
 					+ "}) return i.Name as Name ,i.CreatedOn as CreatedOn";
-			ResultSet res = dch.neo4jCon.createStatement().executeQuery(initiativeListQuery);
+			Statement stmt = dch.neo4jCon.createStatement();
+			ResultSet res = stmt.executeQuery(initiativeListQuery);
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Executed query for retrieving initiative list");
 			SimpleDateFormat parserSDF = new SimpleDateFormat(UtilHelper.dateTimeFormat, Locale.ENGLISH);
 			List<ActivityFeed> afList = new ArrayList<>();
@@ -194,7 +199,7 @@ public class IndividualDashboardHelper extends TheBorg {
 				}
 			}
 			result.toString();
-
+			stmt.close();
 		} catch (SQLException | ParseException e) {
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while retrieving the activity feed data", e);
 		}
@@ -232,14 +237,13 @@ public class IndividualDashboardHelper extends TheBorg {
 		List<Employee> employeeList = new ArrayList<>();
 		Map<Integer, Integer> MetricRelationshipTypeMap = getMetricRelationshipTypeMapping(1);
 		try {
-			String s = "source(\"metric.r\")";
-			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("R Path for eval " + s);
-			dch.rCon.eval(s);
+			RConnection rCon = dch.getRConn();
+			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("R Connection Available : " + rCon.isConnected());
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Filling up parameters for rscript function");
-			dch.rCon.assign("emp_id", new int[] { employeeId });
-			dch.rCon.assign("rel_id", new int[] { MetricRelationshipTypeMap.get(metricId) });
+			rCon.assign("emp_id", new int[] { employeeId });
+			rCon.assign("rel_id", new int[] { MetricRelationshipTypeMap.get(metricId) });
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Calling the actual function in RScript SmartListResponse");
-			REXP employeeSmartList = dch.rCon.parseAndEval("try(eval(SmartListResponse(emp_id, rel_id)))");
+			REXP employeeSmartList = rCon.parseAndEval("try(eval(SmartListResponse(emp_id, rel_id)))");
 			if (employeeSmartList.inherits("try-error")) {
 				org.apache.log4j.Logger.getLogger(Question.class).error("Error: " + employeeSmartList.asString());
 				throw new Exception("Error: " + employeeSmartList.asString());
@@ -265,6 +269,8 @@ public class IndividualDashboardHelper extends TheBorg {
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error(
 					"Error while trying to retrieve the smart list for employee from question", e);
+		} finally {
+			dch.releaseRcon();
 		}
 
 		return employeeList;
@@ -295,14 +301,14 @@ public class IndividualDashboardHelper extends TheBorg {
 				rs.next();
 				if (rs.getString("op").equalsIgnoreCase("true")) {
 					responseSaved = true;
-					org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Successfully saved the response ");
+					org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Successfully saved the appreciation ");
 				} else {
-					org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Error in saving the response ");
+					org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Error in saving the appreciation ");
 				}
 
 			}
 		} catch (SQLException e) {
-			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while saving the response ", e);
+			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while saving the appreciation ", e);
 		}
 		return responseSaved;
 	}
@@ -329,8 +335,8 @@ public class IndividualDashboardHelper extends TheBorg {
 			if (rs.getBoolean(1)) {
 				passwordChanged = true;
 			} else {
-				org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Invalid username/password");
-				throw new Exception("Invalid credentials!!!");
+				org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Current password is incorrect");
+				throw new Exception("Current password is incorrect");
 			}
 
 		} catch (Exception e) {
@@ -384,12 +390,13 @@ public class IndividualDashboardHelper extends TheBorg {
 					+ sdf.format(lastNotificationDate) + "' return count(i) as initiative_count";
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug(
 					"Query to get notifications count from neo4j : " + notificationCountQuery);
-
-			ResultSet res = dch.neo4jCon.createStatement().executeQuery(notificationCountQuery);
+			Statement stmt = dch.neo4jCon.createStatement();
+			ResultSet res = stmt.executeQuery(notificationCountQuery);
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Executed query for retrieving initiative list");
 			while (res.next()) {
 				notificationCount += res.getInt("initiative_count");
 			}
+			stmt.close();
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while updating notification timestamp", e);
 		}

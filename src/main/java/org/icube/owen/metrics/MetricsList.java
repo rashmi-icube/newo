@@ -3,6 +3,7 @@ package org.icube.owen.metrics;
 import java.sql.CallableStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -42,7 +43,7 @@ public class MetricsList extends TheBorg {
 			org.apache.log4j.Logger.getLogger(MetricsList.class).error(
 					"Exception while trying to retrieve metrics for category team and type ID " + initiativeTypeId, e);
 		}
-
+		Collections.sort(metricsList, (o1, o2) -> Integer.valueOf(o1.getId()).compareTo(Integer.valueOf(o2.getId())));
 		return metricsList;
 	}
 
@@ -89,7 +90,8 @@ public class MetricsList extends TheBorg {
 			org.apache.log4j.Logger.getLogger(MetricsList.class).error(
 					"Exception while trying to retrieve metrics for category individual and type ID " + initiativeTypeId, e);
 		}
-
+		
+		Collections.sort(metricsList, (o1, o2) -> Integer.valueOf(o1.getId()).compareTo(Integer.valueOf(o2.getId())));
 		return metricsList;
 
 	}

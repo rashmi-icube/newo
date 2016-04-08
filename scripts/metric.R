@@ -5,16 +5,31 @@ library(RMySQL)
 library(reshape2)
 
 #setwd("C:\\Users\\Hitendra\\Desktop\\R metric Function")
-#Function=c(1)
-#Position=c(4)
-#Zone=c(8)
+# Function=c(1)
+# Position=c(4)
+# Zone=c(8)
 
 source('config.R')
 
 TeamMetric=function(Function,Position,Zone){
+  # remove this
+  CompanyId=1
+  
+  mydb = dbConnect(MySQL(), user=mysqlusername, password=mysqlpasswod, dbname=mysqldbname, host=mysqlhost, port=mysqlport)
+  
+  query=paste("call getCompanyConfig(",CompanyId,");",sep = "")
+  res <- dbSendQuery(mydb,query)
+  CompanyConfig=fetch(res,-1)
+  
+  dbDisconnect(mydb)
+  
+  comp_sql_dbname=CompanyConfig$comp_sql_dbname[1]
+  comp_sql_server=CompanyConfig$sql_server[1]
+  comp_sql_user_id=CompanyConfig$sql_user_id[1]
+  comp_sql_password=CompanyConfig$sql_password[1]
   
   # sql DB connection
-  mydb = dbConnect(MySQL(), user=mysqlusername, password=mysqlpasswod, dbname=mysqldbname, host=mysqlhost, port=mysqlport)
+  mydb = dbConnect(MySQL(), user=comp_sql_user_id, password=comp_sql_password, dbname=comp_sql_dbname, host=comp_sql_server, port=mysqlport)
   
   if(Function==0 || Position==0 || Zone==0){
     if(Function==0){
@@ -47,7 +62,13 @@ TeamMetric=function(Function,Position,Zone){
   
   # graph DB connection
   
-  graph = startGraph(neopath, username=neousername, password=neopassword)
+  com_neopath=CompanyConfig$neo_db_url[1]
+  com_neopath=paste(com_neopath,"/db/data/",sep = "")
+  
+  com_neousername=CompanyConfig$neo_user_name[1]
+  com_neopassword=CompanyConfig$neo_passsword[1]
+  
+  graph = startGraph(com_neopath, username=com_neousername, password=com_neopassword)
   
   # Query to get nodes of current Team
   querynode = paste("match (z:Zone)<-[:from_zone]-(a:Employee)-[:has_functionality]->(f:Function),
@@ -57,6 +78,14 @@ TeamMetric=function(Function,Position,Zone){
   
   #nodes of current Team
   vertexlist=cypher(graph, querynode) 
+  # To return -1 if team size is small
+  if (nrow(vertexlist)<variable$value[variable$variable_name=="MinTeamSize"]){
+    currtime=format(Sys.time(), "%Y-%m-%d %H:%M:%S")
+    op=data.frame(metric_id=c(6,7,8,9,10),score=c(-1,-1,-1,-1,-1),calc_time=currtime)
+    dbDisconnect(mydb)
+    return(op)
+  }
+  
   
   # Query to get all edge with weigth and relation
   queryedge1 = "match (a:Employee),(b:Employee) 
@@ -83,23 +112,35 @@ TeamMetric=function(Function,Position,Zone){
   #average of instrength
   avginstrength=mean(instrength)
   
-  # sql query to get max instrength for relation learning
-  query=paste("SELECT max(t1.nw_metric_value) as Score FROM individual_nw_metric_value as t1
-              where t1.nw_metric_id=2 and t1.rel_id=4 and t1.calc_time=
-              (select max(t2.calc_time) from individual_nw_metric_value as t2
-              where t2.nw_metric_id=t1.nw_metric_id and t2.rel_id=t1.rel_id and t1.emp_id=t2.emp_id);"
-              ,sep="")
+  #   # sql query to get max instrength for relation learning
+  #   query=paste("SELECT max(t1.nw_metric_value) as Score FROM individual_nw_metric_value as t1
+  #               where t1.nw_metric_id=2 and t1.rel_id=4 and t1.calc_time=
+  #               (select max(t2.calc_time) from individual_nw_metric_value as t2
+  #               where t2.nw_metric_id=t1.nw_metric_id and t2.rel_id=t1.rel_id and t1.emp_id=t2.emp_id);"
+  #               ,sep="")
+  #   
+  #   #run query
+  #   res <- dbSendQuery(mydb,query)
+  #   
+  #   maxinstrength <- fetch(res,-1)
+  #   maxinstrength=maxinstrength[1,1]
   
-  #run query
-  res <- dbSendQuery(mydb,query)
+  edgelist=edgelist1[edgelist1$relation=="learning",c("from","to","weight")]
   
-  maxinstrength <- fetch(res,-1)
-  maxinstrength=maxinstrength[1,1]
+  # create graph for current team and learning relation
+  g <- graph.data.frame(edgelist, directed=TRUE)
+  
+  maxinstrength=max(strength(g,mode="in"))
+  
   # normalize by dividing with max of in strength overall
   avginstrength=avginstrength/maxinstrength
   
   #claculate Skewness
   skew=skewness(indegree)
+  
+  if(is.nan(skew)){
+    skew=3
+  }
   
   #limit to +3 to -3 
   if(skew>3){
@@ -139,19 +180,27 @@ TeamMetric=function(Function,Position,Zone){
   #average of instrength
   avginstrength=mean(instrength)
   
-  # sql query to get max instrength for relation social
-  query=paste("SELECT max(t1.nw_metric_value) as Score FROM individual_nw_metric_value as t1
-              where t1.nw_metric_id=2 and t1.rel_id=3 and t1.calc_time=
-              (select max(t2.calc_time) from individual_nw_metric_value as t2
-              where t2.nw_metric_id=t1.nw_metric_id and t2.rel_id=t1.rel_id and t1.emp_id=t2.emp_id);"
-              ,sep="")
+  #   # sql query to get max instrength for relation social
+  #   query=paste("SELECT max(t1.nw_metric_value) as Score FROM individual_nw_metric_value as t1
+  #               where t1.nw_metric_id=2 and t1.rel_id=3 and t1.calc_time=
+  #               (select max(t2.calc_time) from individual_nw_metric_value as t2
+  #               where t2.nw_metric_id=t1.nw_metric_id and t2.rel_id=t1.rel_id and t1.emp_id=t2.emp_id);"
+  #               ,sep="")
+  #   
+  #   #run query
+  #   res <- dbSendQuery(mydb,query)
+  #   
+  #   maxinstrength <- fetch(res,-1)
+  #   maxinstrength=maxinstrength[1,1]
+  #   # normalize by dividing with max of in strength overall
   
-  #run query
-  res <- dbSendQuery(mydb,query)
+  edgelist=edgelist1[edgelist1$relation=="social",c("from","to","weight")]
   
-  maxinstrength <- fetch(res,-1)
-  maxinstrength=maxinstrength[1,1]
-  # normalize by dividing with max of in strength overall
+  # create graph for current team and learning relation
+  g <- graph.data.frame(edgelist, directed=TRUE)
+  
+  maxinstrength=max(strength(g,mode="in"))
+  
   socialcohesionscore=avginstrength/maxinstrength
   # scale 0-100
   socialcohesionscore=round(socialcohesionscore*100,0)
@@ -206,15 +255,17 @@ TeamMetric=function(Function,Position,Zone){
       riskemp=PeopleAtRisk$emp_id[i]
       # retention risk rate of emp who is inflencing
       riskrate=1-(PeopleAtRisk$metric_value[i]/100)
-      for(j in 1:nrow(peopleNotRisk)){
-        # emp who is inflenced
-        meemp=peopleNotRisk$emp_id[j]
-        # percent of inflence on me by influencer
-        meinfluence=influence(meemp,riskemp,edgelist) 
-        # product of inflencer retention , inflence percentage
-        merisk=riskrate*meinfluence
-        #add to fraction 
-        fraction=fraction+merisk
+      if (nrow(peopleNotRisk)>0){
+        for(j in 1:nrow(peopleNotRisk)){
+          # emp who is inflenced
+          meemp=peopleNotRisk$emp_id[j]
+          # percent of inflence on me by influencer
+          meinfluence=influence(meemp,riskemp,edgelist) 
+          # product of inflencer retention , inflence percentage
+          merisk=riskrate*meinfluence
+          #add to fraction 
+          fraction=fraction+merisk
+        }
       }
     }
     
@@ -252,17 +303,25 @@ TeamMetric=function(Function,Position,Zone){
   avginstrength=mean(instrength)
   
   # sql query to get max instrength for relation innovation
-  query=paste("SELECT max(t1.nw_metric_value) as Score FROM individual_nw_metric_value as t1
-              where t1.nw_metric_id=2 and t1.rel_id=1 and t1.calc_time=
-              (select max(t2.calc_time) from individual_nw_metric_value as t2
-              where t2.nw_metric_id=t1.nw_metric_id and t2.rel_id=t1.rel_id and t1.emp_id=t2.emp_id);"
-              ,sep="")
+  #   query=paste("SELECT max(t1.nw_metric_value) as Score FROM individual_nw_metric_value as t1
+  #               where t1.nw_metric_id=2 and t1.rel_id=1 and t1.calc_time=
+  #               (select max(t2.calc_time) from individual_nw_metric_value as t2
+  #               where t2.nw_metric_id=t1.nw_metric_id and t2.rel_id=t1.rel_id and t1.emp_id=t2.emp_id);"
+  #               ,sep="")
+  #   
+  #   #run query
+  #   res <- dbSendQuery(mydb,query)
+  #   
+  #   maxinstrength <- fetch(res,-1)
+  #   maxinstrength=maxinstrength[1,1]
   
-  #run query
-  res <- dbSendQuery(mydb,query)
+  edgelist=edgelist1[edgelist1$relation=="innovation",c("from","to","weight")]
   
-  maxinstrength <- fetch(res,-1)
-  maxinstrength=maxinstrength[1,1]
+  # create graph for current team and learning relation
+  g <- graph.data.frame(edgelist, directed=TRUE)
+  
+  maxinstrength=max(strength(g,mode="in"))
+  
   # normalize by dividing with max of in strength overall
   avginstrength=avginstrength/maxinstrength
   # query to get list of all node
@@ -347,6 +406,10 @@ TeamMetric=function(Function,Position,Zone){
   # summation of product divide by summation of indegree
   sentimentScore=round(sum(indegree$product)/sum(indegree$indegree),0)
   
+  if(is.nan(sentimentScore)){
+    sentimentScore=0
+  }
+  
   # add to op
   op=rbind(op,data.frame(metric_id=10,score=sentimentScore))
   
@@ -363,7 +426,23 @@ TeamMetric=function(Function,Position,Zone){
 
 SmartListResponse=function(emp_id,rel_id){
   
+  CompanyId=1
+  
   mydb = dbConnect(MySQL(), user=mysqlusername, password=mysqlpasswod, dbname=mysqldbname, host=mysqlhost, port=mysqlport)
+  
+  query=paste("call getCompanyConfig(",CompanyId,");",sep = "")
+  res <- dbSendQuery(mydb,query)
+  CompanyConfig=fetch(res,-1)
+  
+  dbDisconnect(mydb)
+  
+  comp_sql_dbname=CompanyConfig$comp_sql_dbname[1]
+  comp_sql_server=CompanyConfig$sql_server[1]
+  comp_sql_user_id=CompanyConfig$sql_user_id[1]
+  comp_sql_password=CompanyConfig$sql_password[1]
+  
+  # sql DB connection
+  mydb = dbConnect(MySQL(), user=comp_sql_user_id, password=comp_sql_password, dbname=comp_sql_dbname, host=comp_sql_server, port=mysqlport)
   
   query=paste("select rel_name from relationship_master where rel_id=",rel_id,";",sep="")
   
@@ -375,50 +454,63 @@ SmartListResponse=function(emp_id,rel_id){
   
   relname=relname[1,1]
   
-  graph = startGraph(neopath, username=neousername, password=neopassword)
+  # graph DB connection
+  
+  com_neopath=CompanyConfig$neo_db_url[1]
+  com_neopath=paste(com_neopath,"/db/data/",sep = "")
+  
+  com_neousername=CompanyConfig$neo_user_name[1]
+  com_neopassword=CompanyConfig$neo_passsword[1]
+  
+  graph = startGraph(com_neopath, username=com_neousername, password=com_neopassword)
   
   querynode = paste("match (a:Employee {emp_id:",emp_id,"})-[r:",relname,"]->(b:Employee) 
                     return b.emp_id as emp_id,r.weight as weight"
                     ,sep="")
   
   FirstConn=cypher(graph, querynode)
+  if (!is.null(FirstConn)){
+    FirstConn$Rank=rank(-FirstConn$weight,ties.method = "random")
+    
+    querynode = paste("match (a:Employee {emp_id:",emp_id,"})-[r:",relname,"]->(b:Employee)-[:",relname,"]->(c:Employee) 
+                      return b.emp_id,c.emp_id,r.weight"
+                      ,sep="")
+    
+    SecondConn=cypher(graph, querynode)
+    
+    SecondConn=aggregate(SecondConn$r.weight,by=list(emp_id=SecondConn$c.emp_id),max)
+    
+    names(SecondConn)[2]="weight"
+    
+    SecondConn=SecondConn[SecondConn$emp_id!=emp_id,]
+    
+    SecondConn=SecondConn[!(SecondConn$emp_id %in% FirstConn$emp_id),]
+    
+    SecondConn$Rank=rank(-SecondConn$weight,ties.method = "random")
+    
+    op=FirstConn[FirstConn$Rank<=5,]
+    
+    nextfive=SecondConn[SecondConn$Rank<=5,]
+    nextfive$Rank=nextfive$Rank+nrow(op)
+    
+    op=rbind(op,nextfive)
+    
+    nextfive=FirstConn[FirstConn$Rank>5,]
+    nextfive$Rank=nextfive$Rank+5
+    
+    op=rbind(op,nextfive)
+    
+    nextfive=SecondConn[SecondConn$Rank>5,]
+    nextfive$Rank=nextfive$Rank+nrow(op)-5
+    
+    op=rbind(op,nextfive)
+    
+    op=op[,c("emp_id","Rank")]
+    
+  }else{
+    op=data.frame(emp_id=as.numeric(),Rank=as.numeric())
+  }
   
-  FirstConn$Rank=rank(-FirstConn$weight,ties.method = "random")
-  
-  querynode = paste("match (a:Employee {emp_id:",emp_id,"})-[r:",relname,"]->(b:Employee)-[:",relname,"]->(c:Employee) 
-                    return b.emp_id,c.emp_id,r.weight"
-                    ,sep="")
-  
-  SecondConn=cypher(graph, querynode)
-  
-  SecondConn=aggregate(SecondConn$r.weight,by=list(emp_id=SecondConn$c.emp_id),max)
-  
-  names(SecondConn)[2]="weight"
-  
-  SecondConn=SecondConn[SecondConn$emp_id!=emp_id,]
-  
-  SecondConn=SecondConn[!(SecondConn$emp_id %in% FirstConn$emp_id),]
-  
-  SecondConn$Rank=rank(-SecondConn$weight,ties.method = "random")
-  
-  op=FirstConn[FirstConn$Rank<=5,]
-  
-  nextfive=SecondConn[SecondConn$Rank<=5,]
-  nextfive$Rank=nextfive$Rank+nrow(op)
-  
-  op=rbind(op,nextfive)
-  
-  nextfive=FirstConn[FirstConn$Rank>5,]
-  nextfive$Rank=nextfive$Rank+5
-  
-  op=rbind(op,nextfive)
-  
-  nextfive=SecondConn[SecondConn$Rank>5,]
-  nextfive$Rank=nextfive$Rank+nrow(op)-5
-  
-  op=rbind(op,nextfive)
-  
-  op=op[,c("emp_id","Rank")]
   
   mydb = dbConnect(MySQL(), user=mysqlusername, password=mysqlpasswod, dbname=mysqldbname, host=mysqlhost, port=mysqlport)
   
@@ -447,33 +539,63 @@ SmartListResponse=function(emp_id,rel_id){
   return(op)
 }
 
+
+
+#Team
 TeamSmartList=function(Function,Position,Zone,init_type_id){
+  CompanyId=1
+  
+  mydb = dbConnect(MySQL(), user=mysqlusername, password=mysqlpasswod, dbname=mysqldbname, host=mysqlhost, port=mysqlport)
+  
+  query=paste("call getCompanyConfig(",CompanyId,");",sep = "")
+  res <- dbSendQuery(mydb,query)
+  CompanyConfig=fetch(res,-1)
+  
+  dbDisconnect(mydb)
+  
+  comp_sql_dbname=CompanyConfig$comp_sql_dbname[1]
+  comp_sql_server=CompanyConfig$sql_server[1]
+  comp_sql_user_id=CompanyConfig$sql_user_id[1]
+  comp_sql_password=CompanyConfig$sql_password[1]
+  
+  # sql DB connection
+  mydb = dbConnect(MySQL(), user=comp_sql_user_id, password=comp_sql_password, dbname=comp_sql_dbname, host=comp_sql_server, port=mysqlport)
+  
   # condition to replace all(0) with der dimension_id
+  cat("\nData Received Function=",Function,"Position=",Position,"Zone=",Zone,"init_type=",init_type_id,file="Rlog.txt",sep=" ",append=TRUE)
   if(Function==0 || Position==0 || Zone==0){
-    mydb = dbConnect(MySQL(), user=mysqlusername, password=mysqlpasswod, dbname=mysqldbname, host=mysqlhost, port=mysqlport)
+    
     if(Function==0){
       query="SELECT dimension_val_id FROM dimension_value where dimension_id=1;"
       res <- dbSendQuery(mydb,query)
       Func=fetch(res,-1)
       Function=Func$dimension_val_id
+      cat("\nFunction 0 replaced with all id",Function,file="Rlog.txt",sep=" ",append=TRUE)
     }
     if(Position==0){
       query="SELECT dimension_val_id FROM dimension_value where dimension_id=2;"
       res <- dbSendQuery(mydb,query)
       Pos=fetch(res,-1)
       Position=Pos$dimension_val_id
+      cat("\nPosition 0 replaced with all id",Position,file="Rlog.txt",sep=" ",append=TRUE)
     }
     if(Zone==0){
       query="SELECT dimension_val_id FROM dimension_value where dimension_id=3;"
       res <- dbSendQuery(mydb,query)
       Zon=fetch(res,-1)
       Zone=Zon$dimension_val_id
+      cat("\nPosition 0 replaced with all id",Zone,file="Rlog.txt",sep=" ",append=TRUE)
     }
-    dbDisconnect(mydb)
+    
   }
   
-  # graph connection
-  graph = startGraph(neopath, username=neousername, password=neopassword)
+  com_neopath=CompanyConfig$neo_db_url[1]
+  com_neopath=paste(com_neopath,"/db/data/",sep = "")
+  
+  com_neousername=CompanyConfig$neo_user_name[1]
+  com_neopassword=CompanyConfig$neo_passsword[1]
+  
+  graph = startGraph(com_neopath, username=com_neousername, password=com_neopassword)
   
   # query to  get list of emp(node list) belonging to dynamic cube
   querynode = paste("match (z:Zone)<-[:from_zone]-(a:Employee)-[:has_functionality]->(f:Function),
@@ -486,7 +608,7 @@ TeamSmartList=function(Function,Position,Zone,init_type_id){
   
   # performance
   if(init_type_id==6){
-    
+    cat("\n calculating for type 6",file="Rlog.txt",sep=" ",append=TRUE)  
     #query to  get list of edges of learning relation belonging to dynamic cube
     queryedge = paste("match (z:Zone)<-[:from_zone]-(a:Employee)-[:has_functionality]->(f:Function),
                       (z:Zone)<-[:from_zone]-(b:Employee)-[:has_functionality]->(f:Function),
@@ -508,11 +630,13 @@ TeamSmartList=function(Function,Position,Zone,init_type_id){
     names(op)="Score"
     # add column emp_id
     op$emp_id=row.names(op)
+    cat("\n done calculating for type 6",file="Rlog.txt",sep=" ",append=TRUE)  
     
   }
   
   # Social Cohesion
   if(init_type_id==7){
+    cat("\n calculating for type 7",file="Rlog.txt",sep=" ",append=TRUE)  
     #query to  get list of edges of social relation belonging to dynamic cube
     queryedge = paste("match (z:Zone)<-[:from_zone]-(a:Employee)-[:has_functionality]->(f:Function),
                       (z:Zone)<-[:from_zone]-(b:Employee)-[:has_functionality]->(f:Function),
@@ -534,11 +658,12 @@ TeamSmartList=function(Function,Position,Zone,init_type_id){
     names(op)="Score"
     # add column emp_id
     op$emp_id=row.names(op)
-    
+    cat("\n done calculating for type 7",file="Rlog.txt",sep=" ",append=TRUE)  
   }
   
   # Retention and Sentiment
   if(init_type_id==8 || init_type_id==10){
+    cat("\n calculating for type 8,10",file="Rlog.txt",sep=" ",append=TRUE)  
     #query to  get list of edges of mentor relation belonging to dynamic cube
     queryedge = paste("match (z:Zone)<-[:from_zone]-(a:Employee)-[:has_functionality]->(f:Function),
                       (z:Zone)<-[:from_zone]-(b:Employee)-[:has_functionality]->(f:Function),
@@ -558,13 +683,13 @@ TeamSmartList=function(Function,Position,Zone,init_type_id){
     names(op)="Score"
     # add column emp_id
     op$emp_id=row.names(op)
-    
+    cat("\n done calculating for type 8,10",file="Rlog.txt",sep=" ",append=TRUE)  
   }
   
   # innovation
   if(init_type_id==9){
+    cat("\n calculating for type 9",file="Rlog.txt",sep=" ",append=TRUE)  
     # sql db connection
-    mydb = dbConnect(MySQL(), user=mysqlusername, password=mysqlpasswod, dbname=mysqldbname, host=mysqlhost, port=mysqlport)
     
     # sql query to get betweenness(overall) score from sql table nw_metric_value
     query=paste("SELECT t1.emp_id,t1.nw_metric_value as Score FROM individual_nw_metric_value as t1
@@ -578,26 +703,52 @@ TeamSmartList=function(Function,Position,Zone,init_type_id){
     #extract result
     op<- fetch(res,-1)
     #disconnect sql data
-    dbDisconnect(mydb)
+    
+    cat("\n done calculating for type 10",file="Rlog.txt",sep=" ",append=TRUE)  
   }
   
   # Rank Score in descending order
   op$Rank=rank(-op$Score,ties.method= "random")
   # flag high medium low
-  op$flag=ifelse(op$Rank<=nrow(op)/3,"High",ifelse(op$Rank<=nrow(op)*2/3,"Medium","Low"))
+  op$flag=ifelse(op$Rank<=nrow(op)/3,"High fit",ifelse(op$Rank<=nrow(op)*2/3,"Med fit","Low fit"))
   # return op
-  
   op$emp_id=as.integer(op$emp_id)
   op$Rank=as.integer(op$Rank)
+  cat("\n Returning op for Team SmartList",file="Rlog.txt",sep=" ",append=TRUE)  
   
+  dbDisconnect(mydb)
   return(op)
 }
 
+# individual
+
 IndividualSmartList=function(emp_id,init_type_id){
-  # connect neo
-  graph = startGraph(neopath, username=neousername, password=neopassword)
-  #sql db connection
+  CompanyId=1
+  
   mydb = dbConnect(MySQL(), user=mysqlusername, password=mysqlpasswod, dbname=mysqldbname, host=mysqlhost, port=mysqlport)
+  
+  query=paste("call getCompanyConfig(",CompanyId,");",sep = "")
+  res <- dbSendQuery(mydb,query)
+  CompanyConfig=fetch(res,-1)
+  
+  dbDisconnect(mydb)
+  
+  comp_sql_dbname=CompanyConfig$comp_sql_dbname[1]
+  comp_sql_server=CompanyConfig$sql_server[1]
+  comp_sql_user_id=CompanyConfig$sql_user_id[1]
+  comp_sql_password=CompanyConfig$sql_password[1]
+  
+  # sql DB connection
+  mydb = dbConnect(MySQL(), user=comp_sql_user_id, password=comp_sql_password, dbname=comp_sql_dbname, host=comp_sql_server, port=mysqlport)
+  
+  com_neopath=CompanyConfig$neo_db_url[1]
+  com_neopath=paste(com_neopath,"/db/data/",sep = "")
+  
+  com_neousername=CompanyConfig$neo_user_name[1]
+  com_neopassword=CompanyConfig$neo_passsword[1]
+  
+  graph = startGraph(com_neopath, username=com_neousername, password=com_neopassword)
+  
   
   # Expertise
   if(init_type_id==1){
@@ -706,7 +857,7 @@ IndividualSmartList=function(emp_id,init_type_id){
   # rank score
   op$Rank=rank(-op$Score,ties.method= "random")
   # flag high medium low
-  op$flag=ifelse(op$Rank<=nrow(op)/3,"High",ifelse(op$Rank<=nrow(op)*2/3,"Medium","Low"))
+  op$flag=ifelse(op$Rank<=nrow(op)/3,"High fit",ifelse(op$Rank<=nrow(op)*2/3,"Med fit","Low fit"))
   
   op$emp_id=as.integer(op$emp_id)
   op$Rank=as.integer(op$Rank)
@@ -714,3 +865,4 @@ IndividualSmartList=function(emp_id,init_type_id){
   # return op
   return(op)
 }
+

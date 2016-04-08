@@ -3,6 +3,7 @@ package org.icube.owen.explore;
 import java.sql.CallableStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -177,6 +178,7 @@ public class ExploreHelper extends TheBorg {
 	 * @return map with node list and edge list
 	 */
 	public Map<String, List<?>> getTeamNetworkDiagram(Map<String, List<Filter>> teamListMap, Map<Integer, String> relationshipType) {
+		org.apache.log4j.Logger.getLogger(ExploreHelper.class).debug("Entering getTeamNetworkDiagram method");
 		Map<String, List<?>> result = new HashMap<>();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		String query = "";
@@ -195,11 +197,15 @@ public class ExploreHelper extends TheBorg {
 					zoneList.add(filter.getFilterValues().keySet().iterator().next());
 				}
 			}
+
+			org.apache.log4j.Logger.getLogger(ExploreHelper.class).debug(
+					"Filter list for " + teamName + " : " + " Function : " + funcList.toString() + " Position : " + posList.toString() + " Zone : "
+							+ zoneList.toString());
 			String funcQuery = "", posQuery = "", zoneQuery = "";
 			if (funcList.contains(0)) {
 				funcQuery = "";
 			} else {
-				funcQuery = "f.Id = " + funcList.toString();
+				funcQuery = "f.Id = " + funcList.get(0);
 			}
 
 			if (zoneList.contains(0)) {
@@ -231,7 +237,8 @@ public class ExploreHelper extends TheBorg {
 		try {
 			List<Integer> empIdList = new ArrayList<>();
 			org.apache.log4j.Logger.getLogger(ExploreHelper.class).debug("getTeamNetworkDiagram query for all teams  : " + query);
-			ResultSet res = dch.neo4jCon.createStatement().executeQuery(query);
+			Statement stmt = dch.neo4jCon.createStatement();
+			ResultSet res = stmt.executeQuery(query);
 			while (res.next()) {
 				empIdList.add(res.getInt("emp_id"));
 				Node n = new Node();
@@ -244,15 +251,18 @@ public class ExploreHelper extends TheBorg {
 				n.setTeamName(res.getString("team"));
 				nodeList.add(n);
 			}
+			org.apache.log4j.Logger.getLogger(ExploreHelper.class).debug("Node list size : " + nodeList.size());
 
 			edgeList = getEdges(empIdList, relationshipType);
+			org.apache.log4j.Logger.getLogger(ExploreHelper.class).debug("Edge list size : " + edgeList.size());
+			stmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(ExploreHelper.class).error("Error while retrieving team networks diagram", e);
 		}
 
 		result.put("nodeList", nodeList);
 		result.put("edgeList", edgeList);
-
+		org.apache.log4j.Logger.getLogger(ExploreHelper.class).debug("Exiting getTeamNetworkDiagram method");
 		return result;
 
 	}
@@ -263,6 +273,7 @@ public class ExploreHelper extends TheBorg {
 	 * @return map with node list and edge list
 	 */
 	public Map<String, List<?>> getIndividualNetworkDiagram(List<Employee> employeeList, Map<Integer, String> relationshipTypeMap) {
+		org.apache.log4j.Logger.getLogger(ExploreHelper.class).debug("Entering getIndividualNetworkDiagram method");
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Map<String, List<?>> result = new HashMap<>();
 		List<Node> nodeList = new ArrayList<>();
@@ -313,7 +324,8 @@ public class ExploreHelper extends TheBorg {
 		try {
 			List<Integer> empIdList = new ArrayList<>();
 			org.apache.log4j.Logger.getLogger(ExploreHelper.class).debug("getIndividualNetworkDiagram query  : " + query);
-			ResultSet res = dch.neo4jCon.createStatement().executeQuery(query);
+			Statement stmt = dch.neo4jCon.createStatement();
+			ResultSet res = stmt.executeQuery(query);
 			while (res.next()) {
 				empIdList.add(res.getInt("emp_id"));
 				Node n = new Node();
@@ -328,12 +340,14 @@ public class ExploreHelper extends TheBorg {
 			}
 
 			edgeList = getEdges(empIdList, relationshipTypeMap);
+			stmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(ExploreHelper.class).error("Error while retrieving individual networks diagram", e);
 		}
 
 		result.put("nodeList", nodeList);
 		result.put("edgeList", edgeList);
+		org.apache.log4j.Logger.getLogger(ExploreHelper.class).debug("Entering getIndividualNetworkDiagram method");
 		return result;
 	}
 
@@ -352,7 +366,8 @@ public class ExploreHelper extends TheBorg {
 
 		org.apache.log4j.Logger.getLogger(ExploreHelper.class).debug("getEdges query for all teams  : " + query);
 		try {
-			ResultSet res = dch.neo4jCon.createStatement().executeQuery(query);
+			Statement stmt = dch.neo4jCon.createStatement();
+			ResultSet res = stmt.executeQuery(query);
 			while (res.next()) {
 				Edge e = new Edge();
 				e.setFromEmployeId(res.getInt("from"));
@@ -362,6 +377,7 @@ public class ExploreHelper extends TheBorg {
 				result.add(e);
 
 			}
+			stmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(ExploreHelper.class).error("Exception whil getting edgeList", e);
 		}

@@ -41,6 +41,8 @@ public class TheWallTest {
 			assertNotNull(employeeDetailsMap.get("function"));
 			assertNotNull(employeeDetailsMap.get("position"));
 			assertNotNull(employeeDetailsMap.get("zone"));
+			assertNotNull(employeeDetailsMap.get("initiativeTypeId"));
+			assertNotNull(employeeDetailsMap.get("metricId"));
 		}
 	}
 
@@ -76,9 +78,10 @@ public class TheWallTest {
 		for (Map<String, Object> teamDetailsMap : result) {
 			assertNotNull(teamDetailsMap.get("cubeId"));
 			assertNotNull(teamDetailsMap.get("metricScore"));
-			assertNotNull(teamDetailsMap.get("function"));
-			assertNotNull(teamDetailsMap.get("position"));
-			assertNotNull(teamDetailsMap.get("zone"));
+			assertNotNull(teamDetailsMap.get("filterList"));
+			assertNotNull(teamDetailsMap.get("initiativeTypeId"));
+			assertNotNull(teamDetailsMap.get("metricId"));
+
 		}
 	}
 

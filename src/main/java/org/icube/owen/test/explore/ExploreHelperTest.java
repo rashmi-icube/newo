@@ -18,6 +18,7 @@ import org.icube.owen.explore.Node;
 import org.icube.owen.filter.Filter;
 import org.icube.owen.filter.FilterList;
 import org.icube.owen.metrics.Metrics;
+import org.icube.owen.test.TestHelper;
 import org.junit.Test;
 
 public class ExploreHelperTest {
@@ -124,13 +125,9 @@ public class ExploreHelperTest {
 	public void testGetTeamTimeSeriesGraph() {
 
 		Map<String, List<Filter>> teamListMap = new HashMap<>();
-		FilterList fl = new FilterList();
-		List<Filter> filterList = fl.getFilterValues();
-		for (Filter f : filterList) {
-			while (f.getFilterValues().size() > 1) {
-				f.getFilterValues().remove(f.getFilterValues().keySet().iterator().next());
-			}
-		}
+		
+		List<Filter> filterList = TestHelper.getOneForEachFilter();
+		
 		teamListMap.put("team1", filterList);
 
 		Filter filter = filterList.get(0);
@@ -145,21 +142,19 @@ public class ExploreHelperTest {
 			checkTimeSeriesData(teamMetricsData.get(name));
 		}
 
-		filterList.get(0).getFilterValues().clear();
-		filterList.get(0).getFilterValues().put(0, "All");
+		filterList = TestHelper.getAllForOneFilter();
 		teamMetricsData = eh.getTeamTimeSeriesGraph(teamListMap); // 1 filter has selected as ALL
 		for (String name : teamMetricsData.keySet()) {
 			checkTimeSeriesData(teamMetricsData.get(name));
 		}
-		filterList.get(1).getFilterValues().clear();
-		filterList.get(1).getFilterValues().put(0, "All");
+		
+		filterList = TestHelper.getAllForTwoFilters();
 		teamMetricsData = eh.getTeamTimeSeriesGraph(teamListMap); // 2 filters have selected as ALL
 		for (String name : teamMetricsData.keySet()) {
 			checkTimeSeriesData(teamMetricsData.get(name));
 		}
 
-		filterList.get(2).getFilterValues().clear();
-		filterList.get(2).getFilterValues().put(0, "All");
+		filterList = TestHelper.getAllForAllFilters();
 		teamMetricsData = eh.getTeamTimeSeriesGraph(teamListMap); // 3 filters have selected as ALL
 		for (String name : teamMetricsData.keySet()) {
 			checkTimeSeriesData(teamMetricsData.get(name));

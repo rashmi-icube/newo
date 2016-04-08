@@ -25,10 +25,10 @@ public class HrDashboardHelperTest {
 	@Test
 	public void testGetFilterMetrics() {
 		Map<Integer, String> filterValuesMap = new HashMap<>();
-		filterValuesMap.put(1, "HR");
+		filterValuesMap.put(8, "INGT1");
 		Filter f = new Filter();
-		f.setFilterName("Function");
-		f.setFilterId(1);
+		f.setFilterName("Zone");
+		f.setFilterId(3);
 		f.setFilterValues(filterValuesMap);
 		List<Metrics> metricsList = dh.getFilterMetrics(f);
 		for (Metrics m : metricsList) {
@@ -38,6 +38,7 @@ public class HrDashboardHelperTest {
 			assertNotNull(m.getName());
 			assertNotNull(m.getDateOfCalculation());
 			assertNotNull(m.getScore());
+			assertNotNull(m.getAverage());
 		}
 	}
 
@@ -53,10 +54,10 @@ public class HrDashboardHelperTest {
 	@Test
 	public void testGetTimeSeriesGraph() {
 		Map<Integer, String> filterValuesMap = new HashMap<>();
-		filterValuesMap.put(11, "INTG4");
+		filterValuesMap.put(8, "INTG1");
 		Filter f = new Filter();
-		f.setFilterName("Position");
-		f.setFilterId(2);
+		f.setFilterName("Zone");
+		f.setFilterId(3);
 		f.setFilterValues(filterValuesMap);
 		Map<Integer, List<Map<Date, Integer>>> result = dh.getTimeSeriesGraph(f);
 		for (int metricId : result.keySet()) {

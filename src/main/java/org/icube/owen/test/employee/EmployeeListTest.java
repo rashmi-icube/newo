@@ -43,20 +43,22 @@ public class EmployeeListTest {
 		f.setFilterValues(filterValuesMap);
 		filterList.add(f);
 		Map<Integer, String> filterValuesMap1 = new HashMap<>();
-		filterValuesMap1.put(0, "All");
+		filterValuesMap1.put(3, "Corporate");
+		filterValuesMap1.put(4, "Region");
 		Filter f1 = new Filter();
 		f1.setFilterName("Position");
 		f1.setFilterId(2);
 		f1.setFilterValues(filterValuesMap1);
 		filterList.add(f1);
 		Map<Integer, String> filterValuesMap2 = new HashMap<>();
-		filterValuesMap2.put(0, "All");
+		filterValuesMap2.put(8, "INTG1");
+		filterValuesMap2.put(9, "INTG2");
 		Filter f2 = new Filter();
 		f2.setFilterName("Zone");
 		f2.setFilterId(3);
 		f2.setFilterValues(filterValuesMap2);
 		filterList.add(f2);
-		empList = el.getEmployeeSmartListForTeam(filterList, 6);
+		empList = el.getEmployeeSmartListForTeam(filterList, 7);
 		assertNotNull(empList);
 		for (Employee emp : empList) {
 			assertNotNull(emp.getEmployeeId());

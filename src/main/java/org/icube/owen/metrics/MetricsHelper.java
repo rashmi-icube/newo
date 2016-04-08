@@ -18,6 +18,7 @@ import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPDouble;
 import org.rosuda.REngine.REXPString;
 import org.rosuda.REngine.RList;
+import org.rosuda.REngine.Rserve.RConnection;
 
 public class MetricsHelper {
 	@SuppressWarnings("unchecked")
@@ -43,16 +44,24 @@ public class MetricsHelper {
 			// if two of the filters are ALL then it is a dimension metric
 			CallableStatement cstmt;
 			if (previousScoreNeeded) {
+				org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Calling the getDimensionMetricValueAggregate");
+				org.apache.log4j.Logger.getLogger(MetricsHelper.class)
+						.debug("Dimension Value ID : " + parsedFilterListResult.get("dimensionValueId"));
+				org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Dimension ID : " + parsedFilterListResult.get("dimensionId"));
 				cstmt = dch.mysqlCon.prepareCall("{call getDimensionMetricValueAggregate(?,?)}");
 				cstmt.setInt(1, (int) parsedFilterListResult.get("dimensionValueId"));
 				cstmt.setInt(2, (int) parsedFilterListResult.get("dimensionId"));
 			} else {
+				org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Calling the getDimensionMetricValueAggregate");
+				org.apache.log4j.Logger.getLogger(MetricsHelper.class)
+						.debug("Dimension Value ID : " + parsedFilterListResult.get("dimensionValueId"));
 				cstmt = dch.mysqlCon.prepareCall("{call getDimensionMetricValue(?)}");
 				cstmt.setInt(1, (int) parsedFilterListResult.get("dimensionValueId"));
 			}
 
 			ResultSet rs = cstmt.executeQuery();
 			metricList = fillMetricsData(initiativeTypeId, rs, primaryMetricMap, "Team");
+			org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Calculated metrics for dimension : " + metricList.size());
 		} else if ((int) parsedFilterListResult.get("countAll") == 0) {
 			// if none of the filters is ALL then it is a cube metric
 			CallableStatement cstmt;
@@ -116,10 +125,10 @@ public class MetricsHelper {
 			primaryMetricMap = getPrimaryMetricMap(initiativeTypeId);
 		}
 		try {
-			String s = "source(\"metric.r\")";
-			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("R Path for eval " + s);
-			dch.rCon.eval(s);
-			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Filling up parameters for rscript function");
+
+			RConnection rCon = dch.getRConn();
+			org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("R Connection Available : " + rCon.isConnected());
+			org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Filling up parameters for rscript function");
 			List<Integer> funcList = new ArrayList<>();
 			List<Integer> posList = new ArrayList<>();
 			List<Integer> zoneList = new ArrayList<>();
@@ -133,20 +142,20 @@ public class MetricsHelper {
 					zoneList.addAll(f.getFilterValues().keySet());
 				}
 			}
-			dch.rCon.assign("funcList", UtilHelper.getIntArrayFromIntegerList(funcList));
-			dch.rCon.assign("posList", UtilHelper.getIntArrayFromIntegerList(posList));
-			dch.rCon.assign("zoneList", UtilHelper.getIntArrayFromIntegerList(zoneList));
+			rCon.assign("funcList", UtilHelper.getIntArrayFromIntegerList(funcList));
+			rCon.assign("posList", UtilHelper.getIntArrayFromIntegerList(posList));
+			rCon.assign("zoneList", UtilHelper.getIntArrayFromIntegerList(zoneList));
 
-			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Calling the actual function in RScript TeamMetric");
-			REXP teamMetricScore = dch.rCon.parseAndEval("try(eval(TeamMetric(funcList, posList, zoneList)))");
+			org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Calling the actual function in RScript TeamMetric");
+			REXP teamMetricScore = rCon.parseAndEval("try(eval(TeamMetric(funcList, posList, zoneList)))");
 			if (teamMetricScore.inherits("try-error")) {
-				org.apache.log4j.Logger.getLogger(MetricsList.class).error("Error: " + teamMetricScore.asString());
+				org.apache.log4j.Logger.getLogger(MetricsHelper.class).error("Error: " + teamMetricScore.asString());
 				throw new Exception("Error: " + teamMetricScore.asString());
 			} else {
-				org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Metrics calculation completed for team " + teamMetricScore.asList());
+				org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Metrics calculation completed for team " + teamMetricScore.asList());
 			}
 
-			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Parsing R function results");
+			org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Parsing R function results");
 			RList result = teamMetricScore.asList();
 			REXPDouble metricIdResult = (REXPDouble) result.get("metric_id");
 			int[] metricIdArray = metricIdResult.asIntegers();
@@ -165,11 +174,13 @@ public class MetricsHelper {
 			}
 
 			metricsList = getMetricsList("Team", metricListForCategory, primaryMetricMap, previousScoreMap, currentScoreMap, dateOfCalcMap);
-			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Successfully calculated metrics for the team");
+			org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Successfully calculated metrics for the team");
 
 		} catch (Exception e) {
-			org.apache.log4j.Logger.getLogger(MetricsList.class).error(
+			org.apache.log4j.Logger.getLogger(MetricsHelper.class).error(
 					"Exception while trying to retrieve metrics for category team and type ID " + initiativeTypeId, e);
+		} finally {
+			dch.releaseRcon();
 		}
 		return metricsList;
 	}
@@ -190,7 +201,7 @@ public class MetricsHelper {
 				primaryMetricMap.put(rs.getInt("metric_id"), rs.getString("metric_name"));
 			}
 		} catch (SQLException e) {
-			org.apache.log4j.Logger.getLogger(MetricsList.class).error("Exception while getting the primary metrics for initiative", e);
+			org.apache.log4j.Logger.getLogger(MetricsHelper.class).error("Exception while getting the primary metrics for initiative", e);
 		}
 		return primaryMetricMap;
 	}
@@ -211,7 +222,7 @@ public class MetricsHelper {
 				metricListForCategory.put(rs.getInt("metric_id"), rs.getString("metric_name"));
 			}
 		} catch (Exception e) {
-			org.apache.log4j.Logger.getLogger(MetricsList.class).error(
+			org.apache.log4j.Logger.getLogger(MetricsHelper.class).error(
 					"Exception while getting the metrics list for initiative of category" + category, e);
 		}
 		return metricListForCategory;

@@ -21,6 +21,7 @@ import org.icube.owen.helper.UtilHelper;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPInteger;
 import org.rosuda.REngine.RList;
+import org.rosuda.REngine.Rserve.RConnection;
 
 public class Question extends TheBorg {
 
@@ -155,9 +156,9 @@ public class Question extends TheBorg {
 			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getResponseData(?)}");
 			cstmt.setInt(1, q.getQuestionId());
 			ResultSet rs = cstmt.executeQuery();
-			if (rs.next()) {
+			if (rs != null) {
 				while (rs.next()) {
-					java.util.Date utilDate = new java.util.Date(rs.getDate("date").getTime());
+					Date utilDate = new Date(rs.getDate("date").getTime());
 					responseMap.put(utilDate, rs.getInt("responses"));
 				}
 			} else {
@@ -190,6 +191,7 @@ public class Question extends TheBorg {
 				q.setResponsePercentage(q1.getResponsePercentage());
 				q.setQuestionType(q1.getQuestionType());
 				q.setSurveyBatchId(q1.getSurveyBatchId());
+				org.apache.log4j.Logger.getLogger(Question.class).debug("Retrieved the current question " + q.getQuestionId());
 			}
 		}
 		return q;
@@ -242,14 +244,13 @@ public class Question extends TheBorg {
 		List<Employee> employeeList = new ArrayList<>();
 
 		try {
-			String s = "source(\"metric.r\")";
-			org.apache.log4j.Logger.getLogger(Question.class).debug("R Path for eval " + s);
-			dch.rCon.eval(s);
+			RConnection rCon = dch.getRConn();
+			org.apache.log4j.Logger.getLogger(Question.class).debug("R Connection Available : " + rCon.isConnected());
 			org.apache.log4j.Logger.getLogger(Question.class).debug("Filling up parameters for rscript function");
-			dch.rCon.assign("emp_id", new int[] { employeeId });
-			dch.rCon.assign("rel_id", new int[] { q.getRelationshipTypeId() });
+			rCon.assign("emp_id", new int[] { employeeId });
+			rCon.assign("rel_id", new int[] { q.getRelationshipTypeId() });
 			org.apache.log4j.Logger.getLogger(Question.class).debug("Calling the actual function in RScript SmartListResponse");
-			REXP employeeSmartList = dch.rCon.parseAndEval("try(eval(SmartListResponse(emp_id, rel_id)))");
+			REXP employeeSmartList = rCon.parseAndEval("try(eval(SmartListResponse(emp_id, rel_id)))");
 			if (employeeSmartList.inherits("try-error")) {
 				org.apache.log4j.Logger.getLogger(Question.class).error("Error: " + employeeSmartList.asString());
 				throw new Exception("Error: " + employeeSmartList.asString());
@@ -274,6 +275,10 @@ public class Question extends TheBorg {
 
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(Question.class).error("Error while trying to retrieve the smart list for employee from question", e);
+		}
+
+		finally {
+			ObjectFactory.getDBHelper().releaseRcon();
 		}
 
 		return employeeList;

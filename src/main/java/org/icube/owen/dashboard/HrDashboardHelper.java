@@ -23,13 +23,16 @@ public class HrDashboardHelper extends TheBorg {
 	 * @return list of metric objects 
 	 */
 	public List<Metrics> getFilterMetrics(Filter filter) {
-		List<Metrics> orgMetricsList = new ArrayList<>();
+		List<Metrics> dimensionMetricsList = new ArrayList<>();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		try {
-
+			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).debug("Entering getFilterMetrics using procedure getDimensionMetricValueAggregate");
 			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getDimensionMetricValueAggregate(?, ?)}");
-			cstmt.setInt(1, filter.getFilterValues().keySet().iterator().next().intValue());
-			cstmt.setInt(2, filter.getFilterId());
+			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).debug("Filter Value ID : " + filter.getFilterValues().keySet().iterator().next().intValue());
+			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).debug("Filter ID : " + filter.getFilterId());
+			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).debug("Filter Name : " + filter.getFilterName());
+			cstmt.setInt("dimvalid", filter.getFilterValues().keySet().iterator().next().intValue());
+			cstmt.setInt("dimid", filter.getFilterId());
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
 				Metrics m = new Metrics();
@@ -40,13 +43,13 @@ public class HrDashboardHelper extends TheBorg {
 				m.setDirection(m.calculateMetricDirection(rs.getInt("current_score"), rs.getInt("previous_score")));
 				m.setAverage(rs.getInt("average_score"));
 				m.setDateOfCalculation(rs.getDate("calc_time"));
-				orgMetricsList.add(m);
+				dimensionMetricsList.add(m);
 			}
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).error("Exception while retrieving organization level metrics", e);
 		}
-
-		return orgMetricsList;
+		org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).debug("Successfully calculated the filter metrics " + dimensionMetricsList.size());
+		return dimensionMetricsList;
 	}
 
 	/**
@@ -87,15 +90,16 @@ public class HrDashboardHelper extends TheBorg {
 		Map<Integer, List<Map<Date, Integer>>> result = new HashMap<>();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		try {
-
+			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).debug("Entering getTimeSeriesGraph using procedure getDimensionMetricTimeSeries");
 			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getDimensionMetricTimeSeries(?)}");
+			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).debug("Filter Value ID : " + filter.getFilterValues().keySet().iterator().next().intValue());
 			cstmt.setInt(1, filter.getFilterValues().keySet().iterator().next().intValue());
 			ResultSet rs = cstmt.executeQuery();
 			result = getTimeSeriesMap(rs);
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).error("Exception while retrieving metrics", e);
 		}
-
+		org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).debug("Successfully got time series graph for dimension" + result.size());
 		return result;
 	}
 

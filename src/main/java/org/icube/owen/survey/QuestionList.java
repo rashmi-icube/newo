@@ -113,7 +113,8 @@ public class QuestionList extends TheBorg {
 
 			}
 		}
-
+		org.apache.log4j.Logger.getLogger(QuestionList.class).debug(
+				"Retrieved " + questionListByStatus.size() + " questions for " + filter + " status.");
 		return questionListByStatus;
 	}
 

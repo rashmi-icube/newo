@@ -112,11 +112,14 @@ public class Alert extends TheBorg {
 	 * @return boolean value if the alert has been deleted or not
 	 */
 	public boolean delete(int alertId) {
+		org.apache.log4j.Logger.getLogger(Alert.class).debug("Entering the delete alert function");
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		try {
+			org.apache.log4j.Logger.getLogger(Alert.class).debug("Calling the deleteAlert procedure");
 			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call deleteAlert(?)}");
 			cstmt.setInt(1, alertId);
 			cstmt.executeQuery();
+			org.apache.log4j.Logger.getLogger(Alert.class).debug("Successfully deleted alert");
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(Alert.class).error("Exception while deleting alert with ID : " + alertId, e);
 		}
