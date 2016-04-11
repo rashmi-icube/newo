@@ -13,7 +13,6 @@ import javax.mail.MessagingException;
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.helper.DatabaseConnectionHelper;
 import org.rosuda.REngine.REXP;
-import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RConnection;
 
 public class CompanyDAO extends TimerTask {
@@ -32,7 +31,7 @@ public class CompanyDAO extends TimerTask {
 	 * Retrieves the details of the company (ID,name,username,password,sql server,sql user id)
 	 */
 	public void getCompanyDetails() {
-		
+
 		try {
 			DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 			ResultSet companyDetails = null;
@@ -43,13 +42,6 @@ public class CompanyDAO extends TimerTask {
 			companyDetails = stmt
 					.executeQuery("Select comp_name, comp_id, comp_sql_dbname, sql_server, sql_user_id, sql_password from company_master");
 
-			// rCon = (rCon != null && rCon.isConnected()) ? rCon : new RConnection();
-
-			// String rScriptPath = UtilHelper.getConfigProperty("r_script_path");
-			// String workingDir = "setwd(\"" + rScriptPath + "\")";
-			// org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("The working directory is:" + workingDir);
-			// rCon.eval(workingDir);
-
 			// connect to r
 			RConnection rCon = dch.getRConn();
 			org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("R Connection Available : " + rCon.isConnected());
@@ -57,14 +49,7 @@ public class CompanyDAO extends TimerTask {
 			while (companyDetails.next()) {
 
 				// run JobInitStatus
-				String s = "source(\"Job.R\")";
-				REXP loadRScript = rCon.eval(s);
-				if (loadRScript.inherits("try-error")) {
-					org.apache.log4j.Logger.getLogger(CompanyDAO.class).error("Error: " + loadRScript.asString());
-					throw new REXPMismatchException(loadRScript, "Error: " + loadRScript.asString());
-				} else {
-					org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("Successfully loaded Job.R script " + loadRScript.asList());
-				}
+
 				org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("JobInitStatus method started");
 				org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug(
 						"Parameters for R function :  CompanyId : " + companyDetails.getInt("comp_id"));
@@ -96,10 +81,7 @@ public class CompanyDAO extends TimerTask {
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(CompanyDAO.class).error("Failed to get the db connection details", e);
 
-		} /*finally {
-			closeSqlDbConnection();
-			closeRConnection();
-			}*/
+		}
 	}
 
 	/**
@@ -161,46 +143,6 @@ public class CompanyDAO extends TimerTask {
 		}
 
 	}
-
-	/*public void startDbConnection() throws Exception {
-
-		// get db properties
-		try {
-			String user = UtilHelper.getConfigProperty("user");
-			String password = UtilHelper.getConfigProperty("password");
-			String dburl = UtilHelper.getConfigProperty("dburl");
-
-			// connect to sql database
-			myConn = DriverManager.getConnection(dburl, user, password);
-			org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("Successfully connected to the database");
-		} catch (SQLException e) {
-			org.apache.log4j.Logger.getLogger(CompanyDAO.class).error("Unable to connect to database", e);
-		}
-
-	}
-
-	public void closeSqlDbConnection() {
-		try {
-			if (!myConn.isClosed()) {
-				myConn.close();
-				org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("Connection to mySql closed!!!!");
-			}
-		} catch (SQLException e) {
-			org.apache.log4j.Logger.getLogger(CompanyDAO.class).error("An error occurred while attempting to close SQL db connections", e);
-		}
-	}
-
-	public void closeRConnection() {
-		try {
-			if (rCon.isConnected()) {
-				rCon.close();
-				org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("Connection to R closed!!!!");
-			}
-		} catch (Exception e) {
-			org.apache.log4j.Logger.getLogger(CompanyDAO.class).error("An error occurred while attempting to close R connection", e);
-
-		}
-	}*/
 
 	public void sendEmail(int companyId, String companyName, REXP status) throws Exception {
 		EmailSender es = new EmailSender();

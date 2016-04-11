@@ -127,16 +127,6 @@ public class DatabaseConnectionHelper extends TheBorg {
 			} else {
 				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Successfully loaded metric.r script");
 			}
-			
-			String job = "source(\"Job.r\")";
-			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("R Path for eval " + job + ".... Loading now ...");
-			REXP loadJobScript = rCon.eval(job);
-			if (loadJobScript.inherits("try-error")) {
-				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("Error: " + loadJobScript.asString());
-				throw new REXPMismatchException(loadRScript, "Error: " + loadJobScript.asString());
-			} else {
-				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Successfully loaded Job.r script");
-			}
 
 			companySqlConnectionPool = new HashMap<>();
 			companyImagePath = new HashMap<>();
@@ -148,15 +138,15 @@ public class DatabaseConnectionHelper extends TheBorg {
 		} catch (REXPMismatchException e) {
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("An error occurred while trying to loading the R script", e);
 		}
-		
+
 		runScheduler();
 
 	}
-	
+
 	public void runScheduler() {
 		Calendar today = Calendar.getInstance();
 		// set the start date to be 12:01 AM
-		//today.add(Calendar.DAY_OF_MONTH, 1);
+		// today.add(Calendar.DAY_OF_MONTH, 1);
 		today.set(Calendar.HOUR_OF_DAY, 10);
 		today.set(Calendar.MINUTE, 01);
 		today.set(Calendar.SECOND, 0);
@@ -165,7 +155,7 @@ public class DatabaseConnectionHelper extends TheBorg {
 			System.out.println(today.getTime());
 			CompanyDAO cdao = new CompanyDAO();
 			timer.scheduleAtFixedRate(cdao, today.getTime(), TimeUnit.MILLISECONDS.convert(1, TimeUnit.DAYS));
-			//timer.scheduleAtFixedRate(cdao, today.getTime(), 300000);
+			// timer.scheduleAtFixedRate(cdao, today.getTime(), 300000);
 
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("Unable to execute the scheduled task");
