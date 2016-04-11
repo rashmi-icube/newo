@@ -5,11 +5,15 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Timer;
+import java.util.concurrent.TimeUnit;
 
 import org.icube.owen.TheBorg;
+import org.icube.owen.jobScheduler.CompanyDAO;
 import org.neo4j.jdbc.Driver;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
@@ -26,6 +30,7 @@ public class DatabaseConnectionHelper extends TheBorg {
 	private RConnection rCon;
 
 	private boolean rConInUse = false;
+	Timer timer = new Timer();
 
 	// Fermion Server
 	/*private final static String mysqlurl = "jdbc:mysql://192.168.1.6:3306/owen";
@@ -132,6 +137,29 @@ public class DatabaseConnectionHelper extends TheBorg {
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("An error occurred while trying to connect to R", e);
 		} catch (REXPMismatchException e) {
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("An error occurred while trying to loading the R script", e);
+		}
+
+		runScheduler();
+
+	}
+
+	public void runScheduler() {
+		Calendar today = Calendar.getInstance();
+		// set the start date to be 12:01 AM
+		today.add(Calendar.DAY_OF_MONTH, 1);
+		today.set(Calendar.HOUR_OF_DAY, 00);
+		today.set(Calendar.MINUTE, 01);
+		today.set(Calendar.SECOND, 0);
+
+		try {
+			System.out.println(today.getTime());
+			CompanyDAO cdao = new CompanyDAO();
+			timer.scheduleAtFixedRate(cdao, today.getTime(), TimeUnit.MILLISECONDS.convert(1, TimeUnit.DAYS));
+			// timer.scheduleAtFixedRate(cdao, today.getTime(), 300000);
+
+		} catch (Exception e) {
+			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("Unable to execute the scheduled task");
+			e.printStackTrace();
 		}
 
 	}

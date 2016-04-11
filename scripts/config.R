@@ -3,7 +3,7 @@ mysqlusername='root'
 
 mysqlpasswod=""
 
-mysqldbname='owen'
+mysqldbname='owen_master'
 
 mysqlhost="127.0.0.1"
 
