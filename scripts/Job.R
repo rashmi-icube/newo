@@ -5,20 +5,20 @@ library(igraph)
 library(moments)
 library(reshape2)
 
-#source('config.R')
+source('config.R')
 
-setwd("C:\\Users\\Hitendra\\Desktop\\comp1\\neo")
+#setwd("C:\\Users\\Hitendra\\Desktop\\comp1\\neo")
 
-mysqlusername='hpatel'
+#mysqlusername='hpatel'
 
-mysqlpasswod="hitesh16"
+#mysqlpasswod="hitesh16"
 
-mysqldbname='owen_master'
+#mysqldbname='owen_master'
 #mysqldbname='owen'
 #mysqlhost="192.168.1.13"
-mysqlhost="localhost"
+#mysqlhost="localhost"
 
-mysqlport=3306
+#mysqlport=3306
 
 
 calculate_edge=function(CompanyId){
