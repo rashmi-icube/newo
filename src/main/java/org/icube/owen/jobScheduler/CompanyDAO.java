@@ -1,11 +1,11 @@
 package org.icube.owen.jobScheduler;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Date;
 import java.util.TimerTask;
 
 import javax.mail.MessagingException;
@@ -13,13 +13,13 @@ import javax.mail.MessagingException;
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.helper.DatabaseConnectionHelper;
 import org.rosuda.REngine.REXP;
-import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RConnection;
 
 public class CompanyDAO extends TimerTask {
 
 	private Connection myConn;
 	private RConnection rCon;
+	private DatabaseConnectionHelper dch;
 
 	@Override
 	public void run() {
@@ -34,7 +34,7 @@ public class CompanyDAO extends TimerTask {
 	public void getCompanyDetails() {
 
 		try {
-			DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+			dch = ObjectFactory.getDBHelper();
 			ResultSet companyDetails = null;
 			// startDbConnection();
 
@@ -49,17 +49,6 @@ public class CompanyDAO extends TimerTask {
 			int count = 0;
 			while (companyDetails.next()) {
 
-				String s = "source(\"metric.r\")";
-				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("R Path for eval " + s + ".... Loading now ...");
-
-				REXP loadRScript = rCon.eval(s);
-				if (loadRScript.inherits("try-error")) {
-					org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("Error: " + loadRScript.asString());
-					throw new REXPMismatchException(loadRScript, "Error: " + loadRScript.asString());
-				} else {
-					org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Successfully loaded metric.r script");
-				}
-				
 				// run JobInitStatus
 				org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("JobInitStatus method started");
 				org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug(
@@ -73,6 +62,7 @@ public class CompanyDAO extends TimerTask {
 				} else {
 					org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("Successfully executed the JobInitStatus method ");
 				}
+				dch.releaseRcon();
 
 				connectToCompanyDb(companyDetails);
 				count++;
@@ -113,7 +103,7 @@ public class CompanyDAO extends TimerTask {
 					.debug("Successfully connected to company db with companyId : " + rs.getInt("comp_id"));
 			org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("Starting query to retrieve number of questions closed");
 			stmt = myConn.createStatement();
-			java.util.Date date = new Date(System.currentTimeMillis() - 24 * 60 * 60 * 1000);
+			Date date = new Date(System.currentTimeMillis() - 24 * 60 * 60 * 1000);
 			res = stmt.executeQuery("select count(que_id) as question_ended from question where end_date='" + date + "' and survey_batch_id=1;");
 			res.next();
 			int questionsClosed = res.getInt("question_ended");
@@ -142,7 +132,7 @@ public class CompanyDAO extends TimerTask {
 
 	public void runRMethod(String rFunctionName, int companyId, String companyName) throws Exception {
 		org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("Parameters for R function :  CompanyId : " + companyId);
-
+		rCon = dch.getRConn();
 		rCon.assign("CompanyId", new int[] { companyId });
 
 		org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug(rFunctionName + " method started");
@@ -152,7 +142,7 @@ public class CompanyDAO extends TimerTask {
 		} else {
 			org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("Successfully executed the " + rFunctionName + " method ");
 		}
-
+		dch.releaseRcon();
 	}
 
 	public void sendEmail(int companyId, String companyName, REXP status) throws Exception {
