@@ -13,6 +13,7 @@ import javax.mail.MessagingException;
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.helper.DatabaseConnectionHelper;
 import org.rosuda.REngine.REXP;
+import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RConnection;
 
 public class CompanyDAO extends TimerTask {
@@ -48,8 +49,18 @@ public class CompanyDAO extends TimerTask {
 			int count = 0;
 			while (companyDetails.next()) {
 
-				// run JobInitStatus
+				String s = "source(\"metric.r\")";
+				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("R Path for eval " + s + ".... Loading now ...");
 
+				REXP loadRScript = rCon.eval(s);
+				if (loadRScript.inherits("try-error")) {
+					org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("Error: " + loadRScript.asString());
+					throw new REXPMismatchException(loadRScript, "Error: " + loadRScript.asString());
+				} else {
+					org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Successfully loaded metric.r script");
+				}
+				
+				// run JobInitStatus
 				org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("JobInitStatus method started");
 				org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug(
 						"Parameters for R function :  CompanyId : " + companyDetails.getInt("comp_id"));

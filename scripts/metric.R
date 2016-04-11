@@ -3,6 +3,7 @@ library(igraph)
 library(moments)
 library(RMySQL)
 library(reshape2)
+library(dplyr)
 
 #setwd("C:\\Users\\Hitendra\\Desktop\\R metric Function")
 # Function=c(1)
