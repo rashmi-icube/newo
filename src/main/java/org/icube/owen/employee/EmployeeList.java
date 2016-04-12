@@ -5,8 +5,6 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -142,20 +140,21 @@ public class EmployeeList extends TheBorg {
 			int[] scoreArray = scoreResult.asIntegers();
 			REXPString gradeRseult = (REXPString) result.get("flag");
 			String[] gradeArray = gradeRseult.asStrings();
+			REXPInteger rank = (REXPInteger) result.get("Rank");
+			int[] rankArray = rank.asIntegers();
+			Map<Integer, Employee> empMap = new TreeMap<>();
 
 			for (int i = 0; i < empIdArray.length; i++) {
 				Employee e = new Employee();
 				e = e.get(empIdArray[i]);
 				e.setGrade(gradeArray[i]);
 				e.setScore(scoreArray[i]);
-				individualSmartList.add(e);
+				empMap.put(rankArray[i], e);
 			}
 
-			Collections.sort(individualSmartList, Collections.reverseOrder(new Comparator<Employee>() {
-				public int compare(Employee e1, Employee e2) {
-					return Double.compare(e1.getScore(), e2.getScore());
-				}
-			}));
+			for (Employee e : empMap.values()) {
+				individualSmartList.add(e);
+			}
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).error("Error while trying to retrieve the smart list for employee ", e);
 		}
