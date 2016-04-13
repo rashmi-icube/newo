@@ -91,6 +91,7 @@ public class Initiative extends TheBorg {
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Create initiative query : " + createInitQuery);
 			Statement stmt = dch.neo4jCon.createStatement();
 			ResultSet res = stmt.executeQuery(createInitQuery);
+			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Successfully created the initiative in neo4j");
 			while (res.next()) {
 				initiativeId = res.getInt("Id");
 			}
@@ -139,16 +140,18 @@ public class Initiative extends TheBorg {
 							+ (funcQuery.isEmpty() ? "" : funcQuery + (!posQuery.isEmpty() ? " and " : ""))
 							+ (posQuery.isEmpty() ? "" : (posQuery))
 							+ "  return count(a) as TeamSize";
-
+					org.apache.log4j.Logger.getLogger(Initiative.class).debug("Query for finding team size for metric of an initiative : " + query);
 					res = stmt.executeQuery(query);
 
 					while (res.next()) {
 						teamSize = res.getInt("TeamSize");
 					}
-
+					org.apache.log4j.Logger.getLogger(Initiative.class).debug("Team Size : " + teamSize);
 					MetricsList ml = new MetricsList();
 					List<Metrics> metricsList = ml.getInitiativeMetricsForTeam(initiativeId, this.filterList);
+					org.apache.log4j.Logger.getLogger(Initiative.class).debug("Successfully calculated metrics for initiative" + metricsList.size());
 					for (Metrics m : metricsList) {
+						org.apache.log4j.Logger.getLogger(Initiative.class).debug("Storing the metric for initiative ID " + initiativeId + "; metric ID : " + m.getId());
 						CallableStatement cstmt = dch.mysqlCon.prepareCall("{call insertInitiativeMetricValue(?,?,?,?,?)}");
 						cstmt.setInt("initiativeid", initiativeId);
 						cstmt.setInt("metricid", m.getId());

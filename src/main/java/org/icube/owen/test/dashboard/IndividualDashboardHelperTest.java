@@ -22,7 +22,7 @@ public class IndividualDashboardHelperTest {
 
 	@Test
 	public void testGetActivityFeedList() {
-		Map<Date, List<ActivityFeed>> result = idh.getActivityFeedList(1, 208, 2);
+		Map<Date, List<ActivityFeed>> result = idh.getActivityFeedList(1, 130, 1);
 		for (Date d : result.keySet()) {
 			List<ActivityFeed> afl = result.get(d);
 			for (ActivityFeed af : afl) {

@@ -25,6 +25,8 @@ public class MetricsList extends TheBorg {
 	 * @return list of metrics objects
 	 */
 	public List<Metrics> getInitiativeMetricsForTeam(int initiativeTypeId, List<Filter> filterList) {
+		org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Entering getInitiativeMetricsForTeam");
+	
 		List<Metrics> metricsList = new ArrayList<>();
 		MetricsHelper mh = new MetricsHelper();
 		Map<String, Object> parsedFilterListResult = UtilHelper.parseFilterList(filterList);
@@ -54,6 +56,7 @@ public class MetricsList extends TheBorg {
 	 * @return list of metrics objects
 	 */
 	public List<Metrics> getInitiativeMetricsForIndividual(int initiativeTypeId, List<Employee> partOfEmployeeList) {
+		org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Entering getInitiativeMetricsForIndividual");
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		MetricsHelper mh = new MetricsHelper();
 		List<Metrics> metricsList = new ArrayList<>();
@@ -71,6 +74,7 @@ public class MetricsList extends TheBorg {
 			}
 
 			try {
+				org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Calling getIndividualInitiativeMetricValueAggregate");
 				CallableStatement cs = dch.mysqlCon.prepareCall("{call getIndividualInitiativeMetricValueAggregate(?)}");
 				int empId = empIdList.get(0);
 				cs.setInt(1, empId);
@@ -85,7 +89,7 @@ public class MetricsList extends TheBorg {
 						"Exception while trying to metrics list for category individual and type ID " + initiativeTypeId, e);
 			}
 			metricsList = mh.getMetricsList("Individual", metricListForCategory, primaryMetricMap, previousScoreMap, currentScoreMap, dateOfCalcMap);
-			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Successfully calculated metrics for the team");
+			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Successfully calculated metrics for the individual");
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(MetricsList.class).error(
 					"Exception while trying to retrieve metrics for category individual and type ID " + initiativeTypeId, e);
