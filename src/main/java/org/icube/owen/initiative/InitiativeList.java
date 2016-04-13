@@ -196,6 +196,7 @@ public class InitiativeList extends TheBorg {
 			i.setOwnerOfList(ih.getOwnerOfList(res));
 			if (i.getInitiativeCategory().equalsIgnoreCase("Team")) {
 				i.setFilterList(ih.setPartOfConnections(res, i));
+				org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Filter list size for " + i.getInitiativeName() + " is " + i.getFilterList().size());
 			} else if (i.getInitiativeCategory().equalsIgnoreCase("Individual")) {
 				i.setPartOfEmployeeList(ih.setPartOfEmployeeList(res, i));
 			}

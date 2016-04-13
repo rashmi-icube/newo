@@ -151,7 +151,8 @@ public class Initiative extends TheBorg {
 					List<Metrics> metricsList = ml.getInitiativeMetricsForTeam(initiativeId, this.filterList);
 					org.apache.log4j.Logger.getLogger(Initiative.class).debug("Successfully calculated metrics for initiative" + metricsList.size());
 					for (Metrics m : metricsList) {
-						org.apache.log4j.Logger.getLogger(Initiative.class).debug("Storing the metric for initiative ID " + initiativeId + "; metric ID : " + m.getId());
+						org.apache.log4j.Logger.getLogger(Initiative.class).debug(
+								"Storing the metric for initiative ID " + initiativeId + "; metric ID : " + m.getId());
 						CallableStatement cstmt = dch.mysqlCon.prepareCall("{call insertInitiativeMetricValue(?,?,?,?,?)}");
 						cstmt.setInt("initiativeid", initiativeId);
 						cstmt.setInt("metricid", m.getId());
@@ -342,8 +343,9 @@ public class Initiative extends TheBorg {
 			org.apache.log4j.Logger.getLogger(Initiative.class).error("Query : " + query);
 			Statement stmt = dch.neo4jCon.createStatement();
 			ResultSet res = stmt.executeQuery(query);
-			res.next();
-			il.setInitiativeValues(res, i);
+			while (res.next()) {
+				il.setInitiativeValues(res, i);
+			}
 			stmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception while retrieving the initiative with ID" + initiativeId, e);
