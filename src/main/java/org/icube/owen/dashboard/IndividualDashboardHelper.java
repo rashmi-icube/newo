@@ -144,7 +144,7 @@ public class IndividualDashboardHelper extends TheBorg {
 				"Entering getActivityFeedList with employee ID : " + employeeId + " page number " + pageNumber);
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
-		Map<Date, List<ActivityFeed>> result = new TreeMap(Collections.reverseOrder());
+		Map<Date, List<ActivityFeed>> result = new TreeMap<>(Collections.reverseOrder());
 
 		org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Get ActivityFeed list");
 		try {
@@ -178,11 +178,11 @@ public class IndividualDashboardHelper extends TheBorg {
 				afList.add(af);
 			}
 
-			/*Collections.sort(afList, new Comparator<ActivityFeed>() {
+			Collections.sort(afList, new Comparator<ActivityFeed>() {
 				public int compare(ActivityFeed af1, ActivityFeed af2) {
-					return af1.getDate().compareTo(af2.getDate());
+					return af2.getDate().compareTo(af1.getDate());
 				}
-			});*/
+			});
 
 			// return a sublist of result based on the page number
 			int feedThreshold = 25;

@@ -156,11 +156,11 @@ public class Question extends TheBorg {
 			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getResponseData(?)}");
 			cstmt.setInt(1, q.getQuestionId());
 			ResultSet rs = cstmt.executeQuery();
-			if (rs != null) {
-				while (rs.next()) {
+			if (rs.next()) {
+				do {
 					Date utilDate = new Date(rs.getDate("date").getTime());
 					responseMap.put(utilDate, rs.getInt("responses"));
-				}
+				} while (rs.next());
 			} else {
 				for (Date d = q.getStartDate(); d.before(Date.from(Instant.now())); d = UtilHelper.convertJavaDateToSqlDate(DateUtils.addDays(d, 1))) {
 					responseMap.put(d, 0);
@@ -169,6 +169,7 @@ public class Question extends TheBorg {
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(Question.class).error("Exception while retrieving response data", e);
 		}
+		org.apache.log4j.Logger.getLogger(Question.class).debug("Response : " + responseMap.toString());
 		return responseMap;
 
 	}

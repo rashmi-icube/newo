@@ -28,8 +28,10 @@ public class QuestionTest {
 	public void testgetResponse() {
 		Map<Date, Integer> responseMap = q.getResponse(q.getQuestion(17));
 		assertTrue(!responseMap.isEmpty());
-		Map<Date, Integer> responseMap1 = q.getResponse(q.getQuestion(2));
-		assertTrue(!responseMap1.isEmpty());
+		responseMap = q.getResponse(q.getQuestion(2));
+		assertTrue(!responseMap.isEmpty());
+		responseMap = q.getResponse(q.getCurrentQuestion(1));
+		assertTrue(!responseMap.isEmpty());
 	}
 
 	@Test
