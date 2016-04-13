@@ -169,7 +169,7 @@ public class Question extends TheBorg {
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(Question.class).error("Exception while retrieving response data", e);
 		}
-		org.apache.log4j.Logger.getLogger(Question.class).debug("Response : " + responseMap.toString());
+		org.apache.log4j.Logger.getLogger(Question.class).debug("Response for question : " + q.getQuestionId() + " : " + responseMap.toString());
 		return responseMap;
 
 	}
