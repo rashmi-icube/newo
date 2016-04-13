@@ -16,7 +16,7 @@ public class InitiativeListTest {
 	@Test
 	public void testGetInitiativeList() {
 		List<Initiative> iList = new ArrayList<>();
-		iList = il.getInitiativeList();
+		iList = il.getInitiativeList("Team");
 		for (Initiative i : iList) {
 			assertNotNull(i.getInitiativeId());
 			assertNotNull(i.getInitiativeCategory());
