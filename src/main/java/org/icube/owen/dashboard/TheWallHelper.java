@@ -21,6 +21,7 @@ public class TheWallHelper extends TheBorg {
 	 */
 	public List<Map<String, Object>> getIndividualWallFeed(int metricId, String direction, int percentage, int pageNumber, int pageSize,
 			List<Filter> filterList) {
+		org.apache.log4j.Logger.getLogger(TheWallHelper.class).debug("Entering getIndividualWallFeed");
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Map<String, Object>> result = new ArrayList<>();
 		Map<String, Object> parsedFilterMap = new HashMap<>();
@@ -31,6 +32,9 @@ public class TheWallHelper extends TheBorg {
 		} else {
 			parsedFilterMap = UtilHelper.parseFilterList(filterList);
 		}
+		org.apache.log4j.Logger.getLogger(TheWallHelper.class).debug("Function : " + parsedFilterMap.get("funcId"));
+		org.apache.log4j.Logger.getLogger(TheWallHelper.class).debug("Position : " + parsedFilterMap.get("posId"));
+		org.apache.log4j.Logger.getLogger(TheWallHelper.class).debug("Zone : " + parsedFilterMap.get("zoneId"));
 		try {
 			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getWallFeedIndividual(?,?,?,?,?,?,?,?)}");
 			cstmt.setInt("fun", (int) parsedFilterMap.get("funcId"));
@@ -55,6 +59,14 @@ public class TheWallHelper extends TheBorg {
 				employeeDetailsMap.put("function", rs.getString("Function"));
 				employeeDetailsMap.put("position", rs.getString("Position"));
 				employeeDetailsMap.put("zone", rs.getString("Zone"));
+				org.apache.log4j.Logger.getLogger(TheWallHelper.class).debug(
+						"Employee Details : companyId : " + employeeDetailsMap.get("companyId") + "; employeeId :  "
+								+ employeeDetailsMap.get("employeeId") + "; metricScore :  " + employeeDetailsMap.get("metricScore")
+								+ "; firstName :  " + employeeDetailsMap.get("firstName") + "; lastName :  " + employeeDetailsMap.get("lastName")
+								+ "; metricId :  " + employeeDetailsMap.get("metricId") + "; initiativeTypeId :  "
+								+ employeeDetailsMap.get("initiativeTypeId") + "; function :  " + employeeDetailsMap.get("function")
+								+ "; position :  " + employeeDetailsMap.get("position") + "; zone :  " + employeeDetailsMap.get("zone"));
+
 				result.add(employeeDetailsMap);
 			}
 
@@ -69,6 +81,7 @@ public class TheWallHelper extends TheBorg {
 	 */
 	public List<Map<String, Object>> getTeamWallFeed(int metricId, String direction, int percentage, int pageNumber, int pageSize,
 			List<Filter> filterList) {
+		org.apache.log4j.Logger.getLogger(TheWallHelper.class).debug("Entering getTeamWallFeed");
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Map<String, Object>> result = new ArrayList<>();
 		Map<String, Object> parsedFilterMap = new HashMap<>();
@@ -79,6 +92,9 @@ public class TheWallHelper extends TheBorg {
 		} else {
 			parsedFilterMap = UtilHelper.parseFilterList(filterList);
 		}
+		org.apache.log4j.Logger.getLogger(TheWallHelper.class).debug("Function : " + parsedFilterMap.get("funcId"));
+		org.apache.log4j.Logger.getLogger(TheWallHelper.class).debug("Position : " + parsedFilterMap.get("posId"));
+		org.apache.log4j.Logger.getLogger(TheWallHelper.class).debug("Zone : " + parsedFilterMap.get("zoneId"));
 		try {
 			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getWallFeedTeam(?,?,?,?,?,?,?,?)}");
 			cstmt.setInt("fun", (int) parsedFilterMap.get("funcId"));
@@ -102,11 +118,22 @@ public class TheWallHelper extends TheBorg {
 					Map<Integer, String> filterValueMap = new HashMap<>();
 					filterValueMap.put(rs.getInt("dimension_val_id_" + i), rs.getString("dimension_val_name_" + i));
 					f.setFilterValues(filterValueMap);
+
 					resultFilterList.add(f);
 				}
 				teamDetailsMap.put("filterList", resultFilterList);
 				teamDetailsMap.put("metricId", rs.getInt("metric_id"));
 				teamDetailsMap.put("initiativeTypeId", rs.getInt("init_type_id"));
+				org.apache.log4j.Logger.getLogger(TheWallHelper.class).debug(
+						"Team Details : cubeId : " + teamDetailsMap.get("cubeId") + "; metricScore :  " + teamDetailsMap.get("metricScore")
+								+ "; metricId :  " + teamDetailsMap.get("metricId") + "; initiativeTypeId :  "
+								+ teamDetailsMap.get("initiativeTypeId"));
+				for (Filter f : resultFilterList) {
+					org.apache.log4j.Logger.getLogger(TheWallHelper.class).debug(
+							"Result filter : filterId : " + f.getFilterId() + " filterName : " + f.getFilterName() + " filterValues : "
+									+ f.getFilterValues().toString());
+				}
+
 				result.add(teamDetailsMap);
 			}
 

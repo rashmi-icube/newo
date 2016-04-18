@@ -16,7 +16,7 @@ public class InitiativeListTest {
 	@Test
 	public void testGetInitiativeList() {
 		List<Initiative> iList = new ArrayList<>();
-		iList = il.getInitiativeList();
+		iList = il.getInitiativeList("Team");
 		for (Initiative i : iList) {
 			assertNotNull(i.getInitiativeId());
 			assertNotNull(i.getInitiativeCategory());
@@ -39,7 +39,7 @@ public class InitiativeListTest {
 	@Test
 	public void testGetInitiativeListByStatus() {
 		List<Initiative> iList = new ArrayList<>();
-		iList = il.getInitiativeListByStatus("Individual", "Active");
+		iList = il.getInitiativeListByStatus("Team", "Active");
 		for (Initiative i : iList) {
 			assertNotNull(i.getInitiativeId());
 			assertNotNull(i.getInitiativeCategory());

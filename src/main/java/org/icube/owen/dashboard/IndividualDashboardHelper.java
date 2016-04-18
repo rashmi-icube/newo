@@ -16,7 +16,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -141,9 +140,11 @@ public class IndividualDashboardHelper extends TheBorg {
 	 * @return A list of ActivityFeed objects
 	 */
 	public Map<Date, List<ActivityFeed>> getActivityFeedList(int companyId, int employeeId, int pageNumber) {
+		org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug(
+				"Entering getActivityFeedList with employee ID : " + employeeId + " page number " + pageNumber);
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
-		Map<Date, List<ActivityFeed>> result = new HashMap<>();
+		Map<Date, List<ActivityFeed>> result = new TreeMap<>(Collections.reverseOrder());
 
 		org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Get ActivityFeed list");
 		try {
@@ -155,7 +156,7 @@ public class IndividualDashboardHelper extends TheBorg {
 			Statement stmt = dch.neo4jCon.createStatement();
 			ResultSet res = stmt.executeQuery(initiativeListQuery);
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Executed query for retrieving initiative list");
-			SimpleDateFormat parserSDF = new SimpleDateFormat(UtilHelper.dateTimeFormat, Locale.ENGLISH);
+			SimpleDateFormat parserSDF = new SimpleDateFormat(UtilHelper.dateTimeFormat);
 			List<ActivityFeed> afList = new ArrayList<>();
 			while (res.next()) {
 				ActivityFeed af = new ActivityFeed();
@@ -166,17 +167,20 @@ public class IndividualDashboardHelper extends TheBorg {
 				afList.add(af);
 			}
 			while (rs.next()) {
+				org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Appreciation from database");
 				ActivityFeed af = new ActivityFeed();
 				af.setHeaderText("Appreciation received");
 				af.setBodyText("You were appreciated for " + rs.getString("metric_name"));
 				af.setActivityType("Appreciation");
 				af.setDate(parserSDF.parse(rs.getString("response_time")));
+				org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug(
+						af.getDate() + ":" + af.getActivityType() + " : " + af.getBodyText() + ":" + af.getHeaderText());
 				afList.add(af);
 			}
 
 			Collections.sort(afList, new Comparator<ActivityFeed>() {
 				public int compare(ActivityFeed af1, ActivityFeed af2) {
-					return af1.getDate().compareTo(af2.getDate());
+					return af2.getDate().compareTo(af1.getDate());
 				}
 			});
 
@@ -199,6 +203,14 @@ public class IndividualDashboardHelper extends TheBorg {
 				}
 			}
 			result.toString();
+			for (List<ActivityFeed> afl : result.values()) {
+				for (ActivityFeed af : afl) {
+					org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug(
+							af.getDate() + ":" + af.getActivityType() + " : " + af.getBodyText() + ":" + af.getHeaderText());
+
+				}
+
+			}
 			stmt.close();
 		} catch (SQLException | ParseException e) {
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while retrieving the activity feed data", e);

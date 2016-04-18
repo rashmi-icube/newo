@@ -34,12 +34,15 @@ public class MetricsHelper {
 			// if all selections are ALL then it is a organizational team metric
 			CallableStatement cstmt;
 			if (previousScoreNeeded) {
+				org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Calling the getOrganizationMetricValueAggregate");
 				cstmt = dch.mysqlCon.prepareCall("{call getOrganizationMetricValueAggregate()}");
 			} else {
+				org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Calling the getOrganizationMetricValue");
 				cstmt = dch.mysqlCon.prepareCall("{call getOrganizationMetricValue()}");
 			}
 			ResultSet rs = cstmt.executeQuery();
 			metricList = fillMetricsData(initiativeTypeId, rs, primaryMetricMap, "Team");
+			org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Calculated metrics for organization : " + metricList.size());
 		} else if ((int) parsedFilterListResult.get("countAll") == 2) {
 			// if two of the filters are ALL then it is a dimension metric
 			CallableStatement cstmt;
@@ -66,8 +69,10 @@ public class MetricsHelper {
 			// if none of the filters is ALL then it is a cube metric
 			CallableStatement cstmt;
 			if (previousScoreNeeded) {
+				org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Calling the getTeamMetricValueAggregate");
 				cstmt = dch.mysqlCon.prepareCall("{call getTeamMetricValueAggregate(?, ?, ?)}");
 			} else {
+				org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Calling the getTeamMetricValue");
 				cstmt = dch.mysqlCon.prepareCall("{call getTeamMetricValue(?, ?, ?)}");
 			}
 			cstmt.setInt(1, (int) parsedFilterListResult.get("funcId"));
@@ -75,7 +80,7 @@ public class MetricsHelper {
 			cstmt.setInt(3, (int) parsedFilterListResult.get("zoneId"));
 			ResultSet rs = cstmt.executeQuery();
 			metricList = fillMetricsData(initiativeTypeId, rs, primaryMetricMap, "Team");
-
+			org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Calculated metrics for team : " + metricList.size());
 		} else {
 			// else call metric.R
 			MetricsList ml = new MetricsList();

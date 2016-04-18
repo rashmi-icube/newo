@@ -5,8 +5,6 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -142,26 +140,27 @@ public class EmployeeList extends TheBorg {
 			int[] scoreArray = scoreResult.asIntegers();
 			REXPString gradeRseult = (REXPString) result.get("flag");
 			String[] gradeArray = gradeRseult.asStrings();
+			REXPInteger rank = (REXPInteger) result.get("Rank");
+			int[] rankArray = rank.asIntegers();
+			Map<Integer, Employee> empMap = new TreeMap<>();
 
 			for (int i = 0; i < empIdArray.length; i++) {
 				Employee e = new Employee();
 				e = e.get(empIdArray[i]);
 				e.setGrade(gradeArray[i]);
 				e.setScore(scoreArray[i]);
-				individualSmartList.add(e);
+				empMap.put(rankArray[i], e);
 			}
 
-			Collections.sort(individualSmartList, Collections.reverseOrder(new Comparator<Employee>() {
-				public int compare(Employee e1, Employee e2) {
-					return Double.compare(e1.getScore(), e2.getScore());
-				}
-			}));
+			for (Employee e : empMap.values()) {
+				individualSmartList.add(e);
+			}
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).error("Error while trying to retrieve the smart list for employee ", e);
 		}
 
 		finally {
-			ObjectFactory.getDBHelper().releaseRcon();
+			dch.releaseRcon();
 		}
 
 		return individualSmartList;
@@ -286,7 +285,7 @@ public class EmployeeList extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Employee> employeeList = new ArrayList<>();
 		Employee e = new Employee();
-		Connection conn;
+
 		try {
 			int funcId = 0, posId = 0, zoneId = 0;
 			for (Filter filter : filterList) {
@@ -298,7 +297,8 @@ public class EmployeeList extends TheBorg {
 					zoneId = filter.getFilterValues().keySet().iterator().next();
 				}
 			}
-			conn = dch.getCompanyConnection(companyId);
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("Function : " + funcId + " Zone : " + zoneId + " Position : " + posId);
+			Connection conn = dch.getCompanyConnection(companyId);
 			CallableStatement cstmt = conn.prepareCall("{call getEmpFromDimension(?,?,?)}");
 			cstmt.setInt(1, funcId);
 			cstmt.setInt(2, posId);
