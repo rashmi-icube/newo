@@ -334,9 +334,9 @@ public class Initiative extends TheBorg {
 		InitiativeList il = new InitiativeList();
 		i.setInitiativeId(initiativeId);
 		try {
-			String query = "match (o:Employee)-[:owner_of]->(i:Init{Id:"
+			String query = "match (i:Init{Id:"
 					+ initiativeId
-					+ "})<-[r:part_of]-(a) return i.Name as Name,"
+					+ "})<-[r:part_of]-(a) with i,a optional match (o:Employee)-[:owner_of]->(i) return i.Name as Name,"
 					+ "i.StartDate as StartDate, i.EndDate as EndDate,i.CreatedOn as CreationDate, i.Id as Id,case i.Category when 'Individual' then collect(distinct(a.emp_id)) "
 					+ "else collect(distinct(a.Id))  end as PartOfID,collect(distinct(a.Name))as PartOfName, labels(a) as Filters, "
 					+ "collect(distinct (o.emp_id)) as OwnersOf,i.Comment as Comments,i.Type as Type,i.Category as Category,i.Status as Status";
