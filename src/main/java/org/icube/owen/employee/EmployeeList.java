@@ -160,7 +160,7 @@ public class EmployeeList extends TheBorg {
 		}
 
 		finally {
-			ObjectFactory.getDBHelper().releaseRcon();
+			dch.releaseRcon();
 		}
 
 		return individualSmartList;

@@ -279,7 +279,7 @@ public class Question extends TheBorg {
 		}
 
 		finally {
-			ObjectFactory.getDBHelper().releaseRcon();
+			dch.releaseRcon();
 		}
 
 		return employeeList;
