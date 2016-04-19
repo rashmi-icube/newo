@@ -19,6 +19,7 @@ public class TheWallHelper extends TheBorg {
 	/**
 	 * Get list of individuals for the wall 
 	 */
+
 	public List<Map<String, Object>> getIndividualWallFeed(int companyId, int metricId, String direction, int percentage, int pageNumber,
 			int pageSize, List<Filter> filterList) {
 		org.apache.log4j.Logger.getLogger(TheWallHelper.class).debug("Entering getIndividualWallFeed");

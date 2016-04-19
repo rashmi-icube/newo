@@ -24,6 +24,7 @@ public class MetricsList extends TheBorg {
 	 * @param initiativeTypeId - ID of the type of initiative
 	 * @return list of metrics objects
 	 */
+
 	public List<Metrics> getInitiativeMetricsForTeam(int companyId, int initiativeTypeId, List<Filter> filterList) {
 		org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Entering getInitiativeMetricsForTeam");
 	

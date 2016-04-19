@@ -149,6 +149,7 @@ public class Initiative extends TheBorg {
 					}
 					org.apache.log4j.Logger.getLogger(Initiative.class).debug("Team Size : " + teamSize);
 					MetricsList ml = new MetricsList();
+
 					List<Metrics> metricsList = ml.getInitiativeMetricsForTeam(companyId, initiativeId, this.filterList);
 					org.apache.log4j.Logger.getLogger(Initiative.class).debug("Successfully calculated metrics for initiative" + metricsList.size());
 					for (Metrics m : metricsList) {
@@ -350,7 +351,11 @@ public class Initiative extends TheBorg {
 			Statement stmt = dch.companyNeoConnectionPool.get(companyId).createStatement();
 			ResultSet res = stmt.executeQuery(query);
 			while (res.next()) {
+<<<<<<< HEAD
 				il.setInitiativeValues(companyId, res, i);
+=======
+				il.setInitiativeValues(res, i);
+>>>>>>> bd750746901cc05f69a7d286729c641db42e1eee
 			}
 			stmt.close();
 		} catch (SQLException e) {

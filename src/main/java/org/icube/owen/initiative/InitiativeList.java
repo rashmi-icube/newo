@@ -45,6 +45,7 @@ public class InitiativeList extends TheBorg {
 	 * @param viewByValue - Status/Type of initiative to be viewed
 	 * @return List of initiatives
 	 */
+
 	private List<Initiative> getInitiativeList(int companyId, String category, String viewByCriteria, Object viewByValue) {
 		org.apache.log4j.Logger.getLogger(InitiativeList.class).debug(
 				"entering getInitiativeList with category : " + category + " ; viewByCriteria : " + viewByCriteria + " viewByValue : " + viewByValue);
@@ -127,6 +128,7 @@ public class InitiativeList extends TheBorg {
 	 * 
 	 * @return - A list of Initiatives
 	 */
+
 	public List<Initiative> getInitiativeList(int companyId, String category) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
