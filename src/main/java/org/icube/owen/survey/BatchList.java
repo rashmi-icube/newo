@@ -74,7 +74,7 @@ public class BatchList extends TheBorg {
 					q.setResponsePercentage(rs1.getDouble("resp"));
 					q.setQuestionType(QuestionType.values()[rs1.getInt("que_type")]);
 					q.setSurveyBatchId(rs1.getInt("survey_batch_id"));
-					q.setRelationshipTypeId(rs1.getInt("rel_id") == 0 ? null : rs1.getInt("rel_id"));
+					q.setRelationshipTypeId(rs1.getInt("rel_id"));
 					questionList.add(q);
 				}
 				b.setQuestionList(questionList);
