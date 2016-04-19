@@ -259,7 +259,7 @@ public class IndividualDashboardHelper extends TheBorg {
 			rCon.assign("emp_id", new int[] { employeeId });
 			rCon.assign("rel_id", new int[] { MetricRelationshipTypeMap.get(metricId) });
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Calling the actual function in RScript SmartListResponse");
-			REXP employeeSmartList = rCon.parseAndEval("try(eval(SmartListResponse(emp_id, rel_id)))");
+			REXP employeeSmartList = rCon.parseAndEval("try(eval(SmartListResponse(company_id, emp_id, rel_id)))");
 			if (employeeSmartList.inherits("try-error")) {
 				org.apache.log4j.Logger.getLogger(Question.class).error("Error: " + employeeSmartList.asString());
 				throw new Exception("Error: " + employeeSmartList.asString());

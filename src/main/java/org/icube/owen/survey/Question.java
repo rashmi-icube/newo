@@ -253,10 +253,11 @@ public class Question extends TheBorg {
 			RConnection rCon = dch.getRConn();
 			org.apache.log4j.Logger.getLogger(Question.class).debug("R Connection Available : " + rCon.isConnected());
 			org.apache.log4j.Logger.getLogger(Question.class).debug("Filling up parameters for rscript function");
+			rCon.assign("company_id", new int[] { companyId });
 			rCon.assign("emp_id", new int[] { employeeId });
 			rCon.assign("rel_id", new int[] { q.getRelationshipTypeId() });
 			org.apache.log4j.Logger.getLogger(Question.class).debug("Calling the actual function in RScript SmartListResponse");
-			REXP employeeSmartList = rCon.parseAndEval("try(eval(SmartListResponse(emp_id, rel_id)))");
+			REXP employeeSmartList = rCon.parseAndEval("try(eval(SmartListResponse(company_id, emp_id, rel_id)))");
 			if (employeeSmartList.inherits("try-error")) {
 				org.apache.log4j.Logger.getLogger(Question.class).error("Error: " + employeeSmartList.asString());
 				throw new Exception("Error: " + employeeSmartList.asString());

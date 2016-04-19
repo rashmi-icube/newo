@@ -150,7 +150,7 @@ public class DatabaseConnectionHelper extends TheBorg {
 	public void getCompanyConnection(int companyId) {
 		if (!companySqlConnectionPool.containsKey(companyId) || !companyNeoConnectionPool.containsKey(companyId)) {
 			// get company details
-			String sqlUrl = "", sqlUserName = "", sqlPassword = "", neoUrl = "";
+			String sqlUrl = "", sqlUserName = "", sqlPassword = "", neoUrl = "", neoUserName = "", neoPassword = "";
 			try {
 				CallableStatement cstmt = masterCon.prepareCall("{call getCompanyConfig(?)}");
 				cstmt.setInt(1, companyId);
@@ -162,6 +162,8 @@ public class DatabaseConnectionHelper extends TheBorg {
 					sqlPassword = rs.getString("sql_password");
 					companyImagePath.put(companyId, rs.getString("images_path"));
 					neoUrl = rs.getString("neo_db_url");
+					neoUserName = rs.getString("neo_user_name");
+					neoPassword = rs.getString("neo_password");
 				}
 			} catch (Exception e) {
 				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("An error occurred while getting company configuration", e);
@@ -184,13 +186,14 @@ public class DatabaseConnectionHelper extends TheBorg {
 
 			// company neo connection
 			if (!companyNeoConnectionPool.containsKey(companyId)) {
-
 				try {
 					Class.forName("org.neo4j.jdbc.Driver");
 					String path = "jdbc:neo4j://" + neoUrl + "/";
 					org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Neo4j connection path : " + path);
-					Connection compNeoConn = new Driver().connect(path, new Properties());
-
+					Properties p = new Properties();
+					p.setProperty("user", neoUserName);
+					p.setProperty("password", neoPassword);
+					Connection compNeoConn = new Driver().connect(path, p);
 					companyNeoConnectionPool.put(companyId, compNeoConn);
 					org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug(
 							"Successfully connected to Neo4j with company ID : " + companyId);

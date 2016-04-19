@@ -1,9 +1,9 @@
 library(RNeo4j)
+library(dplyr)
 library(igraph)
 library(moments)
 library(RMySQL)
 library(reshape2)
-library(dplyr)
 
 #setwd("C:\\Users\\Hitendra\\Desktop\\R metric Function")
 # Function=c(1)
@@ -12,9 +12,9 @@ library(dplyr)
 
 source('config.R')
 
-TeamMetric=function(Function,Position,Zone){
+TeamMetric=function(CompanyId,Function,Position,Zone){
   # remove this
-  CompanyId=1
+  #CompanyId=1
   
   mydb = dbConnect(MySQL(), user=mysqlusername, password=mysqlpasswod, dbname=mysqldbname, host=mysqlhost, port=mysqlport)
   
@@ -64,10 +64,11 @@ TeamMetric=function(Function,Position,Zone){
   # graph DB connection
   
   com_neopath=CompanyConfig$neo_db_url[1]
-  com_neopath=paste(com_neopath,"/db/data/",sep = "")
+  #com_neopath=paste(com_neopath,"/db/data/",sep = "")
+  com_neopath=paste("http://",com_neopath,"/db/data/",sep = "")
   
   com_neousername=CompanyConfig$neo_user_name[1]
-  com_neopassword=CompanyConfig$neo_passsword[1]
+  com_neopassword=CompanyConfig$neo_password[1]
   
   graph = startGraph(com_neopath, username=com_neousername, password=com_neopassword)
   
@@ -425,9 +426,9 @@ TeamMetric=function(Function,Position,Zone){
 }
 
 
-SmartListResponse=function(emp_id,rel_id){
+SmartListResponse=function(CompanyId,emp_id,rel_id){
   
-  CompanyId=1
+  #CompanyId=1
   
   mydb = dbConnect(MySQL(), user=mysqlusername, password=mysqlpasswod, dbname=mysqldbname, host=mysqlhost, port=mysqlport)
   
@@ -458,10 +459,10 @@ SmartListResponse=function(emp_id,rel_id){
   # graph DB connection
   
   com_neopath=CompanyConfig$neo_db_url[1]
-  com_neopath=paste(com_neopath,"/db/data/",sep = "")
+  com_neopath=paste("http://",com_neopath,"/db/data/",sep = "")
   
   com_neousername=CompanyConfig$neo_user_name[1]
-  com_neopassword=CompanyConfig$neo_passsword[1]
+  com_neopassword=CompanyConfig$neo_password[1]
   
   graph = startGraph(com_neopath, username=com_neousername, password=com_neopassword)
   
@@ -543,8 +544,8 @@ SmartListResponse=function(emp_id,rel_id){
 
 
 #Team
-TeamSmartList=function(Function,Position,Zone,init_type_id){
-  CompanyId=1
+TeamSmartList=function(CompanyId,Function,Position,Zone,init_type_id){
+  #CompanyId=1
   
   mydb = dbConnect(MySQL(), user=mysqlusername, password=mysqlpasswod, dbname=mysqldbname, host=mysqlhost, port=mysqlport)
   
@@ -591,10 +592,10 @@ TeamSmartList=function(Function,Position,Zone,init_type_id){
   }
   
   com_neopath=CompanyConfig$neo_db_url[1]
-  com_neopath=paste(com_neopath,"/db/data/",sep = "")
+  com_neopath=paste("http://",com_neopath,"/db/data/",sep = "")
   
   com_neousername=CompanyConfig$neo_user_name[1]
-  com_neopassword=CompanyConfig$neo_passsword[1]
+  com_neopassword=CompanyConfig$neo_password[1]
   
   graph = startGraph(com_neopath, username=com_neousername, password=com_neopassword)
   
@@ -723,8 +724,8 @@ TeamSmartList=function(Function,Position,Zone,init_type_id){
 
 # individual
 
-IndividualSmartList=function(emp_id,init_type_id){
-  CompanyId=1
+IndividualSmartList=function(CompanyId,emp_id,init_type_id){
+  #CompanyId=1
   
   mydb = dbConnect(MySQL(), user=mysqlusername, password=mysqlpasswod, dbname=mysqldbname, host=mysqlhost, port=mysqlport)
   
@@ -743,10 +744,10 @@ IndividualSmartList=function(emp_id,init_type_id){
   mydb = dbConnect(MySQL(), user=comp_sql_user_id, password=comp_sql_password, dbname=comp_sql_dbname, host=comp_sql_server, port=mysqlport)
   
   com_neopath=CompanyConfig$neo_db_url[1]
-  com_neopath=paste(com_neopath,"/db/data/",sep = "")
+  com_neopath=paste("http://",com_neopath,"/db/data/",sep = "")
   
   com_neousername=CompanyConfig$neo_user_name[1]
-  com_neopassword=CompanyConfig$neo_passsword[1]
+  com_neopassword=CompanyConfig$neo_password[1]
   
   graph = startGraph(com_neopath, username=com_neousername, password=com_neopassword)
   
@@ -866,6 +867,8 @@ IndividualSmartList=function(emp_id,init_type_id){
   # return op
   return(op)
 }
+
+
 
 calculate_edge=function(CompanyId){
   mydb = dbConnect(MySQL(), user=mysqlusername, password=mysqlpasswod, dbname=mysqldbname, host=mysqlhost, port=mysqlport)
@@ -993,161 +996,6 @@ calculate_edge=function(CompanyId){
   return(TRUE)
 } 
 
-calcualte_edge_old=function(CompanyId){
-  # connect to Owen_master sqldb
-  mydb = dbConnect(MySQL(), user=mysqlusername, password=mysqlpasswod, dbname=mysqldbname, host=mysqlhost, port=mysqlport)
-  
-  # get company's connection details
-  query=paste("call getCompanyConfig(",CompanyId,");",sep = "")
-  res <- dbSendQuery(mydb,query)
-  CompanyConfig=fetch(res,-1)
-  
-  dbDisconnect(mydb)
-  
-  comp_sql_dbname=CompanyConfig$comp_sql_dbname[1]
-  comp_sql_server=CompanyConfig$sql_server[1]
-  comp_sql_user_id=CompanyConfig$sql_user_id[1]
-  comp_sql_password=CompanyConfig$sql_password[1]
-  # connect to Company's sqldb
-  mydb = dbConnect(MySQL(), user=comp_sql_user_id, password=comp_sql_password, dbname=comp_sql_dbname, host=comp_sql_server, port=mysqlport)
-  
-  # get decay variable
-  query="SELECT * FROM variable where variable_id=9;"
-  res <- dbSendQuery(mydb,query)
-  decay=fetch(res,-1)
-  decay=decay$value[1]
-  
-  # get quesion list for batch 1 and we type
-  query="SELECT * FROM question where survey_batch_id=1 and que_type=1;"
-  res <- dbSendQuery(mydb,query)
-  question=fetch(res,-1)
-  
-  question$start_date=as.Date(question$start_date,format="%Y-%m-%d")
-  question$end_date=as.Date(question$end_date,format="%Y-%m-%d")
-  #question$end_date=as.Date(question$end_date,format="%Y-%m-%d")
-  
-  # filter question which are completed
-  question=question[question$end_date<Sys.Date(),]
-    
-  # filter top latest 4 question for each rel_id
-  question <- question %>%
-    group_by(rel_id) %>%
-    top_n(n = 4, wt = que_id)
-  
-  # we_response form sql for filtered question
-  query=paste("SELECT * FROM we_response where que_id in (",paste(question$que_id,collapse = ","),")")
-  res <- dbSendQuery(mydb,query)
-  we_response=fetch(res,-1)
-  
-  we_response$response_time=strptime(we_response$response_time,format="%Y-%m-%d  %H:%M:%S")
-  #we_response$response_time=strptime(we_response$response_time,format="%Y-%m-%d  %H:%M:%S")
-  
-  # oldest date of question started
-  startdate=min(question$start_date)
-  
-  # appreciatio from sql from startdate to today
-  query=paste("SELECT * FROM appreciation_response where date(response_time)>'",startdate,"'",sep = "")
-  res <- dbSendQuery(mydb,query)
-  appreciation_response=fetch(res,-1)
-  
-  #appreciation_response$response_time=strptime(appreciation_response$response_time,format="%Y-%m-%d  %H:%M:%S")
-  
-  
-  # to link appreciatio response to latest question
-  for  (j in 1:4){
-    rel_id=j
-    que_sub=question[question$rel_id==j,]
-    que_sub=que_sub[order(que_sub$que_id),]
-    for (k in 1:nrow(que_sub)){
-      que_id=que_sub$que_id[k]
-      startdate=que_sub$start_date[k]
-      appreciation_response$que_id[appreciation_response$rel_id==j & 
-                                     as.Date(appreciation_response$response_time)>=startdate]=que_id
-    }
-  }
-  
-  # remove appreciation which is not linked to any question
-  appreciation_response=appreciation_response[!is.na(appreciation_response$que_id),]
-  
-  # combine we_response and appreciation_response
-  response=rbind(we_response[,c("emp_id","que_id","response_time","target_emp_id","rel_id","weight")],
-                 appreciation_response[,c("emp_id","que_id","response_time","target_emp_id","rel_id","weight")])
-  
-  # list of employee who responded
-  emp_id_list=unique(response$emp_id)
-  
-  # deacay Function
-  decayfun=function(D,currdecay,que){
-    if (length(que_rel)>=que){
-      currque=que_rel[que]
-      D1=D[D$que_id==currque,]
-      if(nrow(D1)>0){
-        currweight=D1$weight[D1$response_time==max(D1$response_time)]
-      }else{
-        currweight=0
-      }
-      score=currweight*currdecay+decayfun(D,currdecay*decay,que+1)
-      return(score)
-    }else{
-      return(0)
-    }
-  }
-  
-  #empty dataframe
-  opcal=data.frame(emp_id=as.numeric(),target_emp_id=as.numeric(),
-                   rel_id=as.numeric(),weight=as.numeric())
-  
-  for ( j in 1:4){
-    currrel=j
-    que_rel=question$que_id[question$rel_id==currrel]
-    que_rel=sort(que_rel,decreasing = TRUE)
-    decayweight=0
-    for(x in 1:length(que_rel)){
-      decayweight=decayweight+decay^(x-1)
-    }
-    emp_id_list=unique(response$emp_id[response$rel_id==currrel])
-    for ( i in 1:length(emp_id_list)){
-      curremp=emp_id_list[i]
-      print(paste("i=",i))
-      sub=response[response$emp_id==curremp & response$rel_id==currrel,]
-      target=unique(sub$target_emp_id)
-      print(paste("j=",j))
-      if(length(target)>0){
-        for (k  in 1:length(target)){
-          print(paste("k=",k))
-          curtarget=target[k]
-          sub1=sub[sub$target_emp_id==curtarget,]
-          score=decayfun(sub1,1,1)/decayweight
-          temp=data.frame(emp_id=curremp,target_emp_id=curtarget,rel_id=currrel,weight=score)
-          opcal=rbind(opcal,temp)
-        }
-      }
-    }
-  }
-  
-  TableName=paste("calculated_edge_",format(Sys.Date(), "%Y_%m_%d"),sep = "")
-  
-  query=paste("CREATE TABLE ",TableName,"(
-              `emp_from` int(11) NOT NULL,
-              `emp_to` int(11) NOT NULL,
-              `rel_id` int(11) NOT NULL,
-              `weight` double DEFAULT NULL,
-              KEY `emp_from` (`emp_from`),
-              KEY `emp_to` (`emp_to`),
-              CONSTRAINT ",TableName,"_ibfk_1 FOREIGN KEY (`emp_from`) REFERENCES `employee` (`emp_id`),
-              CONSTRAINT ",TableName,"_ibfk_2 FOREIGN KEY (`emp_to`) REFERENCES `employee` (`emp_id`)
-  );",sep="")
-
-  dbGetQuery(mydb,query)
-  
-  values <- paste("(",opcal$emp_id,",",opcal$target_emp_id,"," ,opcal$rel_id,",",opcal$weight,")", sep="", collapse=",")
-  
-  queryinsert <- paste("insert into ",TableName," values ", values,sep = "")
-  
-  dbGetQuery(mydb,queryinsert)
-  dbDisconnect(mydb)
-} 
-
 update_neo=function(CompanyId){
   
   mydb = dbConnect(MySQL(), user=mysqlusername, password=mysqlpasswod, dbname=mysqldbname, host=mysqlhost, port=mysqlport)
@@ -1181,10 +1029,10 @@ update_neo=function(CompanyId){
   dbDisconnect(mydb)
   
   com_neopath=CompanyConfig$neo_db_url[1]
-  com_neopath=paste(com_neopath,"/db/data/",sep = "")
+  com_neopath=paste("http://",com_neopath,"/db/data/",sep = "")
   
   com_neousername=CompanyConfig$neo_user_name[1]
-  com_neopassword=CompanyConfig$neo_passsword[1]
+  com_neopassword=CompanyConfig$neo_password[1]
   
   graph = startGraph(com_neopath, username=com_neousername, password=com_neopassword)
   
@@ -1198,106 +1046,19 @@ update_neo=function(CompanyId){
     
     relname=relationship_master$rel_name[relationship_master$rel_id==k]
     
-    write.csv(edgelist,"edgelist.csv",row.names = FALSE)
+    write.csv(edgelistrel,"edgelist.csv",row.names = FALSE)
     
     link=getwd()
     
     query=paste('LOAD CSV WITH HEADERS FROM "file:///',link,'/edgelist.csv" AS row
                 MATCH (a:Employee),(b:Employee)
                 WHERE a.emp_id = toInt(row.emp_from) AND b.emp_id = toInt(row.emp_to)
-                CREATE (a)-[r:',relname,' {weight:toInt(row.weight)}]->(b)',sep = "")
+                CREATE (a)-[r:',relname,' {weight:toFLOAT(row.weight)}]->(b)',sep = "")
     
     cypher(graph, query) 
     
   }
   
-  return(TRUE)
-}
-
-
-update_neo_old=function(CompanyId){
-  
-  mydb = dbConnect(MySQL(), user=mysqlusername, password=mysqlpasswod, dbname=mysqldbname, host=mysqlhost, port=mysqlport)
-  
-  query=paste("call getCompanyConfig(",CompanyId,");",sep = "")
-  res <- dbSendQuery(mydb,query)
-  CompanyConfig=fetch(res,-1)
-  
-  dbDisconnect(mydb)
-  
-  comp_sql_dbname=CompanyConfig$comp_sql_dbname[1]
-  comp_sql_server=CompanyConfig$sql_server[1]
-  comp_sql_user_id=CompanyConfig$sql_user_id[1]
-  comp_sql_password=CompanyConfig$sql_password[1]
-  
-  mydb = dbConnect(MySQL(), user=comp_sql_user_id, password=comp_sql_password, dbname=comp_sql_dbname, host=comp_sql_server, port=mysqlport)
-  
-  
-  TableName=paste("calculated_edge_",format(Sys.Date(), "%Y_%m_%d"),sep = "")
-  
-  query=paste("SELECT * FROM ",TableName," ;",sep = "")
-  res <- dbSendQuery(mydb,query)
-  edgelist=fetch(res,-1)
-  
-  query="SELECT * FROM relationship_master"
-  res <- dbSendQuery(mydb,query)
-  relationship_master=fetch(res,-1)
-  
-  edgelist=merge(edgelist,relationship_master,by="rel_id")
-  
-  dbDisconnect(mydb)
-  
-  com_neopath=CompanyConfig$neo_db_url[1]
-  com_neopath=paste(com_neopath,"/db/data/",sep = "")
-  
-  com_neousername=CompanyConfig$neo_user_name[1]
-  com_neopassword=CompanyConfig$neo_passsword[1]
-  
-  graph = startGraph(com_neopath, username=com_neousername, password=com_neopassword)
-  
-  
-  querynode = "match (a:Employee)-[r:innovation|learning|mentor|social]->(b:Employee) delete r"
-  
-  cypher(graph, querynode) 
-  
-  for (k in 1:4){
-    edgelistrel=edgelist[edgelist$rel_id==k,]
-    
-    relname=relationship_master$rel_name[relationship_master$rel_id==k]
-    
-    query = paste("MATCH (a:Employee {emp_id:{from}}),(b:Employee {emp_id:{to}})
-                  CREATE (a)-[r:",relname," {weight:toFloat({wt})}]->(b)",sep="")
-    
-    
-    tx = newTransaction(graph)
-    
-    for (i in 1:nrow(edgelistrel)) {
-      # Upload in blocks of 1000.
-      if(i %% 100 == 0) {
-        # Commit current transaction.
-        commit(tx)
-        print(paste("Batch", i / 1000, "committed."))
-        # Open new transaction.
-        tx = newTransaction(graph)
-      }
-      
-      # Append paramaterized Cypher query to transaction.
-      appendCypher(tx,
-                   query,
-                   from = edgelistrel$emp_from[i],
-                   to = edgelistrel$emp_to[i],
-                   wt=edgelistrel$weight[i]
-      )
-      
-    }
-    
-    # Commit last transaction.
-    commit(tx)
-    print("Last batch committed.")
-    print("All done! for ")
-    print(relname)
-    
-  }
   return(TRUE)
 }
 
@@ -1324,10 +1085,10 @@ JobIndNwMetric=function(CompanyId){
   relationship_master <- fetch(res)
   
   com_neopath=CompanyConfig$neo_db_url[1]
-  com_neopath=paste(com_neopath,"/db/data/",sep = "")
+  com_neopath=paste("http://",com_neopath,"/db/data/",sep = "")
   
   com_neousername=CompanyConfig$neo_user_name[1]
-  com_neopassword=CompanyConfig$neo_passsword[1]
+  com_neopassword=CompanyConfig$neo_password[1]
   
   graph = startGraph(com_neopath, username=com_neousername, password=com_neopassword)
   
@@ -1471,10 +1232,10 @@ JobCubeNwMetric=function(CompanyId){
   relationship_master <- fetch(res)
   
   com_neopath=CompanyConfig$neo_db_url[1]
-  com_neopath=paste(com_neopath,"/db/data/",sep = "")
+  com_neopath=paste("http://",com_neopath,"/db/data/",sep = "")
   
   com_neousername=CompanyConfig$neo_user_name[1]
-  com_neopassword=CompanyConfig$neo_passsword[1]
+  com_neopassword=CompanyConfig$neo_password[1]
   
   graph = startGraph(com_neopath, username=com_neousername, password=com_neopassword)
   
@@ -1543,7 +1304,7 @@ JobCubeNwMetric=function(CompanyId){
   CONSTRAINT `team_nw_metric_value_temp_ibfk_1` FOREIGN KEY (`cube_id`) REFERENCES `cube_master` (`cube_id`),
   CONSTRAINT `team_nw_metric_value_temp_ibfk_2` FOREIGN KEY (`nw_metric_id`) REFERENCES `nw_metric_master` (`nw_metric_id`),
   CONSTRAINT `team_nw_metric_value_temp_ibfk_3` FOREIGN KEY (`rel_id`) REFERENCES `relationship_master` (`rel_id`)
-  );"
+    );"
   
   dbGetQuery(mydb,queryTemp)
   
@@ -1608,10 +1369,10 @@ JobDimensionNwMetric=function(CompanyId){
   dimension_master <- fetch(res)
   
   com_neopath=CompanyConfig$neo_db_url[1]
-  com_neopath=paste(com_neopath,"/db/data/",sep = "")
+  com_neopath=paste("http://",com_neopath,"/db/data/",sep = "")
   
   com_neousername=CompanyConfig$neo_user_name[1]
-  com_neopassword=CompanyConfig$neo_passsword[1]
+  com_neopassword=CompanyConfig$neo_password[1]
   
   graph = startGraph(com_neopath, username=com_neousername, password=com_neopassword)
   
@@ -1706,7 +1467,7 @@ JobDimensionNwMetric=function(CompanyId){
   return(TRUE)
 }
 
-JobIndividualMetric=function(CompanyId){
+JobIndividaulMetric=function(CompanyId){
   
   mydb = dbConnect(MySQL(), user=mysqlusername, password=mysqlpasswod, dbname=mysqldbname, host=mysqlhost, port=mysqlport)
   
@@ -1724,10 +1485,10 @@ JobIndividualMetric=function(CompanyId){
   mydb = dbConnect(MySQL(), user=comp_sql_user_id, password=comp_sql_password, dbname=comp_sql_dbname, host=comp_sql_server, port=mysqlport)
   
   com_neopath=CompanyConfig$neo_db_url[1]
-  com_neopath=paste(com_neopath,"/db/data/",sep = "")
+  com_neopath=paste("http://",com_neopath,"/db/data/",sep = "")
   
   com_neousername=CompanyConfig$neo_user_name[1]
-  com_neopassword=CompanyConfig$neo_passsword[1]
+  com_neopassword=CompanyConfig$neo_password[1]
   
   graph = startGraph(com_neopath, username=com_neousername, password=com_neopassword)
   
@@ -1812,8 +1573,11 @@ JobIndividualMetric=function(CompanyId){
     names(instrength)[2:3]=c("current","previous")
     
     instrength$perc=(instrength$current-instrength$previous)/instrength$previous  
-    instrength$perc=instrength$perc+1
-    instrength$perc[is.na(instrength$perc)]=0
+    
+    instrength$perc=instrength$perc/2+0.5
+    
+    #instrength$perc=instrength$perc+1
+    instrength$perc[is.na(instrength$perc)]=0.5
     
     instrength$perc[instrength$perc>1]=1
     
@@ -1928,10 +1692,10 @@ JobTeamMetric=function(CompanyId){
   mydb = dbConnect(MySQL(), user=comp_sql_user_id, password=comp_sql_password, dbname=comp_sql_dbname, host=comp_sql_server, port=mysqlport)
   
   com_neopath=CompanyConfig$neo_db_url[1]
-  com_neopath=paste(com_neopath,"/db/data/",sep = "")
+  com_neopath=paste("http://",com_neopath,"/db/data/",sep = "")
   
   com_neousername=CompanyConfig$neo_user_name[1]
-  com_neopassword=CompanyConfig$neo_passsword[1]
+  com_neopassword=CompanyConfig$neo_password[1]
   
   graph = startGraph(com_neopath, username=com_neousername, password=com_neopassword)
   
@@ -2033,6 +1797,8 @@ JobTeamMetric=function(CompanyId){
   
   #add column for emp_id
   between$emp_id=row.names(between)
+  
+  between$Rank=rank(-between$Betweenness,ties.method= "random")
   
   #   # calcualte mu(mean) for betweeness
   #   mu=mean(between$Betweenness)
@@ -2329,10 +2095,10 @@ JobDimensionMetric=function(CompanyId){
   mydb = dbConnect(MySQL(), user=comp_sql_user_id, password=comp_sql_password, dbname=comp_sql_dbname, host=comp_sql_server, port=mysqlport)
   
   com_neopath=CompanyConfig$neo_db_url[1]
-  com_neopath=paste(com_neopath,"/db/data/",sep = "")
+  com_neopath=paste("http://",com_neopath,"/db/data/",sep = "")
   
   com_neousername=CompanyConfig$neo_user_name[1]
-  com_neopassword=CompanyConfig$neo_passsword[1]
+  com_neopassword=CompanyConfig$neo_password[1]
   
   graph = startGraph(com_neopath, username=com_neousername, password=com_neopassword)
   
@@ -2446,6 +2212,8 @@ JobDimensionMetric=function(CompanyId){
   
   #add column for emp_id
   between$emp_id=row.names(between)
+  
+  between$Rank=rank(-between$Betweenness,ties.method= "random")
   
   #   # calcualte mu(mean) for betweeness
   #   mu=mean(between$Betweenness)
@@ -2593,14 +2361,14 @@ JobDimensionMetric=function(CompanyId){
         riskrate=1-(PeopleAtRisk$metric_value[i]/100)
         if (nrow(peopleNotRisk)>0){
           for(j in 1:nrow(peopleNotRisk)){
-          # emp who is inflenced
-          meemp=peopleNotRisk$emp_id[j]
-          # percent of inflence on me by influencer
-          meinfluence=influence(meemp,riskemp,edgelist) 
-          # product of inflencer retention , inflence percentage
-          merisk=riskrate*meinfluence
-          #add to fraction 
-          fraction=fraction+merisk
+            # emp who is inflenced
+            meemp=peopleNotRisk$emp_id[j]
+            # percent of inflence on me by influencer
+            meinfluence=influence(meemp,riskemp,edgelist) 
+            # product of inflencer retention , inflence percentage
+            merisk=riskrate*meinfluence
+            #add to fraction 
+            fraction=fraction+merisk
           }
         }
       }
@@ -2767,10 +2535,10 @@ JobInitiativeMetric=function(CompanyId){
   mydb = dbConnect(MySQL(), user=comp_sql_user_id, password=comp_sql_password, dbname=comp_sql_dbname, host=comp_sql_server, port=mysqlport)
   
   com_neopath=CompanyConfig$neo_db_url[1]
-  com_neopath=paste(com_neopath,"/db/data/",sep = "")
+  com_neopath=paste("http://",com_neopath,"/db/data/",sep = "")
   
   com_neousername=CompanyConfig$neo_user_name[1]
-  com_neopassword=CompanyConfig$neo_passsword[1]
+  com_neopassword=CompanyConfig$neo_password[1]
   
   graph = startGraph(com_neopath, username=com_neousername, password=com_neopassword)
   
@@ -2883,6 +2651,8 @@ JobInitiativeMetric=function(CompanyId){
   
   #add column for emp_id
   between$emp_id=row.names(between)
+  
+  between$Rank=rank(-between$Betweenness,ties.method= "random")
   
   #   # calcualte mu(mean) for betweeness
   #   mu=mean(between$Betweenness)
@@ -3035,14 +2805,16 @@ JobInitiativeMetric=function(CompanyId){
         riskrate=1-(PeopleAtRisk$metric_value[i]/100)
         if (nrow(peopleNotRisk)>0){
           for(j in 1:nrow(peopleNotRisk)){
-          # emp who is inflenced
-          meemp=peopleNotRisk$emp_id[j]
-          # percent of inflence on me by influencer
-          meinfluence=influence(meemp,riskemp,edgelist) 
-          # product of inflencer retention , inflence percentage
-          merisk=riskrate*meinfluence
-          #add to fraction 
-          fraction=fraction+merisk
+            # emp who is inflenced
+            meemp=peopleNotRisk$emp_id[j]
+            # percent of inflence on me by influencer
+            meinfluence=influence(meemp,riskemp,edgelist) 
+            # product of inflencer retention , inflence percentage
+            merisk=riskrate*meinfluence
+            #add to fraction 
+            fraction=fraction+merisk
+            #print(paste("i=",i," j=",j," fraction=",fraction,sep = ""))
+            #cat(paste("\ni=",i," j=",j," fraction=",fraction,sep = ""),file="Rlog.txt",sep=" ",append=TRUE) 
           }
         }
       }
@@ -3093,10 +2865,10 @@ JobInitiativeMetric=function(CompanyId){
     #add column for emp_id
     between$emp_id=row.names(between)
     
-#     # calcualte mu(mean) for betweeness
-#     mu=mean(between$Betweenness)
-#     # calculate threshold i.e mu+sigma
-#     threshold=mu+sd(between$Betweenness)
+    #     # calcualte mu(mean) for betweeness
+    #     mu=mean(between$Betweenness)
+    #     # calculate threshold i.e mu+sigma
+    #     threshold=mu+sd(between$Betweenness)
     
     #list of innovators in organization i.e betweenness above threshold
     innovators=between$emp_id[between$Rank<(nrow(between)*variable$value[variable$variable_name=="Metric9InnovatorPercentile"])]
@@ -3207,10 +2979,10 @@ JobAlert=function(CompanyId){
   mydb = dbConnect(MySQL(), user=comp_sql_user_id, password=comp_sql_password, dbname=comp_sql_dbname, host=comp_sql_server, port=mysqlport)
   
   #   com_neopath=CompanyConfig$neo_db_url[1]
-  #   com_neopath=paste(com_neopath,"/db/data/",sep = "")
+  #   com_neopath=paste("http://",com_neopath,"/db/data/",sep = "")
   #   
   #   com_neousername=CompanyConfig$neo_user_name[1]
-  #   com_neopassword=CompanyConfig$neo_passsword[1]
+  #   com_neopassword=CompanyConfig$neo_password[1]
   #   
   #   graph = startGraph(com_neopath, username=com_neousername, password=com_neopassword)
   #   
@@ -3278,6 +3050,14 @@ JobAlert=function(CompanyId){
     dalert=d1[d1$a1==1,]
     dalert$delta=dalert$delta_n
   }
+  
+  
+  cube_agg=aggregate(employee$emp_id,by=list(cube_id=employee$cube_id),length)
+  names(cube_agg)[2]="Team_Size"
+  
+  dalert=merge(dalert,cube_agg,by="cube_id",all.x = TRUE)
+  dalert=dalert[dalert$Team_Size>=variable$value[variable$variable_name=="MinTeamSize"],]
+  
   
   if (nrow(dalert)>0){
     for (i in 1:nrow(dalert)){
@@ -3356,10 +3136,10 @@ JobInitStatus=function(CompanyId){
   dbDisconnect(mydb)
   
   com_neopath=CompanyConfig$neo_db_url[1]
-  com_neopath=paste(com_neopath,"/db/data/",sep = "")
+  com_neopath=paste("http://",com_neopath,"/db/data/",sep = "")
   
   com_neousername=CompanyConfig$neo_user_name[1]
-  com_neopassword=CompanyConfig$neo_passsword[1]
+  com_neopassword=CompanyConfig$neo_password[1]
   
   graph = startGraph(com_neopath, username=com_neousername, password=com_neopassword)
   
