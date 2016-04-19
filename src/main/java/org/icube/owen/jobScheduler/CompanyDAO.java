@@ -6,6 +6,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.TimerTask;
 
 import javax.mail.MessagingException;
@@ -58,6 +59,7 @@ public class CompanyDAO extends TimerTask {
 				org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("Calling the actual function in R Script JobInitStatus");
 				REXP status = rCon.parseAndEval("try(eval(JobInitStatus(CompanyId)))");
 				if (status.inherits("try-error")) {
+					dch.releaseRcon();
 					sendEmail(companyDetails.getInt("comp_id"), companyDetails.getString("comp_name"), "JobInitStatus", status);
 				} else {
 					org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("Successfully executed the JobInitStatus method ");
@@ -102,7 +104,7 @@ public class CompanyDAO extends TimerTask {
 			org.apache.log4j.Logger.getLogger(CompanyDAO.class)
 					.debug("Successfully connected to company db with companyId : " + rs.getInt("comp_id"));
 
-			/*ArrayList<String> addresses = new ArrayList<String>();
+			ArrayList<String> addresses = new ArrayList<String>();
 			stmt = myConn.createStatement();
 			res = stmt
 					.executeQuery("select distinct(l.login_id) as email_id from (select Distinct(survey_batch_id) as survey_batch_id from question where date(start_date)=CURDATE()) as b join batch_target as bt on b.survey_batch_id=bt.survey_batch_id left join login_table as l on l.emp_id=bt.emp_id");
@@ -115,7 +117,7 @@ public class CompanyDAO extends TimerTask {
 				EmailSender es = new EmailSender();
 				es.sendEmailforQuestions(addresses);
 			}
-			*/
+			
 			org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("Starting query to retrieve number of questions closed");
 			stmt = myConn.createStatement();
 			Date date = new Date(System.currentTimeMillis() - 24 * 60 * 60 * 1000);
