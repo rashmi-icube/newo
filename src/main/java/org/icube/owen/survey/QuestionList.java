@@ -36,7 +36,7 @@ public class QuestionList extends TheBorg {
 				q.setStartDate(rs.getDate("start_date"));
 				q.setEndDate(rs.getDate("end_date"));
 				q.setResponsePercentage(rs.getDouble("resp"));
-				q.setRelationshipTypeId(rs.getInt("rel_id") == 0 ? null : rs.getInt("rel_id"));
+				q.setRelationshipTypeId(rs.getInt("rel_id"));
 				questionList.add(q);
 			}
 
@@ -67,7 +67,7 @@ public class QuestionList extends TheBorg {
 				q.setResponsePercentage(rs.getDouble("resp"));
 				q.setQuestionType(QuestionType.values()[rs.getInt("que_type")]);
 				q.setSurveyBatchId(rs.getInt("survey_batch_id"));
-				q.setRelationshipTypeId(rs.getInt("rel_id") == 0 ? null : rs.getInt("rel_id"));
+				q.setRelationshipTypeId(rs.getInt("rel_id"));
 				questionList.add(q);
 			}
 		} catch (SQLException e) {
@@ -101,7 +101,7 @@ public class QuestionList extends TheBorg {
 				q.setResponsePercentage(rs.getDouble("resp"));
 				q.setQuestionType(QuestionType.values()[rs.getInt("que_type")]);
 				q.setSurveyBatchId(rs.getInt("survey_batch_id"));
-				q.setRelationshipTypeId(rs.getInt("rel_id") == 0 ? null : rs.getInt("rel_id"));
+				q.setRelationshipTypeId(rs.getInt("rel_id"));
 				questionList.add(q);
 			}
 		} catch (SQLException e) {

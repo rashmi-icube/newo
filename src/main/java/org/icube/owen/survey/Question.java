@@ -118,7 +118,7 @@ public class Question extends TheBorg {
 				q.setResponsePercentage(rs.getDouble("resp"));
 				q.setQuestionType(QuestionType.values()[rs.getInt("que_type")]);
 				q.setSurveyBatchId(rs.getInt("survey_batch_id"));
-				q.setRelationshipTypeId(rs.getInt("rel_id") == 0 ? null : rs.getInt("rel_id"));
+				q.setRelationshipTypeId(rs.getInt("rel_id"));
 			}
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(Question.class).error("Exception while retrieving Question with ID" + questionId, e);
@@ -228,7 +228,6 @@ public class Question extends TheBorg {
 				q.setSurveyBatchId(rs.getInt("survey_batch_id"));
 				q.setQuestionType(QuestionType.get(rs.getInt("que_type")));
 				q.setResponsePercentage(0);
-				q.setRelationshipTypeId(rs.getInt("rel_id") == 0 ? null : rs.getInt("rel_id"));
 				questionList.add(q);
 			}
 		} catch (SQLException e) {
