@@ -118,7 +118,7 @@ public class Question extends TheBorg {
 				q.setResponsePercentage(rs.getDouble("resp"));
 				q.setQuestionType(QuestionType.values()[rs.getInt("que_type")]);
 				q.setSurveyBatchId(rs.getInt("survey_batch_id"));
-				q.setRelationshipTypeId(rs.getInt("rel_id"));
+				q.setRelationshipTypeId(rs.getInt("rel_id") == 0 ? null : rs.getInt("rel_id"));
 			}
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(Question.class).error("Exception while retrieving Question with ID" + questionId, e);
@@ -169,7 +169,7 @@ public class Question extends TheBorg {
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(Question.class).error("Exception while retrieving response data", e);
 		}
-		org.apache.log4j.Logger.getLogger(Question.class).debug("Response : " + responseMap.toString());
+		org.apache.log4j.Logger.getLogger(Question.class).debug("Response for question : " + q.getQuestionId() + " : " + responseMap.toString());
 		return responseMap;
 
 	}
@@ -192,6 +192,7 @@ public class Question extends TheBorg {
 				q.setResponsePercentage(q1.getResponsePercentage());
 				q.setQuestionType(q1.getQuestionType());
 				q.setSurveyBatchId(q1.getSurveyBatchId());
+				q.setRelationshipTypeId(q1.getRelationshipTypeId());
 				org.apache.log4j.Logger.getLogger(Question.class).debug("Retrieved the current question " + q.getQuestionId());
 			}
 		}
@@ -221,7 +222,7 @@ public class Question extends TheBorg {
 				q.setQuestionText(rs.getString("question"));
 				q.setStartDate(rs.getDate("start_date"));
 				q.setEndDate(rs.getDate("end_date"));
-				q.setRelationshipTypeId(rs.getInt("rel_id"));
+				q.setRelationshipTypeId(rs.getInt("rel_id") == 0 ? null : rs.getInt("rel_id"));
 				q.setSurveyBatchId(rs.getInt("survey_batch_id"));
 				q.setQuestionType(QuestionType.get(rs.getInt("que_type")));
 				q.setResponsePercentage(0);
@@ -279,7 +280,7 @@ public class Question extends TheBorg {
 		}
 
 		finally {
-			ObjectFactory.getDBHelper().releaseRcon();
+			dch.releaseRcon();
 		}
 
 		return employeeList;
