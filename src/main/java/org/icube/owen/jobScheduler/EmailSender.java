@@ -13,7 +13,13 @@ import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
+import org.icube.owen.ObjectFactory;
+import org.icube.owen.helper.DatabaseConnectionHelper;
+
 public class EmailSender {
+
+	DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+
 	public static final int MAX_EMAILS_TO_BE_SENT = 50;
 
 	public void sendEmail(String text) throws AddressException, MessagingException {
@@ -42,7 +48,8 @@ public class EmailSender {
 		try {
 			Transport.send(msg, username, password);
 		} catch (MessagingException e) {
-			org.apache.log4j.Logger.getLogger(EmailSender.class).error("Unable to send Email", e);
+			org.apache.log4j.Logger.getLogger(EmailSender.class).error("Error in sending Email", e);
+			dch.releaseRcon();
 		}
 
 	}
@@ -78,7 +85,8 @@ public class EmailSender {
 				msg.setText("You have new questions to answer.Please login to answer: http://ec2-52-35-113-15.us-west-2.compute.amazonaws.com:8080/OWENWeb/individual/login.jsp");
 				Transport.send(msg, username, password);
 			} catch (MessagingException e) {
-				org.apache.log4j.Logger.getLogger(EmailSender.class).error("Error in sending Emails", e);
+				org.apache.log4j.Logger.getLogger(EmailSender.class).error("Error in sending Emails for current questions", e);
+				dch.releaseRcon();
 			}
 			fromlist = fromlist + MAX_EMAILS_TO_BE_SENT;
 		}
