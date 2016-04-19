@@ -351,11 +351,7 @@ public class Initiative extends TheBorg {
 			Statement stmt = dch.companyNeoConnectionPool.get(companyId).createStatement();
 			ResultSet res = stmt.executeQuery(query);
 			while (res.next()) {
-<<<<<<< HEAD
 				il.setInitiativeValues(companyId, res, i);
-=======
-				il.setInitiativeValues(res, i);
->>>>>>> bd750746901cc05f69a7d286729c641db42e1eee
 			}
 			stmt.close();
 		} catch (SQLException e) {

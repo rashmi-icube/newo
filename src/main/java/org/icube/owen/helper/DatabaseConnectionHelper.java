@@ -96,7 +96,7 @@ public class DatabaseConnectionHelper extends TheBorg {
 	public void runScheduler() {
 		Calendar today = Calendar.getInstance();
 		// set the start date to be 12:01 AM
-		//today.add(Calendar.DAY_OF_MONTH, 1);
+		// today.add(Calendar.DAY_OF_MONTH, 1);
 		today.set(Calendar.HOUR_OF_DAY, 11);
 		today.set(Calendar.MINUTE, 30);
 		today.set(Calendar.SECOND, 0);
@@ -209,7 +209,7 @@ public class DatabaseConnectionHelper extends TheBorg {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-	org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("RConnection provided...");
+		org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("RConnection provided...");
 		rConInUse = true;
 		return rCon;
 
