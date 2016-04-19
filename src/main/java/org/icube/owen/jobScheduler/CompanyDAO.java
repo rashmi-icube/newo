@@ -6,7 +6,6 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.TimerTask;
 
 import javax.mail.MessagingException;
@@ -59,7 +58,7 @@ public class CompanyDAO extends TimerTask {
 				org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("Calling the actual function in R Script JobInitStatus");
 				REXP status = rCon.parseAndEval("try(eval(JobInitStatus(CompanyId)))");
 				if (status.inherits("try-error")) {
-					sendEmail(companyDetails.getInt("comp_id"), companyDetails.getString("comp_name"), status);
+					sendEmail(companyDetails.getInt("comp_id"), companyDetails.getString("comp_name"), "JobInitStatus", status);
 				} else {
 					org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("Successfully executed the JobInitStatus method ");
 				}
@@ -103,29 +102,20 @@ public class CompanyDAO extends TimerTask {
 			org.apache.log4j.Logger.getLogger(CompanyDAO.class)
 					.debug("Successfully connected to company db with companyId : " + rs.getInt("comp_id"));
 
-			// check if questions are there then send email to the employees
-			// create an array of receipients and call sendEmailforQuestions
-			ArrayList<String> addresses = new ArrayList<String>();
+			/*ArrayList<String> addresses = new ArrayList<String>();
 			stmt = myConn.createStatement();
 			res = stmt
 					.executeQuery("select distinct(l.login_id) as email_id from (select Distinct(survey_batch_id) as survey_batch_id from question where date(start_date)=CURDATE()) as b join batch_target as bt on b.survey_batch_id=bt.survey_batch_id left join login_table as l on l.emp_id=bt.emp_id");
-			//res.next();
+			
 			while (res.next()){
 				addresses.add(res.getString(1));
 				System.out.println(res.getString(1));
 			}
-			/*ArrayList<Address> listOfToAddress = new ArrayList<Address>();
-
-			for (String temp : addresses) {
-			    if (temp != null) {
-			        listOfToAddress.add(new InternetAddress(temp));
-			    }
-			}*/
 			if(addresses.size() > 0){
 				EmailSender es = new EmailSender();
 				es.sendEmailforQuestions(addresses);
 			}
-			
+			*/
 			org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("Starting query to retrieve number of questions closed");
 			stmt = myConn.createStatement();
 			Date date = new Date(System.currentTimeMillis() - 24 * 60 * 60 * 1000);
@@ -164,16 +154,16 @@ public class CompanyDAO extends TimerTask {
 		org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug(rFunctionName + " method started");
 		REXP status = rCon.parseAndEval("try(eval(" + rFunctionName + "(CompanyId)))");
 		if (status.inherits("try-error")) {
-			sendEmail(companyId, companyName, status);
+			sendEmail(companyId, companyName, rFunctionName, status);
 		} else {
 			org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("Successfully executed the " + rFunctionName + " method ");
 		}
 		dch.releaseRcon();
 	}
 
-	public void sendEmail(int companyId, String companyName, REXP status) throws Exception {
+	public void sendEmail(int companyId, String companyName, String rFunctionName, REXP status) throws Exception {
 		EmailSender es = new EmailSender();
-		es.sendEmail("Error in executing JobInitStatus method for Company Id:" + companyId + "Company Name:" + companyName);
+		es.sendEmail("Error in executing " + rFunctionName + "method for Company Id:" + companyId + "Company Name:" + companyName);
 		org.apache.log4j.Logger.getLogger(CompanyDAO.class).error("Error: " + status.asString());
 		throw new Exception("Error: " + status.asString());
 	}
