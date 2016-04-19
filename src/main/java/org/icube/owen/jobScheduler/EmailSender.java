@@ -14,7 +14,7 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
 public class EmailSender {
-	public static final int MAX_EMAILS_TO_BE_SENT = 5;
+	public static final int MAX_EMAILS_TO_BE_SENT = 50;
 
 	public void sendEmail(String text) throws AddressException, MessagingException {
 		String host = "smtp.zoho.com";
@@ -64,7 +64,7 @@ public class EmailSender {
 				/ MAX_EMAILS_TO_BE_SENT;
 		int fromlist = 0;
 		List<String> addr = new ArrayList<>();
-		for (int i = 1; i <= emailSublist; i++) {
+		for (int i = 0; i < emailSublist; i++) {
 			if ((fromlist + MAX_EMAILS_TO_BE_SENT) > addresses.size()) {
 				addr = addresses.subList(fromlist, addresses.size());
 			} else {
