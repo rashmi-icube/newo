@@ -147,8 +147,8 @@ public class DatabaseConnectionHelper extends TheBorg {
 		Calendar today = Calendar.getInstance();
 		// set the start date to be 12:01 AM
 		//today.add(Calendar.DAY_OF_MONTH, 1);
-		today.set(Calendar.HOUR_OF_DAY, 10);
-		today.set(Calendar.MINUTE, 45);
+		today.set(Calendar.HOUR_OF_DAY, 11);
+		today.set(Calendar.MINUTE, 30);
 		today.set(Calendar.SECOND, 0);
 
 		try {
