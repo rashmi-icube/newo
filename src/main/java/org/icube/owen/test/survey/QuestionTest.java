@@ -25,7 +25,7 @@ public class QuestionTest {
 	}
 
 	@Test
-	public void testgetResponse() {
+	public void testGetResponse() {
 		Map<Date, Integer> responseMap = q.getResponse(q.getQuestion(17));
 		assertTrue(!responseMap.isEmpty());
 		responseMap = q.getResponse(q.getQuestion(2));
