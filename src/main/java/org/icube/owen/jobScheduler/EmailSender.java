@@ -19,6 +19,7 @@ import org.icube.owen.helper.DatabaseConnectionHelper;
 public class EmailSender {
 
 	DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+
 	public static final int MAX_EMAILS_TO_BE_SENT = 50;
 
 	public void sendEmail(String text) throws AddressException, MessagingException {
