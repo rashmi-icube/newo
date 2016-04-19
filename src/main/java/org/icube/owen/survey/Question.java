@@ -118,7 +118,7 @@ public class Question extends TheBorg {
 				q.setResponsePercentage(rs.getDouble("resp"));
 				q.setQuestionType(QuestionType.values()[rs.getInt("que_type")]);
 				q.setSurveyBatchId(rs.getInt("survey_batch_id"));
-				q.setRelationshipTypeId(rs.getInt("rel_id"));
+				q.setRelationshipTypeId(rs.getInt("rel_id") == 0 ? null : rs.getInt("rel_id"));
 			}
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(Question.class).error("Exception while retrieving Question with ID" + questionId, e);
@@ -157,11 +157,13 @@ public class Question extends TheBorg {
 			cstmt.setInt(1, q.getQuestionId());
 			ResultSet rs = cstmt.executeQuery();
 			if (rs.next()) {
+				org.apache.log4j.Logger.getLogger(Question.class).debug("Response available for question : " + q.getQuestionId());
 				do {
 					Date utilDate = new Date(rs.getDate("date").getTime());
 					responseMap.put(utilDate, rs.getInt("responses"));
 				} while (rs.next());
 			} else {
+				org.apache.log4j.Logger.getLogger(Question.class).debug("No response available for question : " + q.getQuestionId());
 				for (Date d = q.getStartDate(); d.before(Date.from(Instant.now())); d = UtilHelper.convertJavaDateToSqlDate(DateUtils.addDays(d, 1))) {
 					responseMap.put(d, 0);
 				}
@@ -169,7 +171,7 @@ public class Question extends TheBorg {
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(Question.class).error("Exception while retrieving response data", e);
 		}
-		org.apache.log4j.Logger.getLogger(Question.class).debug("Response for question : " + q.getQuestionId() + " : " + responseMap.toString());
+		org.apache.log4j.Logger.getLogger(Question.class).debug("Response map for question : " + q.getQuestionId() + " : " + responseMap.toString());
 		return responseMap;
 
 	}
@@ -192,6 +194,7 @@ public class Question extends TheBorg {
 				q.setResponsePercentage(q1.getResponsePercentage());
 				q.setQuestionType(q1.getQuestionType());
 				q.setSurveyBatchId(q1.getSurveyBatchId());
+				q.setRelationshipTypeId(q1.getRelationshipTypeId());
 				org.apache.log4j.Logger.getLogger(Question.class).debug("Retrieved the current question " + q.getQuestionId());
 			}
 		}
@@ -225,6 +228,7 @@ public class Question extends TheBorg {
 				q.setSurveyBatchId(rs.getInt("survey_batch_id"));
 				q.setQuestionType(QuestionType.get(rs.getInt("que_type")));
 				q.setResponsePercentage(0);
+				q.setRelationshipTypeId(rs.getInt("rel_id") == 0 ? null : rs.getInt("rel_id"));
 				questionList.add(q);
 			}
 		} catch (SQLException e) {
