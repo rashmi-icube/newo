@@ -11,21 +11,18 @@ import org.icube.owen.TheBorg;
 import org.icube.owen.helper.DatabaseConnectionHelper;
 
 public class QuestionList extends TheBorg {
-	public static void main(String args[]) {
-		QuestionList ql = new QuestionList();
-		ql.getQuestionListForBatch(1);
-	}
 
 	/**
 	 * Retrieves the list of all the questions
 	 * @return - A list of questions
 	 */
-	public List<Question> getQuestionList() {
+	public List<Question> getQuestionList(int companyId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Question> questionList = new ArrayList<>();
 
 		try {
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getQuestionList()}");
+			dch.getCompanyConnection(companyId);
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getQuestionList()}");
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
 				Question q = new Question();
@@ -36,7 +33,7 @@ public class QuestionList extends TheBorg {
 				q.setStartDate(rs.getDate("start_date"));
 				q.setEndDate(rs.getDate("end_date"));
 				q.setResponsePercentage(rs.getDouble("resp"));
-				q.setRelationshipTypeId(rs.getInt("rel_id"));
+				q.setRelationshipTypeId(rs.getInt("rel_id") == 0 ? null : rs.getInt("rel_id"));
 				questionList.add(q);
 			}
 
@@ -51,11 +48,12 @@ public class QuestionList extends TheBorg {
 	 * @param batchId - the batch ID
 	 * @return - A list of Question objects
 	 */
-	public List<Question> getQuestionListForBatch(int batchId) {
+	public List<Question> getQuestionListForBatch(int companyId, int batchId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Question> questionList = new ArrayList<Question>();
 		try {
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getBatchQuestionList(?)}");
+			dch.getCompanyConnection(companyId);
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getBatchQuestionList(?)}");
 			cstmt.setInt(1, batchId);
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
@@ -67,6 +65,7 @@ public class QuestionList extends TheBorg {
 				q.setResponsePercentage(rs.getDouble("resp"));
 				q.setQuestionType(QuestionType.values()[rs.getInt("que_type")]);
 				q.setSurveyBatchId(rs.getInt("survey_batch_id"));
+				q.setRelationshipTypeId(rs.getInt("rel_id") == 0 ? null : rs.getInt("rel_id"));
 				questionList.add(q);
 			}
 		} catch (SQLException e) {
@@ -82,13 +81,14 @@ public class QuestionList extends TheBorg {
 	 * @param filter - the status of the questions to be retrieved 
 	 * @return - A list of Question objects based on the filter(status) and the batch ID 
 	 */
-	public List<Question> getQuestionListByStatus(int batchId, String filter) {
+	public List<Question> getQuestionListByStatus(int companyId, int batchId, String filter) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Question> questionList = new ArrayList<Question>();
 		List<Question> questionListByStatus = new ArrayList<Question>();
 
 		try {
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getBatchQuestionList(?)}");
+			dch.getCompanyConnection(companyId);
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getBatchQuestionList(?)}");
 			cstmt.setInt(1, batchId);
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
@@ -100,6 +100,7 @@ public class QuestionList extends TheBorg {
 				q.setResponsePercentage(rs.getDouble("resp"));
 				q.setQuestionType(QuestionType.values()[rs.getInt("que_type")]);
 				q.setSurveyBatchId(rs.getInt("survey_batch_id"));
+				q.setRelationshipTypeId(rs.getInt("rel_id") == 0 ? null : rs.getInt("rel_id"));
 				questionList.add(q);
 			}
 		} catch (SQLException e) {

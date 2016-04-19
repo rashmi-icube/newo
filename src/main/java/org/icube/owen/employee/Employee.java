@@ -135,18 +135,19 @@ public class Employee extends TheBorg {
 	 * @param employeeId - ID of the employee that needs to be retrieved
 	 * @return employee object
 	 */
-	public Employee get(int employeeId) {
+	public Employee get(int companyId, int employeeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
 		EmployeeList el = new EmployeeList();
 		Employee e = new Employee();
 		try {
 			org.apache.log4j.Logger.getLogger(Employee.class).debug("get method started");
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getEmployeeDetails(?)}");
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getEmployeeDetails(?)}");
 			cstmt.setInt(1, employeeId);
 			ResultSet res = cstmt.executeQuery();
 			org.apache.log4j.Logger.getLogger(Employee.class).debug("query : " + cstmt);
 			res.next();
-			e = el.setEmployeeDetails(res);
+			e = el.setEmployeeDetails(companyId, res);
 			org.apache.log4j.Logger.getLogger(Employee.class).debug(
 					"Employee  : " + e.getEmployeeId() + "-" + e.getFirstName() + "-" + e.getLastName());
 

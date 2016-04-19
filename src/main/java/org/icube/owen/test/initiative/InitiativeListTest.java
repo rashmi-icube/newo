@@ -12,11 +12,12 @@ import org.junit.Test;
 
 public class InitiativeListTest {
 	InitiativeList il = (InitiativeList) ObjectFactory.getInstance("org.icube.owen.initiative.InitiativeList");
+	int companyId = 1;
 
 	@Test
 	public void testGetInitiativeList() {
 		List<Initiative> iList = new ArrayList<>();
-		iList = il.getInitiativeList();
+		iList = il.getInitiativeList(companyId, "Team");
 		for (Initiative i : iList) {
 			assertNotNull(i.getInitiativeId());
 			assertNotNull(i.getInitiativeCategory());
@@ -39,7 +40,7 @@ public class InitiativeListTest {
 	@Test
 	public void testGetInitiativeListByStatus() {
 		List<Initiative> iList = new ArrayList<>();
-		iList = il.getInitiativeListByStatus("Individual", "Active");
+		iList = il.getInitiativeListByStatus(companyId, "Individual", "Active");
 		for (Initiative i : iList) {
 			assertNotNull(i.getInitiativeId());
 			assertNotNull(i.getInitiativeCategory());
@@ -62,7 +63,7 @@ public class InitiativeListTest {
 	@Test
 	public void testGetInitiativeListByType() {
 		List<Initiative> iList1 = new ArrayList<>();
-		iList1 = il.getInitiativeListByType("Individual", 1);
+		iList1 = il.getInitiativeListByType(companyId, "Individual", 1);
 		for (Initiative i : iList1) {
 			assertNotNull(i.getInitiativeId());
 			assertNotNull(i.getInitiativeCategory());

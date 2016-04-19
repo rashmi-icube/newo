@@ -24,18 +24,21 @@ import org.junit.Test;
 public class ExploreHelperTest {
 
 	ExploreHelper eh = (ExploreHelper) ObjectFactory.getInstance("org.icube.owen.explore.ExploreHelper");
+	int companyId = 1;
 
 	@Test
 	public void testGetIndividualMetricsData() {
 		Employee empObj = (Employee) ObjectFactory.getInstance("org.icube.owen.employee.Employee");
-		Map<Employee, List<Metrics>> result = eh.getIndividualMetricsData(Arrays.asList(empObj.get(1), empObj.get(2)));
+		Map<Employee, List<Metrics>> result = eh.getIndividualMetricsData(companyId, Arrays
+				.asList(empObj.get(companyId, 1), empObj.get(companyId, 2)));
 		individualDataTest(result);
 	}
 
 	@Test
 	public void testGetIndividualTimeSeriesGraph() {
 		Employee empObj = (Employee) ObjectFactory.getInstance("org.icube.owen.employee.Employee");
-		Map<Employee, Map<Integer, List<Map<Date, Integer>>>> result = eh.getIndividualTimeSeriesGraph(Arrays.asList(empObj.get(1), empObj.get(2)));
+		Map<Employee, Map<Integer, List<Map<Date, Integer>>>> result = eh.getIndividualTimeSeriesGraph(companyId, Arrays.asList(empObj.get(companyId,
+				1), empObj.get(companyId, 2)));
 		for (Employee e : result.keySet()) {
 			checkTimeSeriesData(result.get(e));
 		}
@@ -79,7 +82,7 @@ public class ExploreHelperTest {
 	public void testGetTeamMetricsData() {
 		Map<String, List<Filter>> teamListMap = new HashMap<>();
 		FilterList fl = new FilterList();
-		List<Filter> filterList = fl.getFilterValues();
+		List<Filter> filterList = fl.getFilterValues(companyId);
 		for (Filter f : filterList) {
 			while (f.getFilterValues().size() > 1) {
 				f.getFilterValues().remove(f.getFilterValues().keySet().iterator().next());
@@ -94,28 +97,28 @@ public class ExploreHelperTest {
 		}
 		teamListMap.put("team2", filterList);
 
-		Map<String, List<Metrics>> teamMetricsData = eh.getTeamMetricsData(teamListMap); // no filter is selected as ALL
+		Map<String, List<Metrics>> teamMetricsData = eh.getTeamMetricsData(companyId, teamListMap); // no filter is selected as ALL
 		for (String name : teamMetricsData.keySet()) {
 			checkMetricsList(teamMetricsData.get(name), false);
 		}
 
 		filterList.get(0).getFilterValues().clear();
 		filterList.get(0).getFilterValues().put(0, "All");
-		teamMetricsData = eh.getTeamMetricsData(teamListMap); // 1 filter has selected as ALL
+		teamMetricsData = eh.getTeamMetricsData(companyId, teamListMap); // 1 filter has selected as ALL
 		for (String name : teamMetricsData.keySet()) {
 			checkMetricsList(teamMetricsData.get(name), false);
 		}
 
 		filterList.get(1).getFilterValues().clear();
 		filterList.get(1).getFilterValues().put(0, "All");
-		teamMetricsData = eh.getTeamMetricsData(teamListMap); // 2 filters have selected as ALL
+		teamMetricsData = eh.getTeamMetricsData(companyId, teamListMap); // 2 filters have selected as ALL
 		for (String name : teamMetricsData.keySet()) {
 			checkMetricsList(teamMetricsData.get(name), false);
 		}
 
 		filterList.get(2).getFilterValues().clear();
 		filterList.get(2).getFilterValues().put(0, "All");
-		teamMetricsData = eh.getTeamMetricsData(teamListMap); // 3 filters have selected as ALL
+		teamMetricsData = eh.getTeamMetricsData(companyId, teamListMap); // 3 filters have selected as ALL
 		for (String name : teamMetricsData.keySet()) {
 			checkMetricsList(teamMetricsData.get(name), false);
 		}
@@ -125,9 +128,9 @@ public class ExploreHelperTest {
 	public void testGetTeamTimeSeriesGraph() {
 
 		Map<String, List<Filter>> teamListMap = new HashMap<>();
-		
+
 		List<Filter> filterList = TestHelper.getOneForEachFilter();
-		
+
 		teamListMap.put("team1", filterList);
 
 		Filter filter = filterList.get(0);
@@ -137,25 +140,26 @@ public class ExploreHelperTest {
 		}
 		teamListMap.put("team2", filterList);
 
-		Map<String, Map<Integer, List<Map<Date, Integer>>>> teamMetricsData = eh.getTeamTimeSeriesGraph(teamListMap); // no filter is selected as ALL
+		Map<String, Map<Integer, List<Map<Date, Integer>>>> teamMetricsData = eh.getTeamTimeSeriesGraph(companyId, teamListMap); // no filter is
+																																	// selected as ALL
 		for (String name : teamMetricsData.keySet()) {
 			checkTimeSeriesData(teamMetricsData.get(name));
 		}
 
 		filterList = TestHelper.getAllForOneFilter();
-		teamMetricsData = eh.getTeamTimeSeriesGraph(teamListMap); // 1 filter has selected as ALL
+		teamMetricsData = eh.getTeamTimeSeriesGraph(companyId, teamListMap); // 1 filter has selected as ALL
 		for (String name : teamMetricsData.keySet()) {
 			checkTimeSeriesData(teamMetricsData.get(name));
 		}
-		
+
 		filterList = TestHelper.getAllForTwoFilters();
-		teamMetricsData = eh.getTeamTimeSeriesGraph(teamListMap); // 2 filters have selected as ALL
+		teamMetricsData = eh.getTeamTimeSeriesGraph(companyId, teamListMap); // 2 filters have selected as ALL
 		for (String name : teamMetricsData.keySet()) {
 			checkTimeSeriesData(teamMetricsData.get(name));
 		}
 
 		filterList = TestHelper.getAllForAllFilters();
-		teamMetricsData = eh.getTeamTimeSeriesGraph(teamListMap); // 3 filters have selected as ALL
+		teamMetricsData = eh.getTeamTimeSeriesGraph(companyId, teamListMap); // 3 filters have selected as ALL
 		for (String name : teamMetricsData.keySet()) {
 			checkTimeSeriesData(teamMetricsData.get(name));
 		}
@@ -222,7 +226,7 @@ public class ExploreHelperTest {
 
 		teamListMap.put("team2", filterList);
 
-		Map<String, List<?>> result = eh.getTeamNetworkDiagram(teamListMap, eh.getRelationshipTypeMap());
+		Map<String, List<?>> result = eh.getTeamNetworkDiagram(companyId, teamListMap, eh.getRelationshipTypeMap(companyId));
 
 		List<Node> nodeList = (List<Node>) result.get("nodeList");
 		for (Node n : nodeList) {
@@ -251,10 +255,10 @@ public class ExploreHelperTest {
 		List<Employee> employeeList = new ArrayList<>();
 		for (int i = 3; i < 8; i++) {
 			Employee e = new Employee();
-			employeeList.add(e.get(i));
+			employeeList.add(e.get(companyId, i));
 		}
 
-		Map<String, List<?>> result = eh.getIndividualNetworkDiagram(employeeList, eh.getRelationshipTypeMap());
+		Map<String, List<?>> result = eh.getIndividualNetworkDiagram(companyId, employeeList, eh.getRelationshipTypeMap(companyId));
 		List<Node> nodeList = (List<Node>) result.get("nodeList");
 		for (Node n : nodeList) {
 			assertNotNull(n.getEmployeeId());

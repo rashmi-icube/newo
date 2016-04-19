@@ -19,8 +19,9 @@ import org.junit.Test;
 public class HrDashboardHelperTest {
 	HrDashboardHelper dh = (HrDashboardHelper) ObjectFactory.getInstance("org.icube.owen.dashboard.HrDashboardHelper");
 	FilterList fl = (FilterList) ObjectFactory.getInstance("org.icube.owen.filter.FilterList");
-	List<Filter> filterMasterList = fl.getFilterValues();
-	Filter functionFilter = fl.getFilterValues("Function");
+	int companyId = 1;
+	List<Filter> filterMasterList = fl.getFilterValues(companyId);
+	Filter functionFilter = fl.getFilterValues(companyId, "Function");
 
 	@Test
 	public void testGetFilterMetrics() {
@@ -30,7 +31,7 @@ public class HrDashboardHelperTest {
 		f.setFilterName("Zone");
 		f.setFilterId(3);
 		f.setFilterValues(filterValuesMap);
-		List<Metrics> metricsList = dh.getFilterMetrics(f);
+		List<Metrics> metricsList = dh.getFilterMetrics(companyId, f);
 		for (Metrics m : metricsList) {
 			assertNotNull(m.getId());
 			assertNotNull(m.getDirection());
@@ -44,7 +45,7 @@ public class HrDashboardHelperTest {
 
 	@Test
 	public void testGetOrganizationalMetrics() {
-		List<Metrics> metricsList = dh.getOrganizationalMetrics();
+		List<Metrics> metricsList = dh.getOrganizationalMetrics(companyId);
 		for (Metrics m : metricsList) {
 			assertTrue(m.getId() > 0);
 			assertTrue(!m.getDirection().isEmpty());
@@ -59,7 +60,7 @@ public class HrDashboardHelperTest {
 		f.setFilterName("Zone");
 		f.setFilterId(3);
 		f.setFilterValues(filterValuesMap);
-		Map<Integer, List<Map<Date, Integer>>> result = dh.getTimeSeriesGraph(f);
+		Map<Integer, List<Map<Date, Integer>>> result = dh.getTimeSeriesGraph(companyId, f);
 		for (int metricId : result.keySet()) {
 			assertNotNull(result.get(metricId));
 			List<Map<Date, Integer>> timeSeriesDataList = result.get(metricId);
@@ -73,7 +74,7 @@ public class HrDashboardHelperTest {
 
 	@Test
 	public void testGetOrganizationTimeSeriesGraph() {
-		Map<Integer, List<Map<Date, Integer>>> result = dh.getOrganizationTimeSeriesGraph();
+		Map<Integer, List<Map<Date, Integer>>> result = dh.getOrganizationTimeSeriesGraph(companyId);
 		for (int metricId : result.keySet()) {
 			assertNotNull(result.get(metricId));
 			List<Map<Date, Integer>> timeSeriesDataList = result.get(metricId);
@@ -86,7 +87,7 @@ public class HrDashboardHelperTest {
 
 	@Test
 	public void testGetAlertList() {
-		List<Alert> alertList = dh.getAlertList();
+		List<Alert> alertList = dh.getAlertList(companyId);
 		for (Alert a : alertList) {
 			assertTrue(a.getAlertId() > 0);
 

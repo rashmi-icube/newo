@@ -21,11 +21,12 @@ import org.junit.Test;
 
 public class EmployeeTest {
 	Employee e = (Employee) ObjectFactory.getInstance("org.icube.owen.employee.Employee");
+	int companyId = 1;
 
 	@Test
 	public void testGet() {
 		Employee emp = new Employee();
-		emp = e.get(1);
+		emp = e.get(companyId, 1);
 		assertNotNull(emp.getEmployeeId());
 		assertNotNull(emp.getFirstName());
 		assertNotNull(emp.getLastName());

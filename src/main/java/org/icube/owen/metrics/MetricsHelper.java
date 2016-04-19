@@ -22,24 +22,28 @@ import org.rosuda.REngine.Rserve.RConnection;
 
 public class MetricsHelper {
 	@SuppressWarnings("unchecked")
-	public List<Metrics> getTeamMetricsList(int initiativeTypeId, Map<String, Object> parsedFilterListResult, boolean previousScoreNeeded)
-			throws SQLException {
+	public List<Metrics> getTeamMetricsList(int companyId, int initiativeTypeId, Map<String, Object> parsedFilterListResult,
+			boolean previousScoreNeeded) throws SQLException {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
 		List<Metrics> metricList = new ArrayList<>();
 		Map<Integer, String> primaryMetricMap = new HashMap<>();
 		if (initiativeTypeId > 0) {
-			primaryMetricMap = getPrimaryMetricMap(initiativeTypeId);
+			primaryMetricMap = getPrimaryMetricMap(companyId, initiativeTypeId);
 		}
 		if ((int) parsedFilterListResult.get("countAll") == 3) {
 			// if all selections are ALL then it is a organizational team metric
 			CallableStatement cstmt;
 			if (previousScoreNeeded) {
-				cstmt = dch.mysqlCon.prepareCall("{call getOrganizationMetricValueAggregate()}");
+				org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Calling the getOrganizationMetricValueAggregate");
+				cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getOrganizationMetricValueAggregate()}");
 			} else {
-				cstmt = dch.mysqlCon.prepareCall("{call getOrganizationMetricValue()}");
+				org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Calling the getOrganizationMetricValue");
+				cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getOrganizationMetricValue()}");
 			}
 			ResultSet rs = cstmt.executeQuery();
 			metricList = fillMetricsData(initiativeTypeId, rs, primaryMetricMap, "Team");
+			org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Calculated metrics for organization : " + metricList.size());
 		} else if ((int) parsedFilterListResult.get("countAll") == 2) {
 			// if two of the filters are ALL then it is a dimension metric
 			CallableStatement cstmt;
@@ -48,14 +52,14 @@ public class MetricsHelper {
 				org.apache.log4j.Logger.getLogger(MetricsHelper.class)
 						.debug("Dimension Value ID : " + parsedFilterListResult.get("dimensionValueId"));
 				org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Dimension ID : " + parsedFilterListResult.get("dimensionId"));
-				cstmt = dch.mysqlCon.prepareCall("{call getDimensionMetricValueAggregate(?,?)}");
+				cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getDimensionMetricValueAggregate(?,?)}");
 				cstmt.setInt(1, (int) parsedFilterListResult.get("dimensionValueId"));
 				cstmt.setInt(2, (int) parsedFilterListResult.get("dimensionId"));
 			} else {
 				org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Calling the getDimensionMetricValueAggregate");
 				org.apache.log4j.Logger.getLogger(MetricsHelper.class)
 						.debug("Dimension Value ID : " + parsedFilterListResult.get("dimensionValueId"));
-				cstmt = dch.mysqlCon.prepareCall("{call getDimensionMetricValue(?)}");
+				cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getDimensionMetricValue(?)}");
 				cstmt.setInt(1, (int) parsedFilterListResult.get("dimensionValueId"));
 			}
 
@@ -66,20 +70,22 @@ public class MetricsHelper {
 			// if none of the filters is ALL then it is a cube metric
 			CallableStatement cstmt;
 			if (previousScoreNeeded) {
-				cstmt = dch.mysqlCon.prepareCall("{call getTeamMetricValueAggregate(?, ?, ?)}");
+				org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Calling the getTeamMetricValueAggregate");
+				cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getTeamMetricValueAggregate(?, ?, ?)}");
 			} else {
-				cstmt = dch.mysqlCon.prepareCall("{call getTeamMetricValue(?, ?, ?)}");
+				org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Calling the getTeamMetricValue");
+				cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getTeamMetricValue(?, ?, ?)}");
 			}
 			cstmt.setInt(1, (int) parsedFilterListResult.get("funcId"));
 			cstmt.setInt(2, (int) parsedFilterListResult.get("posId"));
 			cstmt.setInt(3, (int) parsedFilterListResult.get("zoneId"));
 			ResultSet rs = cstmt.executeQuery();
 			metricList = fillMetricsData(initiativeTypeId, rs, primaryMetricMap, "Team");
-
+			org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Calculated metrics for team : " + metricList.size());
 		} else {
 			// else call metric.R
 			MetricsList ml = new MetricsList();
-			metricList = ml.getInitiativeMetricsForTeam(0, (List<Filter>) parsedFilterListResult.get("filterList"));
+			metricList = ml.getInitiativeMetricsForTeam(companyId, 0, (List<Filter>) parsedFilterListResult.get("filterList"));
 		}
 
 		return metricList;
@@ -116,13 +122,14 @@ public class MetricsHelper {
 	}
 
 	@SuppressWarnings("unchecked")
-	public List<Metrics> getDynamicTeamMetrics(int initiativeTypeId, Map<String, Object> parsedFilterListResult) {
+	public List<Metrics> getDynamicTeamMetrics(int companyId, int initiativeTypeId, Map<String, Object> parsedFilterListResult) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
 		List<Metrics> metricsList = new ArrayList<>();
-		Map<Integer, String> metricListForCategory = getMetricListForCategory("Team");
+		Map<Integer, String> metricListForCategory = getMetricListForCategory(companyId, "Team");
 		Map<Integer, String> primaryMetricMap = new HashMap<>();
 		if (initiativeTypeId > 0) {
-			primaryMetricMap = getPrimaryMetricMap(initiativeTypeId);
+			primaryMetricMap = getPrimaryMetricMap(companyId, initiativeTypeId);
 		}
 		try {
 
@@ -142,12 +149,13 @@ public class MetricsHelper {
 					zoneList.addAll(f.getFilterValues().keySet());
 				}
 			}
+			rCon.assign("company_id", new int[] { companyId });
 			rCon.assign("funcList", UtilHelper.getIntArrayFromIntegerList(funcList));
 			rCon.assign("posList", UtilHelper.getIntArrayFromIntegerList(posList));
 			rCon.assign("zoneList", UtilHelper.getIntArrayFromIntegerList(zoneList));
 
 			org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Calling the actual function in RScript TeamMetric");
-			REXP teamMetricScore = rCon.parseAndEval("try(eval(TeamMetric(funcList, posList, zoneList)))");
+			REXP teamMetricScore = rCon.parseAndEval("try(eval(TeamMetric(company_id, funcList, posList, zoneList)))");
 			if (teamMetricScore.inherits("try-error")) {
 				org.apache.log4j.Logger.getLogger(MetricsHelper.class).error("Error: " + teamMetricScore.asString());
 				throw new Exception("Error: " + teamMetricScore.asString());
@@ -190,11 +198,12 @@ public class MetricsHelper {
 	 * @param initiativeTypeId - Initiative type ID of the Initiative
 	 * @return - The primary metric map containing the ID and name of the primary metric
 	 */
-	public Map<Integer, String> getPrimaryMetricMap(int initiativeTypeId) {
+	public Map<Integer, String> getPrimaryMetricMap(int companyId, int initiativeTypeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
 		Map<Integer, String> primaryMetricMap = new HashMap<>();
 		try {
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getInitiativePrimaryMetric(?)}");
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getInitiativePrimaryMetric(?)}");
 			cstmt.setInt(1, initiativeTypeId);
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
@@ -211,11 +220,12 @@ public class MetricsHelper {
 	 * @param category - category for which the metric list is required
 	 * @return - A map containing the metrics for the specified category
 	 */
-	public Map<Integer, String> getMetricListForCategory(String category) {
+	public Map<Integer, String> getMetricListForCategory(int companyId, String category) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
 		Map<Integer, String> metricListForCategory = new HashMap<>();
 		try {
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getMetricListForCategory(?)}");
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getMetricListForCategory(?)}");
 			cstmt.setString(1, category);
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {

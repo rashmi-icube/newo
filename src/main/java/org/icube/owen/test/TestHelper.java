@@ -10,6 +10,8 @@ import org.icube.owen.filter.FilterList;
 
 public class TestHelper {
 
+	static int companyId = 1;
+
 	public static List<Filter> getAllForAllFilters() {
 		List<Filter> filterList = new ArrayList<Filter>();
 		Map<Integer, String> filterValuesMap = new HashMap<>();
@@ -39,7 +41,7 @@ public class TestHelper {
 
 	public static List<Filter> getOneForEachFilter() {
 		FilterList fl = new FilterList();
-		List<Filter> filterList = fl.getFilterValues();
+		List<Filter> filterList = fl.getFilterValues(companyId);
 		for (Filter f : filterList) {
 			while (f.getFilterValues().size() > 1) {
 				f.getFilterValues().remove(f.getFilterValues().keySet().iterator().next());
@@ -50,7 +52,7 @@ public class TestHelper {
 
 	public static List<Filter> getTwoForEachFilter() {
 		FilterList fl = new FilterList();
-		List<Filter> filterList = fl.getFilterValues();
+		List<Filter> filterList = fl.getFilterValues(companyId);
 		for (Filter f : filterList) {
 			while (f.getFilterValues().size() > 2) {
 				f.getFilterValues().remove(f.getFilterValues().keySet().iterator().next());
@@ -65,7 +67,7 @@ public class TestHelper {
 		filterList.get(0).getFilterValues().put(0, "All");
 		return filterList;
 	}
-	
+
 	public static List<Filter> getAllForTwoFilters() {
 		List<Filter> filterList = getAllForOneFilter();
 		filterList.get(1).getFilterValues().clear();

@@ -26,7 +26,7 @@ public class ExploreHelper extends TheBorg {
 	 * @param teamListMap - Map with the (teamName, filterList) pair, can have as many teams as desired by the UI
 	 * @return metricsMapList - Map with (teamName, metricList) pair
 	 */
-	public Map<String, List<Metrics>> getTeamMetricsData(Map<String, List<Filter>> teamListMap) {
+	public Map<String, List<Metrics>> getTeamMetricsData(int companyId, Map<String, List<Filter>> teamListMap) {
 
 		Map<String, List<Metrics>> result = new HashMap<>();
 
@@ -35,7 +35,7 @@ public class ExploreHelper extends TheBorg {
 			List<Filter> filterList = teamListMap.get(teamName);
 			try {
 				MetricsHelper mh = new MetricsHelper();
-				metricList = mh.getTeamMetricsList(0, UtilHelper.parseFilterList(filterList), false);
+				metricList = mh.getTeamMetricsList(companyId, 0, UtilHelper.parseFilterList(filterList), false);
 			} catch (SQLException e) {
 				org.apache.log4j.Logger.getLogger(ExploreHelper.class).error("Exception while getting team metrics data : " + teamListMap.toString(),
 						e);
@@ -50,9 +50,10 @@ public class ExploreHelper extends TheBorg {
 	 * @param teamListMap - Map with the (teamName, filterList) pair, can have as many teams as desired by the UI
 	 * @return metricsMapList - Map with (teamName, metricList) pair
 	 */
-	public Map<String, Map<Integer, List<Map<Date, Integer>>>> getTeamTimeSeriesGraph(Map<String, List<Filter>> teamListMap) {
+	public Map<String, Map<Integer, List<Map<Date, Integer>>>> getTeamTimeSeriesGraph(int companyId, Map<String, List<Filter>> teamListMap) {
 
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
 		Map<String, Map<Integer, List<Map<Date, Integer>>>> result = new HashMap<>();
 
 		for (String teamName : teamListMap.keySet()) {
@@ -62,19 +63,19 @@ public class ExploreHelper extends TheBorg {
 			try {
 				if ((int) parsedFilterListResult.get("countAll") == 3) {
 					// if all selections are ALL then it is a organizational team metric
-					CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getOrganizationMetricTimeSeries()}");
+					CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getOrganizationMetricTimeSeries()}");
 					ResultSet rs = cstmt.executeQuery();
 					timeSeriesMap = getTimeSeriesMap(rs);
 
 				} else if ((int) parsedFilterListResult.get("countAll") == 2) {
 					// if two of the filters are ALL then it is a dimension metric
-					CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getDimensionMetricTimeSeries(?)}");
+					CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getDimensionMetricTimeSeries(?)}");
 					cstmt.setInt(1, (int) parsedFilterListResult.get("dimensionValueId"));
 					ResultSet rs = cstmt.executeQuery();
 					timeSeriesMap = getTimeSeriesMap(rs);
 				} else if ((int) parsedFilterListResult.get("countAll") == 0) {
 					// if none of the filters is ALL then it is a cube metric
-					CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getTeamMetricTimeSeries(?,?,?)}");
+					CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getTeamMetricTimeSeries(?,?,?)}");
 					cstmt.setInt(1, (int) parsedFilterListResult.get("funcId"));
 					cstmt.setInt(2, (int) parsedFilterListResult.get("posId"));
 					cstmt.setInt(3, (int) parsedFilterListResult.get("zoneId"));
@@ -103,14 +104,15 @@ public class ExploreHelper extends TheBorg {
 	 * @param employeeList - list of employees selected
 	 * @return map of employee linked to a list of metrics
 	 */
-	public Map<Employee, List<Metrics>> getIndividualMetricsData(List<Employee> employeeList) {
+	public Map<Employee, List<Metrics>> getIndividualMetricsData(int companyId, List<Employee> employeeList) {
 
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Map<Employee, List<Metrics>> result = new HashMap<>();
 		try {
+			dch.getCompanyConnection(companyId);
 			for (Employee e : employeeList) {
 				List<Metrics> metricsList = new ArrayList<>();
-				CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getIndividualMetricValue(?)}");
+				CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getIndividualMetricValue(?)}");
 				cstmt.setInt(1, e.getEmployeeId());
 				ResultSet rs = cstmt.executeQuery();
 				MetricsHelper mh = new MetricsHelper();
@@ -129,15 +131,16 @@ public class ExploreHelper extends TheBorg {
 	 * @param employeeList - list of employees selected
 	 * @return map of employee linked to a list of metrics
 	 */
-	public Map<Employee, Map<Integer, List<Map<Date, Integer>>>> getIndividualTimeSeriesGraph(List<Employee> employeeList) {
+	public Map<Employee, Map<Integer, List<Map<Date, Integer>>>> getIndividualTimeSeriesGraph(int companyId, List<Employee> employeeList) {
 
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Map<Employee, Map<Integer, List<Map<Date, Integer>>>> result = new HashMap<>();
 
 		try {
+			dch.getCompanyConnection(companyId);
 			for (Employee e : employeeList) {
 				Map<Integer, List<Map<Date, Integer>>> metricsList = new HashMap<>();
-				CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getIndividualMetricTimeSeries(?)}");
+				CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getIndividualMetricTimeSeries(?)}");
 				cstmt.setInt(1, e.getEmployeeId());
 				ResultSet rs = cstmt.executeQuery();
 				metricsList = getTimeSeriesMap(rs);
@@ -177,10 +180,11 @@ public class ExploreHelper extends TheBorg {
 	 * 
 	 * @return map with node list and edge list
 	 */
-	public Map<String, List<?>> getTeamNetworkDiagram(Map<String, List<Filter>> teamListMap, Map<Integer, String> relationshipType) {
+	public Map<String, List<?>> getTeamNetworkDiagram(int companyId, Map<String, List<Filter>> teamListMap, Map<Integer, String> relationshipType) {
 		org.apache.log4j.Logger.getLogger(ExploreHelper.class).debug("Entering getTeamNetworkDiagram method");
 		Map<String, List<?>> result = new HashMap<>();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
 		String query = "";
 		List<Node> nodeList = new ArrayList<>();
 		List<Edge> edgeList = new ArrayList<>();
@@ -237,7 +241,7 @@ public class ExploreHelper extends TheBorg {
 		try {
 			List<Integer> empIdList = new ArrayList<>();
 			org.apache.log4j.Logger.getLogger(ExploreHelper.class).debug("getTeamNetworkDiagram query for all teams  : " + query);
-			Statement stmt = dch.neo4jCon.createStatement();
+			Statement stmt = dch.companyNeoConnectionPool.get(companyId).createStatement();
 			ResultSet res = stmt.executeQuery(query);
 			while (res.next()) {
 				empIdList.add(res.getInt("emp_id"));
@@ -253,7 +257,7 @@ public class ExploreHelper extends TheBorg {
 			}
 			org.apache.log4j.Logger.getLogger(ExploreHelper.class).debug("Node list size : " + nodeList.size());
 
-			edgeList = getEdges(empIdList, relationshipType);
+			edgeList = getEdges(companyId, empIdList, relationshipType);
 			org.apache.log4j.Logger.getLogger(ExploreHelper.class).debug("Edge list size : " + edgeList.size());
 			stmt.close();
 		} catch (SQLException e) {
@@ -272,9 +276,10 @@ public class ExploreHelper extends TheBorg {
 	 * 
 	 * @return map with node list and edge list
 	 */
-	public Map<String, List<?>> getIndividualNetworkDiagram(List<Employee> employeeList, Map<Integer, String> relationshipTypeMap) {
+	public Map<String, List<?>> getIndividualNetworkDiagram(int companyId, List<Employee> employeeList, Map<Integer, String> relationshipTypeMap) {
 		org.apache.log4j.Logger.getLogger(ExploreHelper.class).debug("Entering getIndividualNetworkDiagram method");
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
 		Map<String, List<?>> result = new HashMap<>();
 		List<Node> nodeList = new ArrayList<>();
 		List<Edge> edgeList = new ArrayList<>();
@@ -324,7 +329,7 @@ public class ExploreHelper extends TheBorg {
 		try {
 			List<Integer> empIdList = new ArrayList<>();
 			org.apache.log4j.Logger.getLogger(ExploreHelper.class).debug("getIndividualNetworkDiagram query  : " + query);
-			Statement stmt = dch.neo4jCon.createStatement();
+			Statement stmt = dch.companyNeoConnectionPool.get(companyId).createStatement();
 			ResultSet res = stmt.executeQuery(query);
 			while (res.next()) {
 				empIdList.add(res.getInt("emp_id"));
@@ -339,7 +344,7 @@ public class ExploreHelper extends TheBorg {
 				nodeList.add(n);
 			}
 
-			edgeList = getEdges(empIdList, relationshipTypeMap);
+			edgeList = getEdges(companyId, empIdList, relationshipTypeMap);
 			stmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(ExploreHelper.class).error("Error while retrieving individual networks diagram", e);
@@ -351,8 +356,9 @@ public class ExploreHelper extends TheBorg {
 		return result;
 	}
 
-	public List<Edge> getEdges(List<Integer> employeeIdList, Map<Integer, String> relationshipTypeMap) {
+	public List<Edge> getEdges(int companyId, List<Integer> employeeIdList, Map<Integer, String> relationshipTypeMap) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
 		List<Edge> result = new ArrayList<>();
 		String relationshipType = "";
 
@@ -366,7 +372,7 @@ public class ExploreHelper extends TheBorg {
 
 		org.apache.log4j.Logger.getLogger(ExploreHelper.class).debug("getEdges query for all teams  : " + query);
 		try {
-			Statement stmt = dch.neo4jCon.createStatement();
+			Statement stmt = dch.companyNeoConnectionPool.get(companyId).createStatement();
 			ResultSet res = stmt.executeQuery(query);
 			while (res.next()) {
 				Edge e = new Edge();
@@ -390,11 +396,12 @@ public class ExploreHelper extends TheBorg {
 	 * Returns a map of relationship type ID + relationship type Name
 	 * @return relationshipTypeMap
 	 */
-	public Map<Integer, String> getRelationshipTypeMap() {
+	public Map<Integer, String> getRelationshipTypeMap(int companyId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Map<Integer, String> relationshipTypeMap = new HashMap<>();
 		try {
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getRelationTypeList()}");
+			dch.getCompanyConnection(companyId);
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getRelationTypeList()}");
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
 				relationshipTypeMap.put(rs.getInt("rel_id"), rs.getString("rel_name"));

@@ -1,7 +1,6 @@
 package org.icube.owen.employee;
 
 import java.sql.CallableStatement;
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -172,9 +171,10 @@ public class EmployeeHelper extends TheBorg {
 	public Map<Integer, String> getLanguageMasterMap(int companyId) {
 		Map<Integer, String> languageMasterMap = new HashMap<>();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
 		try {
-			Connection conn = dch.getCompanyConnection(companyId);
-			CallableStatement cstmt = conn.prepareCall("{call getLanguageList}");
+
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getLanguageList}");
 
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {

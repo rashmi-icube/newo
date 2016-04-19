@@ -16,11 +16,12 @@ import org.junit.Test;
 public class TheWallTest {
 
 	TheWallHelper twh = (TheWallHelper) ObjectFactory.getInstance("org.icube.owen.dashboard.TheWallHelper");
+	int companyId = 1;
 
 	@Test
 	public void testGetIndividualWallFeed() {
 		FilterList fl = new FilterList();
-		List<Filter> filterList = fl.getFilterValues();
+		List<Filter> filterList = fl.getFilterValues(companyId);
 		for (Filter f : filterList) {
 			while (f.getFilterValues().size() > 1) {
 				f.getFilterValues().remove(f.getFilterValues().keySet().iterator().next());
@@ -32,7 +33,7 @@ public class TheWallTest {
 			filter.getFilterValues().clear();
 			filter.getFilterValues().put(2, "Business");
 		}
-		List<Map<String, Object>> result = twh.getIndividualWallFeed(2, "top", 10, 1, 50, filterList);
+		List<Map<String, Object>> result = twh.getIndividualWallFeed(companyId, 2, "top", 10, 1, 50, filterList);
 		for (Map<String, Object> employeeDetailsMap : result) {
 			assertNotNull(employeeDetailsMap.get("employeeId"));
 			assertNotNull(employeeDetailsMap.get("metricScore"));
@@ -74,7 +75,7 @@ public class TheWallTest {
 		f2.setFilterValues(filterValuesMap);
 		filterList.add(f2);
 
-		List<Map<String, Object>> result = twh.getTeamWallFeed(6, "top", 10, 1, 50, filterList);
+		List<Map<String, Object>> result = twh.getTeamWallFeed(companyId, 6, "top", 10, 1, 50, filterList);
 		for (Map<String, Object> teamDetailsMap : result) {
 			assertNotNull(teamDetailsMap.get("cubeId"));
 			assertNotNull(teamDetailsMap.get("metricScore"));

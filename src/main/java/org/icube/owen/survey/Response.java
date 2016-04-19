@@ -1,7 +1,6 @@
 package org.icube.owen.survey;
 
 import java.sql.CallableStatement;
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.time.Instant;
 import java.util.Date;
@@ -23,8 +22,8 @@ public class Response extends TheBorg {
 		boolean responseSaved = false;
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		try {
-			Connection conn = dch.getCompanyConnection(companyId);
-			CallableStatement cstmt = conn.prepareCall("{call insertMeResponse(?,?,?,?,?,?)}");
+			dch.getCompanyConnection(companyId);
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call insertMeResponse(?,?,?,?,?,?)}");
 			cstmt.setInt(1, employeeId);
 			cstmt.setInt(2, q.getQuestionId());
 			cstmt.setTimestamp(3, UtilHelper.convertJavaDateToSqlTimestamp(Date.from(Instant.now())));
@@ -53,9 +52,10 @@ public class Response extends TheBorg {
 		int count = 0;
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		try {
-			Connection conn = dch.getCompanyConnection(companyId);
+			dch.getCompanyConnection(companyId);
+
 			for (Employee e : employeeRating.keySet()) {
-				CallableStatement cstmt = conn.prepareCall("{call insertWeResponse(?,?,?,?,?,?)}");
+				CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call insertWeResponse(?,?,?,?,?,?)}");
 				cstmt.setInt(1, employeeId);
 				cstmt.setInt(2, q.getQuestionId());
 				cstmt.setTimestamp(3, UtilHelper.convertJavaDateToSqlTimestamp(Date.from(Instant.now())));

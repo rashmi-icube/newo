@@ -1,12 +1,9 @@
 package org.icube.owen.employee;
 
 import java.sql.CallableStatement;
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -33,8 +30,9 @@ public class EmployeeList extends TheBorg {
 	 * @param initiativeType - type of the initiative
 	 * @return list of employee objects
 	 */
-	public List<Employee> getEmployeeSmartListForTeam(List<Filter> filterList, int initiativeType) {
+	public List<Employee> getEmployeeSmartListForTeam(int companyId, List<Filter> filterList, int initiativeType) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
 		List<Employee> employeeSmartList = new ArrayList<Employee>();
 		try {
 			RConnection rCon = dch.getRConn();
@@ -56,13 +54,14 @@ public class EmployeeList extends TheBorg {
 					"Parameters for R function :  /n Function : " + funcList.toString() + "/n Position : " + posList.toString() + " /n Zone : "
 							+ zoneList.toString() + "/n Initiative Type Id : " + initiativeType);
 
+			rCon.assign("company_id", new int[] { companyId });
 			rCon.assign("Function", UtilHelper.getIntArrayFromIntegerList(funcList));
 			rCon.assign("Position", UtilHelper.getIntArrayFromIntegerList(posList));
 			rCon.assign("Zone", UtilHelper.getIntArrayFromIntegerList(zoneList));
 			rCon.assign("init_type_id", new int[] { initiativeType });
 
 			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Calling the actual function in RScript TeamSmartList");
-			REXP employeeSmartListForTeam = rCon.parseAndEval("try(eval(TeamSmartList(Function, Position, Zone, init_type_id)))");
+			REXP employeeSmartListForTeam = rCon.parseAndEval("try(eval(TeamSmartList(company_id, Function, Position, Zone, init_type_id)))");
 			if (employeeSmartListForTeam.inherits("try-error")) {
 				org.apache.log4j.Logger.getLogger(EmployeeList.class).error("Error: " + employeeSmartListForTeam.asString());
 				throw new Exception("Error: " + employeeSmartListForTeam.asString());
@@ -84,7 +83,7 @@ public class EmployeeList extends TheBorg {
 
 			for (int i = 0; i < empIdArray.length; i++) {
 				Employee e = new Employee();
-				e = e.get(empIdArray[i]);
+				e = e.get(companyId, empIdArray[i]);
 				e.setGrade(gradeArray[i]);
 				e.setScore(scoreArray[i]);
 				empMap.put(rankArray[i], e);
@@ -112,8 +111,9 @@ public class EmployeeList extends TheBorg {
 	 * @param initiativeType - ID of the type of initiative
 	 * @return List of employee objects
 	 */
-	public List<Employee> getEmployeeSmartListForIndividual(List<Employee> partOfEmployeeList, int initiativeType) {
+	public List<Employee> getEmployeeSmartListForIndividual(int companyId, List<Employee> partOfEmployeeList, int initiativeType) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
 		List<Employee> individualSmartList = new ArrayList<Employee>();
 		List<Integer> partOfEmployeeIdList = new ArrayList<>();
 		for (Employee e : partOfEmployeeList) {
@@ -123,10 +123,11 @@ public class EmployeeList extends TheBorg {
 			RConnection rCon = dch.getRConn();
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("R Connection Available : " + rCon.isConnected());
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("Filling up parameters for rscript function");
+			rCon.assign("company_id", new int[] { companyId });
 			rCon.assign("emp_id", new int[] { partOfEmployeeIdList.get(0) });
 			rCon.assign("init_type_id", new int[] { initiativeType });
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("Calling the actual function in RScript IndividualSmartList");
-			REXP employeeSmartList = rCon.parseAndEval("try(eval(IndividualSmartList(emp_id, init_type_id)))");
+			REXP employeeSmartList = rCon.parseAndEval("try(eval(IndividualSmartList(company_id, emp_id, init_type_id)))");
 			if (employeeSmartList.inherits("try-error")) {
 				org.apache.log4j.Logger.getLogger(EmployeeList.class).error("Error: " + employeeSmartList.asString());
 				throw new Exception("Error: " + employeeSmartList.asString());
@@ -142,57 +143,30 @@ public class EmployeeList extends TheBorg {
 			int[] scoreArray = scoreResult.asIntegers();
 			REXPString gradeRseult = (REXPString) result.get("flag");
 			String[] gradeArray = gradeRseult.asStrings();
+			REXPInteger rank = (REXPInteger) result.get("Rank");
+			int[] rankArray = rank.asIntegers();
+			Map<Integer, Employee> empMap = new TreeMap<>();
 
 			for (int i = 0; i < empIdArray.length; i++) {
 				Employee e = new Employee();
-				e = e.get(empIdArray[i]);
+				e = e.get(companyId, empIdArray[i]);
 				e.setGrade(gradeArray[i]);
 				e.setScore(scoreArray[i]);
-				individualSmartList.add(e);
+				empMap.put(rankArray[i], e);
 			}
 
-			Collections.sort(individualSmartList, Collections.reverseOrder(new Comparator<Employee>() {
-				public int compare(Employee e1, Employee e2) {
-					return Double.compare(e1.getScore(), e2.getScore());
-				}
-			}));
+			for (Employee e : empMap.values()) {
+				individualSmartList.add(e);
+			}
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).error("Error while trying to retrieve the smart list for employee ", e);
 		}
 
 		finally {
-			ObjectFactory.getDBHelper().releaseRcon();
+			dch.releaseRcon();
 		}
 
 		return individualSmartList;
-	}
-
-	/**
-	 * Get a list of all employee objects
-	 * @return employeeList
-	 */
-	public List<Employee> getEmployeeMasterList() {
-		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		List<Employee> employeeList = new ArrayList<>();
-		try {
-			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("getEmployeeMasterList method started");
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getEmployeeList()}");
-			ResultSet res = cstmt.executeQuery();
-			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("query : " + cstmt);
-			while (res.next()) {
-				Employee e = setEmployeeDetails(res);
-				employeeList.add(e);
-			}
-
-			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("employeeList : " + employeeList.toString());
-
-		} catch (SQLException e) {
-			org.apache.log4j.Logger.getLogger(EmployeeList.class).error("Exception while getting the employee master list", e);
-
-		}
-
-		return employeeList;
-
 	}
 
 	/**
@@ -210,7 +184,7 @@ public class EmployeeList extends TheBorg {
 			ResultSet res = cstmt.executeQuery();
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("query : " + cstmt);
 			while (res.next()) {
-				Employee e = setEmployeeDetails(res);
+				Employee e = setEmployeeDetails(companyId, res);
 				e.setCompanyId(companyId);
 				employeeList.add(e);
 			}
@@ -233,7 +207,7 @@ public class EmployeeList extends TheBorg {
 	 * @return employee object
 	 * @throws SQLException - if employee details are not set
 	 */
-	protected Employee setEmployeeDetails(ResultSet res) throws SQLException {
+	protected Employee setEmployeeDetails(int companyId, ResultSet res) throws SQLException {
 		Employee e = new Employee();
 		e.setEmployeeId(res.getInt("emp_id"));
 		e.setCompanyEmployeeId(res.getString("emp_int_id"));
@@ -256,26 +230,10 @@ public class EmployeeList extends TheBorg {
 		} else {
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("Employee  : " + e.getEmployeeId() + "-" + e.getFirstName());
 		}
-
-		// TODO hard coding the company ID
-		e.setCompanyId(1);
+		e.setCompanyId(companyId);
 		return e;
 	}
 
-	/*
-		*//**
-		* Returns a list of string filter ids from a map of filters
-		* 
-		* @param filterMap - Map of filters
-		* @return string list of filter keys
-		*/
-	/*
-	private List<Integer> getFilterKeyList(Map<Integer, String> filterMap) {
-	List<Integer> filterKeysStringList = new ArrayList<>();
-	filterKeysStringList.addAll(filterMap.keySet());
-	return filterKeysStringList;
-	}
-	*/
 	/**
 	 * Retrieves the employee list based on the dimension provided 
 	 * 
@@ -284,9 +242,10 @@ public class EmployeeList extends TheBorg {
 	public List<Employee> getEmployeeListByFilters(int companyId, List<Filter> filterList) {
 
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
 		List<Employee> employeeList = new ArrayList<>();
 		Employee e = new Employee();
-		Connection conn;
+
 		try {
 			int funcId = 0, posId = 0, zoneId = 0;
 			for (Filter filter : filterList) {
@@ -298,15 +257,14 @@ public class EmployeeList extends TheBorg {
 					zoneId = filter.getFilterValues().keySet().iterator().next();
 				}
 			}
-			conn = dch.getCompanyConnection(companyId);
-			CallableStatement cstmt = conn.prepareCall("{call getEmpFromDimension(?,?,?)}");
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("Function : " + funcId + " Zone : " + zoneId + " Position : " + posId);
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getEmpFromDimension(?,?,?)}");
 			cstmt.setInt(1, funcId);
 			cstmt.setInt(2, posId);
 			cstmt.setInt(3, zoneId);
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
-				e = e.get(rs.getInt("emp_id"));
-				e.setCompanyId(companyId);
+				e = e.get(companyId, rs.getInt("emp_id"));
 				employeeList.add(e);
 			}
 		} catch (SQLException e1) {

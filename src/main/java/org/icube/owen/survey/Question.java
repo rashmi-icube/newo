@@ -1,7 +1,6 @@
 package org.icube.owen.survey;
 
 import java.sql.CallableStatement;
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
@@ -103,11 +102,13 @@ public class Question extends TheBorg {
 	 * @param questionId - ID of the question to be retrieved
 	 * @return a Question object
 	 */
-	public Question getQuestion(int questionId) {
+	public Question getQuestion(int companyId, int questionId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Question q = new Question();
 		try {
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getQuestion(?)}");
+			dch.getCompanyConnection(companyId);
+
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getQuestion(?)}");
 			cstmt.setInt(1, questionId);
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
@@ -118,7 +119,7 @@ public class Question extends TheBorg {
 				q.setResponsePercentage(rs.getDouble("resp"));
 				q.setQuestionType(QuestionType.values()[rs.getInt("que_type")]);
 				q.setSurveyBatchId(rs.getInt("survey_batch_id"));
-				q.setRelationshipTypeId(rs.getInt("rel_id"));
+				q.setRelationshipTypeId(rs.getInt("rel_id") == 0 ? null : rs.getInt("rel_id"));
 			}
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(Question.class).error("Exception while retrieving Question with ID" + questionId, e);
@@ -149,19 +150,22 @@ public class Question extends TheBorg {
 	 * @param q - a Question object for which the response data is required
 	 * @return - A map containing the responses and the date
 	 */
-	public Map<Date, Integer> getResponse(Question q) {
+	public Map<Date, Integer> getResponse(int companyId, Question q) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Map<Date, Integer> responseMap = new HashMap<>();
 		try {
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getResponseData(?)}");
+			dch.getCompanyConnection(companyId);
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getResponseData(?)}");
 			cstmt.setInt(1, q.getQuestionId());
 			ResultSet rs = cstmt.executeQuery();
-			if (rs != null) {
-				while (rs.next()) {
+			if (rs.next()) {
+				org.apache.log4j.Logger.getLogger(Question.class).debug("Response available for question : " + q.getQuestionId());
+				do {
 					Date utilDate = new Date(rs.getDate("date").getTime());
 					responseMap.put(utilDate, rs.getInt("responses"));
-				}
+				} while (rs.next());
 			} else {
+				org.apache.log4j.Logger.getLogger(Question.class).debug("No response available for question : " + q.getQuestionId());
 				for (Date d = q.getStartDate(); d.before(Date.from(Instant.now())); d = UtilHelper.convertJavaDateToSqlDate(DateUtils.addDays(d, 1))) {
 					responseMap.put(d, 0);
 				}
@@ -169,6 +173,7 @@ public class Question extends TheBorg {
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(Question.class).error("Exception while retrieving response data", e);
 		}
+		org.apache.log4j.Logger.getLogger(Question.class).debug("Response map for question : " + q.getQuestionId() + " : " + responseMap.toString());
 		return responseMap;
 
 	}
@@ -178,10 +183,10 @@ public class Question extends TheBorg {
 	 * @param batchId - batch ID of the question
 	 * @return - the current Question object
 	 */
-	public Question getCurrentQuestion(int batchId) {
+	public Question getCurrentQuestion(int companyId, int batchId) {
 		Question q = new Question();
 		QuestionList ql = new QuestionList();
-		for (Question q1 : ql.getQuestionListForBatch(batchId)) {
+		for (Question q1 : ql.getQuestionListForBatch(companyId, batchId)) {
 			if (UtilHelper.getStartOfDay(q1.getStartDate()).compareTo(Date.from(Instant.now())) <= 0
 					&& UtilHelper.getEndOfDay(q1.getEndDate()).after(Date.from(Instant.now()))) {
 				q.setQuestionId(q1.getQuestionId());
@@ -191,6 +196,7 @@ public class Question extends TheBorg {
 				q.setResponsePercentage(q1.getResponsePercentage());
 				q.setQuestionType(q1.getQuestionType());
 				q.setSurveyBatchId(q1.getSurveyBatchId());
+				q.setRelationshipTypeId(q1.getRelationshipTypeId());
 				org.apache.log4j.Logger.getLogger(Question.class).debug("Retrieved the current question " + q.getQuestionId());
 			}
 		}
@@ -206,10 +212,10 @@ public class Question extends TheBorg {
 	public List<Question> getEmployeeQuestionList(int companyId, int employeeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Question> questionList = new ArrayList<>();
-		Connection conn;
+
 		try {
-			conn = dch.getCompanyConnection(companyId);
-			CallableStatement cstmt = conn.prepareCall("{call getEmpQuestionList(?,?)}");
+			dch.getCompanyConnection(companyId);
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getEmpQuestionList(?,?)}");
 			cstmt.setInt(1, employeeId);
 			Date date = Date.from(Instant.now());
 			cstmt.setDate(2, UtilHelper.convertJavaDateToSqlDate(date));
@@ -224,6 +230,7 @@ public class Question extends TheBorg {
 				q.setSurveyBatchId(rs.getInt("survey_batch_id"));
 				q.setQuestionType(QuestionType.get(rs.getInt("que_type")));
 				q.setResponsePercentage(0);
+				q.setRelationshipTypeId(rs.getInt("rel_id") == 0 ? null : rs.getInt("rel_id"));
 				questionList.add(q);
 			}
 		} catch (SQLException e) {
@@ -267,7 +274,7 @@ public class Question extends TheBorg {
 
 			for (int i = 0; i < empIdArray.length; i++) {
 				Employee e = new Employee();
-				e = e.get(empIdArray[i]);
+				e = e.get(companyId, empIdArray[i]);
 				employeeRankMap.put(rankArray[i], e);
 			}
 			Map<Integer, Employee> sorted_map = new TreeMap<Integer, Employee>(employeeRankMap);
@@ -278,7 +285,7 @@ public class Question extends TheBorg {
 		}
 
 		finally {
-			ObjectFactory.getDBHelper().releaseRcon();
+			dch.releaseRcon();
 		}
 
 		return employeeList;

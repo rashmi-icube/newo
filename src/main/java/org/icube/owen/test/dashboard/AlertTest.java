@@ -8,10 +8,11 @@ import org.junit.Test;
 
 public class AlertTest {
 	Alert a = (Alert) ObjectFactory.getInstance("org.icube.owen.dashboard.Alert");
+	int companyId = 1;
 
 	@Test
 	public void testGet() {
-		Alert alert = a.get(4);
+		Alert alert = a.get(companyId, 4);
 		assertTrue(alert.getAlertId() > 0);
 		assertTrue(!alert.getEmployeeList().isEmpty());
 		assertTrue(!alert.getAlertTeam().isEmpty());
@@ -23,7 +24,7 @@ public class AlertTest {
 
 	@Test
 	public void testDelete() {
-		boolean status = a.delete(2);
+		boolean status = a.delete(companyId, 2);
 		assertTrue(status == true);
 	}
 

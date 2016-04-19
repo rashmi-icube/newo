@@ -16,7 +16,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -90,8 +89,9 @@ public class IndividualDashboardHelper extends TheBorg {
 	 * @param employeeId - Employee Id of the individual who is logged in
 	 * @return A list of Initiative objects
 	 */
-	public List<Initiative> getIndividualInitiativeList(int employeeId) {
+	public List<Initiative> getIndividualInitiativeList(int companyId, int employeeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
 		InitiativeHelper ih = new InitiativeHelper();
 		InitiativeList il = new InitiativeList();
 		List<Initiative> initiativeList = new ArrayList<>();
@@ -104,7 +104,7 @@ public class IndividualDashboardHelper extends TheBorg {
 					+ " where i=ini return i.Name as Name,i.StartDate as StartDate, i.EndDate as EndDate, i.CreatedOn as CreationDate,"
 					+ "i.Id as Id,case i.Category when 'Individual' then collect(distinct(a.emp_id)) else collect(distinct(a.Id))  end as PartOfID,collect(distinct(a.Name))as PartOfName, "
 					+ "labels(a) as Filters,collect(distinct (o.emp_id)) as OwnersOf,i.Comment as Comments,i.Type as Type,i.Category as Category,i.Status as Status;";
-			Statement stmt = dch.neo4jCon.createStatement();
+			Statement stmt = dch.companyNeoConnectionPool.get(companyId).createStatement();
 			ResultSet res = stmt.executeQuery(initiativeListQuery);
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Executed query for retrieving initiative list");
 			while (res.next()) {
@@ -112,11 +112,11 @@ public class IndividualDashboardHelper extends TheBorg {
 				int initiativeId = res.getInt("Id");
 				if (initiativeIdMap.containsKey(initiativeId)) {
 					Initiative i = initiativeIdMap.get(initiativeId);
-					i.setFilterList(ih.setPartOfConnections(res, i));
+					i.setFilterList(ih.setPartOfConnections(companyId, res, i));
 					initiativeIdMap.put(initiativeId, i);
 				} else {
 					Initiative i = new Initiative();
-					il.setInitiativeValues(res, i);
+					il.setInitiativeValues(companyId, res, i);
 					initiativeIdMap.put(initiativeId, i);
 				}
 
@@ -141,9 +141,11 @@ public class IndividualDashboardHelper extends TheBorg {
 	 * @return A list of ActivityFeed objects
 	 */
 	public Map<Date, List<ActivityFeed>> getActivityFeedList(int companyId, int employeeId, int pageNumber) {
+		org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug(
+				"Entering getActivityFeedList with employee ID : " + employeeId + " page number " + pageNumber);
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
-		Map<Date, List<ActivityFeed>> result = new HashMap<>();
+		Map<Date, List<ActivityFeed>> result = new TreeMap<>(Collections.reverseOrder());
 
 		org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Get ActivityFeed list");
 		try {
@@ -152,10 +154,10 @@ public class IndividualDashboardHelper extends TheBorg {
 			ResultSet rs = cstmt.executeQuery();
 			String initiativeListQuery = "MATCH (i:Init {Status:'Active'})<-[:owner_of]-(e:Employee {emp_id:" + employeeId
 					+ "}) return i.Name as Name ,i.CreatedOn as CreatedOn";
-			Statement stmt = dch.neo4jCon.createStatement();
+			Statement stmt = dch.companyNeoConnectionPool.get(companyId).createStatement();
 			ResultSet res = stmt.executeQuery(initiativeListQuery);
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Executed query for retrieving initiative list");
-			SimpleDateFormat parserSDF = new SimpleDateFormat(UtilHelper.dateTimeFormat, Locale.ENGLISH);
+			SimpleDateFormat parserSDF = new SimpleDateFormat(UtilHelper.dateTimeFormat);
 			List<ActivityFeed> afList = new ArrayList<>();
 			while (res.next()) {
 				ActivityFeed af = new ActivityFeed();
@@ -166,17 +168,21 @@ public class IndividualDashboardHelper extends TheBorg {
 				afList.add(af);
 			}
 			while (rs.next()) {
+				org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Appreciation from database");
 				ActivityFeed af = new ActivityFeed();
 				af.setHeaderText("Appreciation received");
 				af.setBodyText("You were appreciated for " + rs.getString("metric_name"));
 				af.setActivityType("Appreciation");
 				af.setDate(parserSDF.parse(rs.getString("response_time")));
+				org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug(
+						af.getDate() + ":" + af.getActivityType() + " : " + af.getBodyText() + ":" + af.getHeaderText());
 				afList.add(af);
 			}
 
 			Collections.sort(afList, new Comparator<ActivityFeed>() {
+				@Override
 				public int compare(ActivityFeed af1, ActivityFeed af2) {
-					return af1.getDate().compareTo(af2.getDate());
+					return af2.getDate().compareTo(af1.getDate());
 				}
 			});
 
@@ -199,6 +205,14 @@ public class IndividualDashboardHelper extends TheBorg {
 				}
 			}
 			result.toString();
+			for (List<ActivityFeed> afl : result.values()) {
+				for (ActivityFeed af : afl) {
+					org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug(
+							af.getDate() + ":" + af.getActivityType() + " : " + af.getBodyText() + ":" + af.getHeaderText());
+
+				}
+
+			}
 			stmt.close();
 		} catch (SQLException | ParseException e) {
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while retrieving the activity feed data", e);
@@ -231,8 +245,9 @@ public class IndividualDashboardHelper extends TheBorg {
 	 * @param metricId - Metric Id of the selected Metric
 	 * @return - A list of Employee objects
 	 */
-	public List<Employee> getSmartList(int employeeId, int metricId) {
+	public List<Employee> getSmartList(int companyId, int employeeId, int metricId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
 		Map<Integer, Employee> employeeRankMap = new LinkedHashMap<>();
 		List<Employee> employeeList = new ArrayList<>();
 		Map<Integer, Integer> MetricRelationshipTypeMap = getMetricRelationshipTypeMapping(1);
@@ -240,6 +255,7 @@ public class IndividualDashboardHelper extends TheBorg {
 			RConnection rCon = dch.getRConn();
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("R Connection Available : " + rCon.isConnected());
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Filling up parameters for rscript function");
+			rCon.assign("company_id", new int[] { companyId });
 			rCon.assign("emp_id", new int[] { employeeId });
 			rCon.assign("rel_id", new int[] { MetricRelationshipTypeMap.get(metricId) });
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Calling the actual function in RScript SmartListResponse");
@@ -260,7 +276,7 @@ public class IndividualDashboardHelper extends TheBorg {
 
 			for (int i = 0; i < empIdArray.length; i++) {
 				Employee e = new Employee();
-				e = e.get(empIdArray[i]);
+				e = e.get(companyId, empIdArray[i]);
 				employeeRankMap.put(rankArray[i], e);
 			}
 			Map<Integer, Employee> sorted_map = new TreeMap<Integer, Employee>(employeeRankMap);
@@ -390,7 +406,7 @@ public class IndividualDashboardHelper extends TheBorg {
 					+ sdf.format(lastNotificationDate) + "' return count(i) as initiative_count";
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug(
 					"Query to get notifications count from neo4j : " + notificationCountQuery);
-			Statement stmt = dch.neo4jCon.createStatement();
+			Statement stmt = dch.companyNeoConnectionPool.get(companyId).createStatement();
 			ResultSet res = stmt.executeQuery(notificationCountQuery);
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Executed query for retrieving initiative list");
 			while (res.next()) {

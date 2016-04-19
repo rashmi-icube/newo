@@ -27,12 +27,12 @@ public class InitiativeHelper extends TheBorg {
 	 * @throws SQLException - if partOf connections are not set
 	 */
 	@SuppressWarnings("unchecked")
-	public List<Filter> setPartOfConnections(ResultSet res, Initiative i) throws SQLException {
+	public List<Filter> setPartOfConnections(int companyId, ResultSet res, Initiative i) throws SQLException {
 		List<Filter> existingFilterList = (i.getFilterList() == null ? new ArrayList<>() : i.getFilterList());
 		org.apache.log4j.Logger.getLogger(InitiativeHelper.class).debug("Setting part of connections");
 		FilterList fl = new FilterList();
 		Filter f = new Filter();
-		Map<Integer, String> filterLabelMap = fl.getFilterLabelMap();
+		Map<Integer, String> filterLabelMap = fl.getFilterLabelMap(companyId);
 		String filterName = res.getString("Filters").substring(2, res.getString("Filters").length() - 2);
 		for (Entry<Integer, String> entry : filterLabelMap.entrySet()) {
 			if (filterName.equals(entry.getValue())) {
@@ -49,6 +49,13 @@ public class InitiativeHelper extends TheBorg {
 		}
 
 		existingFilterList.add(f);
+		org.apache.log4j.Logger.getLogger(InitiativeHelper.class).debug("Initiative Name : " + i.getInitiativeName());
+		for (Filter ff : existingFilterList) {
+			org.apache.log4j.Logger.getLogger(InitiativeHelper.class).debug(
+					"Filter list being passed : " + ff.getFilterId() + " " + ff.getFilterName() + " " + ff.getFilterValues().toString());
+
+		}
+		
 
 		return existingFilterList;
 	}
@@ -61,13 +68,13 @@ public class InitiativeHelper extends TheBorg {
 	 *  @throws SQLException - if error in getting employee list
 	 */
 	@SuppressWarnings("unchecked")
-	public List<Employee> getOwnerOfList(ResultSet resultMap) throws SQLException {
+	public List<Employee> getOwnerOfList(int companyId, ResultSet resultMap) throws SQLException {
 		List<Integer> resultList = (List<Integer>) resultMap.getObject("OwnersOf");
 		List<Employee> employeeList = new ArrayList<>();
 		if (!resultList.isEmpty()) {
 			for (int employeeId : resultList) {
 				Employee e = new Employee();
-				employeeList.add(e.get(employeeId));
+				employeeList.add(e.get(companyId, employeeId));
 			}
 		}
 		return employeeList;
@@ -78,14 +85,15 @@ public class InitiativeHelper extends TheBorg {
 	 * @return map of details required for the graphical representation
 	 *
 	 */
-	public List<Map<String, Object>> getInitiativeCount() {
+	public List<Map<String, Object>> getInitiativeCount(int companyId) {
 		List<Map<String, Object>> initiativeCountMapList = new ArrayList<>();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
 		try {
 			String query = "match (i:Init) where i.Status='Active' or i.Status='Completed' with  distinct(i.Status) as stat match (z:Init) "
 					+ "with distinct(z.Category) as cat,stat match (j:Init {Category:cat}) with distinct(j.Type) as TYP,stat,cat optional "
 					+ "match (a:Init) where a.Status=stat and a.Type=TYP return cat as category,TYP as initiativeType,stat as status ,count(a) as totalInitiatives";
-			Statement stmt = dch.neo4jCon.createStatement();
+			Statement stmt = dch.companyNeoConnectionPool.get(companyId).createStatement();
 			ResultSet res = stmt.executeQuery(query);
 			while (res.next()) {
 				Map<String, Object> initiativeCountMap = new HashMap<>();
@@ -103,14 +111,14 @@ public class InitiativeHelper extends TheBorg {
 	}
 
 	@SuppressWarnings("unchecked")
-	public List<Employee> setPartOfEmployeeList(ResultSet res, Initiative i) throws SQLException {
+	public List<Employee> setPartOfEmployeeList(int companyId, ResultSet res, Initiative i) throws SQLException {
 		List<Employee> existingEmployeeList = (i.getPartOfEmployeeList() == null ? new ArrayList<>() : i.getPartOfEmployeeList());
 		org.apache.log4j.Logger.getLogger(InitiativeHelper.class).debug("Setting part of employee list");
 		List<Integer> employeeIdList = new ArrayList<>();
 		employeeIdList = (List<Integer>) res.getObject("PartOfID");
 		for (int employeeId : employeeIdList) {
 			Employee e = new Employee();
-			existingEmployeeList.add(e.get(employeeId));
+			existingEmployeeList.add(e.get(companyId, employeeId));
 		}
 		return existingEmployeeList;
 	}
@@ -120,12 +128,14 @@ public class InitiativeHelper extends TheBorg {
 	 * @param i - Initiative object
 	 * @return - List of Metrics object
 	 */
-	public List<Metrics> setInitiativeMetrics(Initiative i) {
+	public List<Metrics> setInitiativeMetrics(int companyId, Initiative i) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Metrics> metricsList = new ArrayList<>();
 		try {
+			dch.getCompanyConnection(companyId);
 			if (i.getInitiativeCategory().equalsIgnoreCase("Individual")) {
-				CallableStatement cs = dch.mysqlCon.prepareCall("{call getIndividualInitiativeMetricValueAggregate(?)}");
+				CallableStatement cs = dch.companySqlConnectionPool.get(companyId).prepareCall(
+						"{call getIndividualInitiativeMetricValueAggregate(?)}");
 				int empId = i.getPartOfEmployeeList().get(0).getEmployeeId();
 				cs.setInt(1, empId);
 				ResultSet rs = cs.executeQuery();
@@ -142,7 +152,7 @@ public class InitiativeHelper extends TheBorg {
 				}
 			} else if (i.getInitiativeCategory().equalsIgnoreCase("Team")) {
 
-				CallableStatement cs = dch.mysqlCon.prepareCall("{call getTeamInitiativeMetricValueAggregate(?)}");
+				CallableStatement cs = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getTeamInitiativeMetricValueAggregate(?)}");
 				int initId = i.getInitiativeId();
 				cs.setInt(1, initId);
 				ResultSet rs = cs.executeQuery();

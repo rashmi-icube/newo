@@ -33,15 +33,16 @@ public class Alert extends TheBorg {
 	 * @param alertId - ID of the alert for which the data is required
 	 * @return alert object
 	 */
-	public Alert get(int alertId) {
+	public Alert get(int companyId, int alertId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
 		Alert a = null;
 		try {
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getAlert(?)}");
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getAlert(?)}");
 			cstmt.setInt(1, alertId);
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
-				a = fillAlertDetails(rs);
+				a = fillAlertDetails(companyId, rs);
 			}
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(Alert.class).error("Exception while retrieving alert with ID : " + alertId, e);
@@ -54,8 +55,10 @@ public class Alert extends TheBorg {
 	 * @param rs - result from the database query
 	 * @return alert object
 	 */
-	public Alert fillAlertDetails(ResultSet rs) throws SQLException {
+	public Alert fillAlertDetails(int companyId, ResultSet rs) throws SQLException {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
+
 		String zone = "", function = "", position = "";
 		List<Filter> filterList = new ArrayList<>();
 		List<Employee> employeeList = new ArrayList<>();
@@ -93,12 +96,12 @@ public class Alert extends TheBorg {
 		a.setAlertMetric(m);
 		a.setDeltaScore(rs.getDouble("delta_score"));
 		a.setTeamSize(rs.getInt("team_size"));
-		CallableStatement cstmt1 = dch.mysqlCon.prepareCall("{call getListOfPeopleForAlert(?)}");
+		CallableStatement cstmt1 = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getListOfPeopleForAlert(?)}");
 		cstmt1.setInt(1, rs.getInt("alert_id"));
 		ResultSet rs1 = cstmt1.executeQuery();
 		while (rs1.next()) {
 			Employee e = new Employee();
-			employeeList.add(e.get(rs1.getInt("emp_id")));
+			employeeList.add(e.get(companyId, rs1.getInt("emp_id")));
 		}
 		a.setEmployeeList(employeeList);
 		a.setAlertStatus(rs.getString("status"));
@@ -111,12 +114,13 @@ public class Alert extends TheBorg {
 	 * @param alertId - ID of the alert to be deleted
 	 * @return boolean value if the alert has been deleted or not
 	 */
-	public boolean delete(int alertId) {
+	public boolean delete(int companyId, int alertId) {
 		org.apache.log4j.Logger.getLogger(Alert.class).debug("Entering the delete alert function");
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
 		try {
 			org.apache.log4j.Logger.getLogger(Alert.class).debug("Calling the deleteAlert procedure");
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call deleteAlert(?)}");
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call deleteAlert(?)}");
 			cstmt.setInt(1, alertId);
 			cstmt.executeQuery();
 			org.apache.log4j.Logger.getLogger(Alert.class).debug("Successfully deleted alert");

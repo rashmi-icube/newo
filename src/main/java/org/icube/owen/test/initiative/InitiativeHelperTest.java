@@ -12,11 +12,12 @@ import org.junit.Test;
 
 public class InitiativeHelperTest {
 	InitiativeHelper ih = (InitiativeHelper) ObjectFactory.getInstance("org.icube.owen.initiative.InitiativeHelper");
+	int companyId = 1;
 
 	@Test
 	public void testGetInitiativeCount() {
 		List<Map<String, Object>> initiativeCountMapList = new ArrayList<>();
-		initiativeCountMapList = ih.getInitiativeCount();
+		initiativeCountMapList = ih.getInitiativeCount(companyId);
 		assertNotNull(initiativeCountMapList);
 	}
 

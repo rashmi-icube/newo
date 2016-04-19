@@ -11,11 +11,12 @@ import org.junit.Test;
 
 public class QuestionListTest {
 	QuestionList ql = (QuestionList) ObjectFactory.getInstance("org.icube.owen.survey.QuestionList");
+	int companyId = 1;
 
 	@Test
 	public void testGetQuestionList() {
 
-		List<Question> questionList = ql.getQuestionList();
+		List<Question> questionList = ql.getQuestionList(companyId);
 		assertTrue(!questionList.isEmpty());
 		for (Question q : questionList) {
 			assertTrue(q.getQuestionId() > 0);
@@ -25,7 +26,7 @@ public class QuestionListTest {
 
 	@Test
 	public void testGetQuestionListForBatch() {
-		List<Question> questionList = ql.getQuestionListForBatch(1);
+		List<Question> questionList = ql.getQuestionListForBatch(companyId, 1);
 		assertTrue(!questionList.isEmpty());
 		for (Question q : questionList) {
 			assertTrue(q.getQuestionId() > 0);
@@ -35,13 +36,13 @@ public class QuestionListTest {
 
 	@Test
 	public void testGetQuestionListByStatus() {
-		List<Question> questionList = ql.getQuestionListByStatus(1, "Upcoming");
+		List<Question> questionList = ql.getQuestionListByStatus(companyId, 1, "Upcoming");
 		assertTrue(!questionList.isEmpty());
 		for (Question q : questionList) {
 			assertTrue(q.getQuestionId() > 0);
 			assertTrue(!q.getQuestionText().isEmpty());
 		}
-		List<Question> questionList1 = ql.getQuestionListByStatus(1, "Completed");
+		List<Question> questionList1 = ql.getQuestionListByStatus(companyId, 1, "Completed");
 		assertTrue(!questionList1.isEmpty());
 		for (Question q : questionList1) {
 			assertTrue(q.getQuestionId() > 0);

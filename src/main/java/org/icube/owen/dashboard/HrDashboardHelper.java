@@ -22,13 +22,16 @@ public class HrDashboardHelper extends TheBorg {
 	 * @param filter - filter object for which the metric is to be calculated
 	 * @return list of metric objects 
 	 */
-	public List<Metrics> getFilterMetrics(Filter filter) {
+	public List<Metrics> getFilterMetrics(int companyId, Filter filter) {
 		List<Metrics> dimensionMetricsList = new ArrayList<>();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
 		try {
-			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).debug("Entering getFilterMetrics using procedure getDimensionMetricValueAggregate");
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getDimensionMetricValueAggregate(?, ?)}");
-			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).debug("Filter Value ID : " + filter.getFilterValues().keySet().iterator().next().intValue());
+			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).debug(
+					"Entering getFilterMetrics using procedure getDimensionMetricValueAggregate");
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getDimensionMetricValueAggregate(?, ?)}");
+			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).debug(
+					"Filter Value ID : " + filter.getFilterValues().keySet().iterator().next().intValue());
 			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).debug("Filter ID : " + filter.getFilterId());
 			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).debug("Filter Name : " + filter.getFilterName());
 			cstmt.setInt("dimvalid", filter.getFilterValues().keySet().iterator().next().intValue());
@@ -56,12 +59,13 @@ public class HrDashboardHelper extends TheBorg {
 	 * Calculates the organizational metrics - for ALL selection
 	 * @return list of metric objects 
 	 */
-	public List<Metrics> getOrganizationalMetrics() {
+	public List<Metrics> getOrganizationalMetrics(int companyId) {
 		List<Metrics> orgMetricsList = new ArrayList<>();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
 		try {
 
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getOrganizationMetricValueAggregate()}");
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getOrganizationMetricValueAggregate()}");
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
 				Metrics m = new Metrics();
@@ -86,13 +90,16 @@ public class HrDashboardHelper extends TheBorg {
 	 * @param filter - filter selection
 	 * @return Map of metric Id and List of map of calculation date and metric score for the time series graph
 	 */
-	public Map<Integer, List<Map<Date, Integer>>> getTimeSeriesGraph(Filter filter) {
+	public Map<Integer, List<Map<Date, Integer>>> getTimeSeriesGraph(int companyId, Filter filter) {
 		Map<Integer, List<Map<Date, Integer>>> result = new HashMap<>();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
 		try {
-			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).debug("Entering getTimeSeriesGraph using procedure getDimensionMetricTimeSeries");
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getDimensionMetricTimeSeries(?)}");
-			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).debug("Filter Value ID : " + filter.getFilterValues().keySet().iterator().next().intValue());
+			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).debug(
+					"Entering getTimeSeriesGraph using procedure getDimensionMetricTimeSeries");
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getDimensionMetricTimeSeries(?)}");
+			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).debug(
+					"Filter Value ID : " + filter.getFilterValues().keySet().iterator().next().intValue());
 			cstmt.setInt(1, filter.getFilterValues().keySet().iterator().next().intValue());
 			ResultSet rs = cstmt.executeQuery();
 			result = getTimeSeriesMap(rs);
@@ -130,11 +137,12 @@ public class HrDashboardHelper extends TheBorg {
 	 * @return Map of metric Id and List of map of calculation date and metric score for the time series graph
 	 */
 
-	public Map<Integer, List<Map<Date, Integer>>> getOrganizationTimeSeriesGraph() {
+	public Map<Integer, List<Map<Date, Integer>>> getOrganizationTimeSeriesGraph(int companyId) {
 		Map<Integer, List<Map<Date, Integer>>> result = new HashMap<>();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
 		try {
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getOrganizationMetricTimeSeries()}");
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getOrganizationMetricTimeSeries()}");
 			ResultSet rs = cstmt.executeQuery();
 			result = getTimeSeriesMap(rs);
 		} catch (SQLException e) {
@@ -148,15 +156,16 @@ public class HrDashboardHelper extends TheBorg {
 	 * Retrieves the list of alerts
 	 * @return alert list
 	 */
-	public List<Alert> getAlertList() {
+	public List<Alert> getAlertList(int companyId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
 		List<Alert> alertList = new ArrayList<>();
 		try {
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getAlertList()}");
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getAlertList()}");
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
 				Alert a = new Alert();
-				alertList.add(a.fillAlertDetails(rs));
+				alertList.add(a.fillAlertDetails(companyId, rs));
 			}
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).error("Exception while retrieving organization level metrics", e);

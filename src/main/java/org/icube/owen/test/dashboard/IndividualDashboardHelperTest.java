@@ -19,10 +19,11 @@ import org.junit.Test;
 
 public class IndividualDashboardHelperTest {
 	IndividualDashboardHelper idh = (IndividualDashboardHelper) ObjectFactory.getInstance("org.icube.owen.dashboard.IndividualDashboardHelper");
+	int companyId = 1;
 
 	@Test
 	public void testGetActivityFeedList() {
-		Map<Date, List<ActivityFeed>> result = idh.getActivityFeedList(1, 208, 2);
+		Map<Date, List<ActivityFeed>> result = idh.getActivityFeedList(1, 130, 1);
 		for (Date d : result.keySet()) {
 			List<ActivityFeed> afl = result.get(d);
 			for (ActivityFeed af : afl) {
@@ -56,15 +57,15 @@ public class IndividualDashboardHelperTest {
 	@Test
 	public void testIndividualInitiativeList() {
 		List<Initiative> initiativeList = new ArrayList<>();
-		initiativeList = idh.getIndividualInitiativeList(208);
+		initiativeList = idh.getIndividualInitiativeList(companyId, 208);
 		for (Initiative i : initiativeList) {
-			assertNotNull(i.get(i.getInitiativeId()));
+			assertNotNull(i.get(companyId, i.getInitiativeId()));
 		}
 	}
 
 	@Test
 	public void testGetSmartList() {
-		List<Employee> employeeList = idh.getSmartList(1, 1);
+		List<Employee> employeeList = idh.getSmartList(companyId, 1, 1);
 		assertNotNull(employeeList);
 
 	}
@@ -73,11 +74,11 @@ public class IndividualDashboardHelperTest {
 	public void testSaveAppreciation() {
 		Map<Employee, Integer> appreciationResponseMap = new HashMap<>();
 		Employee e = new Employee();
-		appreciationResponseMap.put(e.get(1), 5);
-		appreciationResponseMap.put(e.get(2), 6);
-		appreciationResponseMap.put(e.get(3), 7);
-		appreciationResponseMap.put(e.get(4), 8);
-		appreciationResponseMap.put(e.get(5), 9);
+		appreciationResponseMap.put(e.get(companyId, 1), 5);
+		appreciationResponseMap.put(e.get(companyId, 2), 6);
+		appreciationResponseMap.put(e.get(companyId, 3), 7);
+		appreciationResponseMap.put(e.get(companyId, 4), 8);
+		appreciationResponseMap.put(e.get(companyId, 5), 9);
 		boolean status = idh.saveAppreciation(1, 1, 1, appreciationResponseMap);
 		assertTrue(status);
 

@@ -23,11 +23,13 @@ public class BatchList extends TheBorg {
 	 * Retrieves the Frequency labels to populate the Frequency drop down
 	 * @return - A frequency label map containing the frequency values
 	 */
-	public Map<Integer, String> getFrequencyLabelMap() {
+	public Map<Integer, String> getFrequencyLabelMap(int companyId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+
 		Map<Integer, String> getFrequencyLabelMap = new HashMap<>();
 		try {
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getFrequencyList()}");
+			dch.getCompanyConnection(companyId);
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getFrequencyList()}");
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
 				getFrequencyLabelMap.put(rs.getInt(1), rs.getString(2));
@@ -42,14 +44,15 @@ public class BatchList extends TheBorg {
 	 * Retrieves the list of Batches
 	 * @return -  A list  of batches
 	 */
-	public List<Batch> getBatchList() {
+	public List<Batch> getBatchList(int companyId) {
 
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+
 		List<Batch> batchList = new ArrayList<Batch>();
 
 		try {
-
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getBatch(?)}");
+			dch.getCompanyConnection(companyId);
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getBatch(?)}");
 			cstmt.setInt(1, 1);
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
@@ -58,7 +61,7 @@ public class BatchList extends TheBorg {
 				b.setStartDate(rs.getDate("start_date"));
 				b.setEndDate(rs.getDate("end_date"));
 				b.setBatchId(rs.getInt("survey_batch_id"));
-				CallableStatement cstmt1 = dch.mysqlCon.prepareCall("{call getBatchQuestionList(?)}");
+				CallableStatement cstmt1 = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getBatchQuestionList(?)}");
 				cstmt1.setInt(1, rs.getInt("survey_batch_id"));
 				ResultSet rs1 = cstmt1.executeQuery();
 				List<Question> questionList = new ArrayList<Question>();
@@ -71,7 +74,7 @@ public class BatchList extends TheBorg {
 					q.setResponsePercentage(rs1.getDouble("resp"));
 					q.setQuestionType(QuestionType.values()[rs1.getInt("que_type")]);
 					q.setSurveyBatchId(rs1.getInt("survey_batch_id"));
-					q.setRelationshipTypeId(rs1.getInt("rel_id"));
+					q.setRelationshipTypeId(rs1.getInt("rel_id") == 0 ? null : rs1.getInt("rel_id"));
 					questionList.add(q);
 				}
 				b.setQuestionList(questionList);
@@ -90,7 +93,7 @@ public class BatchList extends TheBorg {
 	 * @param changedFrequency - The updated frequency value
 	 * @return - True/False depending on whether the frequency has been changed or not
 	 */
-	public boolean changeFrequency(Batch batch, Frequency changedFrequency) {
+	public boolean changeFrequency(int companyId, Batch batch, Frequency changedFrequency) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 
 		boolean isChanged = false;
@@ -109,7 +112,7 @@ public class BatchList extends TheBorg {
 		Date previousEndDate = null;
 		for (int questionId : questionIdList) {
 			Question q = new Question();
-			q = q.getQuestion(questionId);
+			q = q.getQuestion(companyId, questionId);
 
 			if (q.getQuestionStatus(q.getStartDate(), q.getEndDate()).equalsIgnoreCase("completed")) {
 				org.apache.log4j.Logger.getLogger(BatchList.class).debug(
@@ -120,7 +123,7 @@ public class BatchList extends TheBorg {
 				boolean isCurrent = q.getQuestionStatus(q.getStartDate(), q.getEndDate()).equalsIgnoreCase("current");
 				previousEndDate = updateQuestion(q, changedFrequency, isCurrent, previousEndDate);
 				try {
-					CallableStatement cstmt = dch.mysqlCon.prepareCall("{call updateQuestionDate(?, ?, ?)}");
+					CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call updateQuestionDate(?, ?, ?)}");
 					cstmt.setInt(1, questionId);
 					cstmt.setDate(2, UtilHelper.convertJavaDateToSqlDate(q.getStartDate()));
 					cstmt.setDate(3, UtilHelper.convertJavaDateToSqlDate(q.getEndDate()));
@@ -135,7 +138,7 @@ public class BatchList extends TheBorg {
 
 		}
 		try {
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call updateBatch(?, ?, ?, ?)}");
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call updateBatch(?, ?, ?, ?)}");
 			cstmt.setInt(1, batch.getBatchId());
 			cstmt.setInt(2, changedFrequency.getValue());
 			cstmt.setDate(3, UtilHelper.convertJavaDateToSqlDate(UtilHelper.getStartOfDay(batch.getStartDate())));
@@ -223,9 +226,9 @@ public class BatchList extends TheBorg {
 	 * Gets the current batch based on the comparison of the dates
 	 * @return current batch
 	 */
-	public Batch getCurrentBatch() {
+	public Batch getCurrentBatch(int companyId) {
 		// TODO This is temp... Until we use only 1 batch through out the application
-		List<Batch> batchList = getBatchList();
+		List<Batch> batchList = getBatchList(companyId);
 		Batch currentBatch = batchList.get(0);
 
 		/*for(Batch b : batchList){

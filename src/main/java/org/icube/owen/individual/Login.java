@@ -6,6 +6,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
@@ -20,7 +22,8 @@ public class Login extends TheBorg {
 	 * @return Employee object
 	 * @throws Exception - thrown when provided with invalid credentials
 	 */
-	public Employee login(String emailId, String password, String ipAddress) throws Exception {
+	public Employee login(String emailId, String password, String ipAddress, int roleId) throws Exception {
+
 		Employee e = new Employee();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Connection companySqlCon = null;
@@ -34,16 +37,18 @@ public class Login extends TheBorg {
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
 				companyId = rs.getInt("comp_id");
-				companySqlCon = dch.getCompanyConnection(companyId);
+				dch.getCompanyConnection(companyId);
+				companySqlCon = dch.companySqlConnectionPool.get(companyId);
 			}
-			CallableStatement cstmt1 = companySqlCon.prepareCall("{call verifyLogin(?,?,?,?)}");
+			CallableStatement cstmt1 = companySqlCon.prepareCall("{call verifyLogin(?,?,?,?,?)}");
 			cstmt1.setString("loginid", emailId);
 			cstmt1.setString("pass", password);
 			cstmt1.setTimestamp("curr_time", UtilHelper.convertJavaDateToSqlTimestamp(Date.from(Instant.now())));
 			cstmt1.setString("ip", ipAddress);
+			cstmt1.setInt("roleid", roleId);
 			ResultSet res = cstmt1.executeQuery();
 			if (res.next()) {
-				e = e.get(res.getInt("emp_id"));
+				e = e.get(companyId, res.getInt("emp_id"));
 				e.setCompanyId(companyId);
 				org.apache.log4j.Logger.getLogger(Login.class).debug("Successfully validated user with userID : " + emailId);
 			} else {
@@ -57,4 +62,21 @@ public class Login extends TheBorg {
 		return e;
 	}
 
+	public Map<Integer, String> getUserRoleMap(int companyId) {
+		Map<Integer, String> userRoleMap = new HashMap<>();
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
+
+		try {
+			CallableStatement cstmt1 = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getRoleList()}");
+			ResultSet res = cstmt1.executeQuery();
+			while (res.next()) {
+				userRoleMap.put(res.getInt("role_id"), res.getString("role"));
+			}
+		} catch (Exception e) {
+			org.apache.log4j.Logger.getLogger(Login.class).error("Exception while retrieving the user role map", e);
+		}
+
+		return userRoleMap;
+	}
 }

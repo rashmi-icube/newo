@@ -19,9 +19,11 @@ public class TheWallHelper extends TheBorg {
 	/**
 	 * Get list of individuals for the wall 
 	 */
-	public List<Map<String, Object>> getIndividualWallFeed(int metricId, String direction, int percentage, int pageNumber, int pageSize,
-			List<Filter> filterList) {
+	public List<Map<String, Object>> getIndividualWallFeed(int companyId, int metricId, String direction, int percentage, int pageNumber,
+			int pageSize, List<Filter> filterList) {
+		org.apache.log4j.Logger.getLogger(TheWallHelper.class).debug("Entering getIndividualWallFeed");
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
 		List<Map<String, Object>> result = new ArrayList<>();
 		Map<String, Object> parsedFilterMap = new HashMap<>();
 		if (filterList == null || filterList.isEmpty()) {
@@ -31,8 +33,11 @@ public class TheWallHelper extends TheBorg {
 		} else {
 			parsedFilterMap = UtilHelper.parseFilterList(filterList);
 		}
+		org.apache.log4j.Logger.getLogger(TheWallHelper.class).debug("Function : " + parsedFilterMap.get("funcId"));
+		org.apache.log4j.Logger.getLogger(TheWallHelper.class).debug("Position : " + parsedFilterMap.get("posId"));
+		org.apache.log4j.Logger.getLogger(TheWallHelper.class).debug("Zone : " + parsedFilterMap.get("zoneId"));
 		try {
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getWallFeedIndividual(?,?,?,?,?,?,?,?)}");
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getWallFeedIndividual(?,?,?,?,?,?,?,?)}");
 			cstmt.setInt("fun", (int) parsedFilterMap.get("funcId"));
 			cstmt.setInt("pos", (int) parsedFilterMap.get("posId"));
 			cstmt.setInt("zon", (int) parsedFilterMap.get("zoneId"));
@@ -44,8 +49,7 @@ public class TheWallHelper extends TheBorg {
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
 				Map<String, Object> employeeDetailsMap = new HashMap<>();
-				// TODO hard coding the company ID
-				employeeDetailsMap.put("companyId", 1);
+				employeeDetailsMap.put("companyId", companyId);
 				employeeDetailsMap.put("employeeId", rs.getInt("emp_id"));
 				employeeDetailsMap.put("metricScore", rs.getInt("metric_value"));
 				employeeDetailsMap.put("firstName", rs.getString("first_name"));
@@ -55,6 +59,14 @@ public class TheWallHelper extends TheBorg {
 				employeeDetailsMap.put("function", rs.getString("Function"));
 				employeeDetailsMap.put("position", rs.getString("Position"));
 				employeeDetailsMap.put("zone", rs.getString("Zone"));
+				org.apache.log4j.Logger.getLogger(TheWallHelper.class).debug(
+						"Employee Details : companyId : " + employeeDetailsMap.get("companyId") + "; employeeId :  "
+								+ employeeDetailsMap.get("employeeId") + "; metricScore :  " + employeeDetailsMap.get("metricScore")
+								+ "; firstName :  " + employeeDetailsMap.get("firstName") + "; lastName :  " + employeeDetailsMap.get("lastName")
+								+ "; metricId :  " + employeeDetailsMap.get("metricId") + "; initiativeTypeId :  "
+								+ employeeDetailsMap.get("initiativeTypeId") + "; function :  " + employeeDetailsMap.get("function")
+								+ "; position :  " + employeeDetailsMap.get("position") + "; zone :  " + employeeDetailsMap.get("zone"));
+
 				result.add(employeeDetailsMap);
 			}
 
@@ -67,9 +79,11 @@ public class TheWallHelper extends TheBorg {
 	/**
 	 * Get the list of teams for the wall
 	 */
-	public List<Map<String, Object>> getTeamWallFeed(int metricId, String direction, int percentage, int pageNumber, int pageSize,
+	public List<Map<String, Object>> getTeamWallFeed(int companyId, int metricId, String direction, int percentage, int pageNumber, int pageSize,
 			List<Filter> filterList) {
+		org.apache.log4j.Logger.getLogger(TheWallHelper.class).debug("Entering getTeamWallFeed");
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
 		List<Map<String, Object>> result = new ArrayList<>();
 		Map<String, Object> parsedFilterMap = new HashMap<>();
 		if (filterList == null || filterList.isEmpty()) {
@@ -79,8 +93,11 @@ public class TheWallHelper extends TheBorg {
 		} else {
 			parsedFilterMap = UtilHelper.parseFilterList(filterList);
 		}
+		org.apache.log4j.Logger.getLogger(TheWallHelper.class).debug("Function : " + parsedFilterMap.get("funcId"));
+		org.apache.log4j.Logger.getLogger(TheWallHelper.class).debug("Position : " + parsedFilterMap.get("posId"));
+		org.apache.log4j.Logger.getLogger(TheWallHelper.class).debug("Zone : " + parsedFilterMap.get("zoneId"));
 		try {
-			CallableStatement cstmt = dch.mysqlCon.prepareCall("{call getWallFeedTeam(?,?,?,?,?,?,?,?)}");
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getWallFeedTeam(?,?,?,?,?,?,?,?)}");
 			cstmt.setInt("fun", (int) parsedFilterMap.get("funcId"));
 			cstmt.setInt("pos", (int) parsedFilterMap.get("posId"));
 			cstmt.setInt("zon", (int) parsedFilterMap.get("zoneId"));
@@ -102,11 +119,22 @@ public class TheWallHelper extends TheBorg {
 					Map<Integer, String> filterValueMap = new HashMap<>();
 					filterValueMap.put(rs.getInt("dimension_val_id_" + i), rs.getString("dimension_val_name_" + i));
 					f.setFilterValues(filterValueMap);
+
 					resultFilterList.add(f);
 				}
 				teamDetailsMap.put("filterList", resultFilterList);
 				teamDetailsMap.put("metricId", rs.getInt("metric_id"));
 				teamDetailsMap.put("initiativeTypeId", rs.getInt("init_type_id"));
+				org.apache.log4j.Logger.getLogger(TheWallHelper.class).debug(
+						"Team Details : cubeId : " + teamDetailsMap.get("cubeId") + "; metricScore :  " + teamDetailsMap.get("metricScore")
+								+ "; metricId :  " + teamDetailsMap.get("metricId") + "; initiativeTypeId :  "
+								+ teamDetailsMap.get("initiativeTypeId"));
+				for (Filter f : resultFilterList) {
+					org.apache.log4j.Logger.getLogger(TheWallHelper.class).debug(
+							"Result filter : filterId : " + f.getFilterId() + " filterName : " + f.getFilterName() + " filterValues : "
+									+ f.getFilterValues().toString());
+				}
+
 				result.add(teamDetailsMap);
 			}
 

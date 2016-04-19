@@ -24,7 +24,9 @@ public class MetricsList extends TheBorg {
 	 * @param initiativeTypeId - ID of the type of initiative
 	 * @return list of metrics objects
 	 */
-	public List<Metrics> getInitiativeMetricsForTeam(int initiativeTypeId, List<Filter> filterList) {
+	public List<Metrics> getInitiativeMetricsForTeam(int companyId, int initiativeTypeId, List<Filter> filterList) {
+		org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Entering getInitiativeMetricsForTeam");
+	
 		List<Metrics> metricsList = new ArrayList<>();
 		MetricsHelper mh = new MetricsHelper();
 		Map<String, Object> parsedFilterListResult = UtilHelper.parseFilterList(filterList);
@@ -32,12 +34,12 @@ public class MetricsList extends TheBorg {
 			if ((int) parsedFilterListResult.get("funcListSize") == 1 && (int) parsedFilterListResult.get("posListSize") == 1
 					&& (int) parsedFilterListResult.get("zoneListSize") == 1) {
 				if ((int) parsedFilterListResult.get("countAll") == 1) {
-					metricsList = mh.getDynamicTeamMetrics(initiativeTypeId, parsedFilterListResult);
+					metricsList = mh.getDynamicTeamMetrics(companyId, initiativeTypeId, parsedFilterListResult);
 				} else {
-					metricsList = mh.getTeamMetricsList(initiativeTypeId, parsedFilterListResult, true);
+					metricsList = mh.getTeamMetricsList(companyId, initiativeTypeId, parsedFilterListResult, true);
 				}
 			} else {
-				metricsList = mh.getDynamicTeamMetrics(initiativeTypeId, parsedFilterListResult);
+				metricsList = mh.getDynamicTeamMetrics(companyId, initiativeTypeId, parsedFilterListResult);
 			}
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(MetricsList.class).error(
@@ -53,8 +55,10 @@ public class MetricsList extends TheBorg {
 	 * @param initiativeTypeId - ID of the kind of initiative
 	 * @return list of metrics objects
 	 */
-	public List<Metrics> getInitiativeMetricsForIndividual(int initiativeTypeId, List<Employee> partOfEmployeeList) {
+	public List<Metrics> getInitiativeMetricsForIndividual(int companyId, int initiativeTypeId, List<Employee> partOfEmployeeList) {
+		org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Entering getInitiativeMetricsForIndividual");
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
 		MetricsHelper mh = new MetricsHelper();
 		List<Metrics> metricsList = new ArrayList<>();
 		Map<Integer, Integer> currentScoreMap = new HashMap<>();
@@ -62,8 +66,8 @@ public class MetricsList extends TheBorg {
 		Map<Integer, Date> dateOfCalcMap = new HashMap<>();
 
 		try {
-			Map<Integer, String> metricListForCategory = mh.getMetricListForCategory("Individual");
-			Map<Integer, String> primaryMetricMap = mh.getPrimaryMetricMap(initiativeTypeId);
+			Map<Integer, String> metricListForCategory = mh.getMetricListForCategory(companyId, "Individual");
+			Map<Integer, String> primaryMetricMap = mh.getPrimaryMetricMap(companyId, initiativeTypeId);
 
 			List<Integer> empIdList = new ArrayList<>();
 			for (Employee e : partOfEmployeeList) {
@@ -71,7 +75,8 @@ public class MetricsList extends TheBorg {
 			}
 
 			try {
-				CallableStatement cs = dch.mysqlCon.prepareCall("{call getIndividualInitiativeMetricValueAggregate(?)}");
+				org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Calling getIndividualInitiativeMetricValueAggregate");
+				CallableStatement cs = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getIndividualInitiativeMetricValueAggregate(?)}");
 				int empId = empIdList.get(0);
 				cs.setInt(1, empId);
 				ResultSet rs = cs.executeQuery();
@@ -85,7 +90,7 @@ public class MetricsList extends TheBorg {
 						"Exception while trying to metrics list for category individual and type ID " + initiativeTypeId, e);
 			}
 			metricsList = mh.getMetricsList("Individual", metricListForCategory, primaryMetricMap, previousScoreMap, currentScoreMap, dateOfCalcMap);
-			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Successfully calculated metrics for the team");
+			org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Successfully calculated metrics for the individual");
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(MetricsList.class).error(
 					"Exception while trying to retrieve metrics for category individual and type ID " + initiativeTypeId, e);
