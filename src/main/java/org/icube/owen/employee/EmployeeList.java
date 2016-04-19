@@ -160,7 +160,7 @@ public class EmployeeList extends TheBorg {
 		}
 
 		finally {
-			ObjectFactory.getDBHelper().releaseRcon();
+			dch.releaseRcon();
 		}
 
 		return individualSmartList;
@@ -285,7 +285,7 @@ public class EmployeeList extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Employee> employeeList = new ArrayList<>();
 		Employee e = new Employee();
-		Connection conn;
+
 		try {
 			int funcId = 0, posId = 0, zoneId = 0;
 			for (Filter filter : filterList) {
@@ -297,7 +297,8 @@ public class EmployeeList extends TheBorg {
 					zoneId = filter.getFilterValues().keySet().iterator().next();
 				}
 			}
-			conn = dch.getCompanyConnection(companyId);
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("Function : " + funcId + " Zone : " + zoneId + " Position : " + posId);
+			Connection conn = dch.getCompanyConnection(companyId);
 			CallableStatement cstmt = conn.prepareCall("{call getEmpFromDimension(?,?,?)}");
 			cstmt.setInt(1, funcId);
 			cstmt.setInt(2, posId);

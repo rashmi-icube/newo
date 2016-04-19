@@ -240,6 +240,7 @@ public class DatabaseConnectionHelper extends TheBorg {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
+	org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("RConnection provided...");
 		rConInUse = true;
 		return rCon;
 

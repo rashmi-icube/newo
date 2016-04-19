@@ -151,7 +151,8 @@ public class Initiative extends TheBorg {
 					List<Metrics> metricsList = ml.getInitiativeMetricsForTeam(initiativeId, this.filterList);
 					org.apache.log4j.Logger.getLogger(Initiative.class).debug("Successfully calculated metrics for initiative" + metricsList.size());
 					for (Metrics m : metricsList) {
-						org.apache.log4j.Logger.getLogger(Initiative.class).debug("Storing the metric for initiative ID " + initiativeId + "; metric ID : " + m.getId());
+						org.apache.log4j.Logger.getLogger(Initiative.class).debug(
+								"Storing the metric for initiative ID " + initiativeId + "; metric ID : " + m.getId());
 						CallableStatement cstmt = dch.mysqlCon.prepareCall("{call insertInitiativeMetricValue(?,?,?,?,?)}");
 						cstmt.setInt("initiativeid", initiativeId);
 						cstmt.setInt("metricid", m.getId());
@@ -333,17 +334,18 @@ public class Initiative extends TheBorg {
 		InitiativeList il = new InitiativeList();
 		i.setInitiativeId(initiativeId);
 		try {
-			String query = "match (o:Employee)-[:owner_of]->(i:Init{Id:"
+			String query = "match (i:Init{Id:"
 					+ initiativeId
-					+ "})<-[r:part_of]-(a) return i.Name as Name,"
+					+ "})<-[r:part_of]-(a) with i,a optional match (o:Employee)-[:owner_of]->(i) return i.Name as Name,"
 					+ "i.StartDate as StartDate, i.EndDate as EndDate,i.CreatedOn as CreationDate, i.Id as Id,case i.Category when 'Individual' then collect(distinct(a.emp_id)) "
 					+ "else collect(distinct(a.Id))  end as PartOfID,collect(distinct(a.Name))as PartOfName, labels(a) as Filters, "
 					+ "collect(distinct (o.emp_id)) as OwnersOf,i.Comment as Comments,i.Type as Type,i.Category as Category,i.Status as Status";
 			org.apache.log4j.Logger.getLogger(Initiative.class).error("Query : " + query);
 			Statement stmt = dch.neo4jCon.createStatement();
 			ResultSet res = stmt.executeQuery(query);
-			res.next();
-			il.setInitiativeValues(res, i);
+			while (res.next()) {
+				il.setInitiativeValues(res, i);
+			}
 			stmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception while retrieving the initiative with ID" + initiativeId, e);

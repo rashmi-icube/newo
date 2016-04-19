@@ -49,6 +49,13 @@ public class InitiativeHelper extends TheBorg {
 		}
 
 		existingFilterList.add(f);
+		org.apache.log4j.Logger.getLogger(InitiativeHelper.class).debug("Initiative Name : " + i.getInitiativeName());
+		for (Filter ff : existingFilterList) {
+			org.apache.log4j.Logger.getLogger(InitiativeHelper.class).debug(
+					"Filter list being passed : " + ff.getFilterId() + " " + ff.getFilterName() + " " + ff.getFilterValues().toString());
+
+		}
+		
 
 		return existingFilterList;
 	}
