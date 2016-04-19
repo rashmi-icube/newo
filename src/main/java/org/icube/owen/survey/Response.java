@@ -3,6 +3,7 @@ package org.icube.owen.survey;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.Types;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
@@ -25,12 +26,16 @@ public class Response extends TheBorg {
 		try {
 			Connection conn = dch.getCompanyConnection(companyId);
 			CallableStatement cstmt = conn.prepareCall("{call insertMeResponse(?,?,?,?,?,?)}");
-			cstmt.setInt(1, employeeId);
-			cstmt.setInt(2, q.getQuestionId());
-			cstmt.setTimestamp(3, UtilHelper.convertJavaDateToSqlTimestamp(Date.from(Instant.now())));
-			cstmt.setInt(4, responseValue);
-			cstmt.setInt(5, q.getRelationshipTypeId());
-			cstmt.setString(6, feedback);
+			cstmt.setInt("empid", employeeId);
+			cstmt.setInt("queid", q.getQuestionId());
+			cstmt.setTimestamp("responsetime", UtilHelper.convertJavaDateToSqlTimestamp(Date.from(Instant.now())));
+			cstmt.setInt("score", responseValue);
+			if (q.getRelationshipTypeId() == 0) {
+				cstmt.setNull("relid", Types.INTEGER);
+			} else {
+				cstmt.setInt("relid", q.getRelationshipTypeId());
+			}
+			cstmt.setString("feedbck", feedback);
 			ResultSet rs = cstmt.executeQuery();
 			if (rs.next()) {
 				responseSaved = true;
