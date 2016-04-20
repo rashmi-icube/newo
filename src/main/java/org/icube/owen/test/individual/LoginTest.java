@@ -12,9 +12,23 @@ public class LoginTest {
 	Login l = (Login) ObjectFactory.getInstance("org.icube.owen.individual.Login");
 
 	@Test
-	public void testLogin() {
+	public void testLoginEmployee() {
 		try {
-			Employee e = l.login("emp5@i-cube.in", "abc123", "114.9.1.2", 1);
+			Employee e = l.login("emp51@i-cube.in", "abc123", "114.9.1.2", 1);
+			assertNotNull(e.getEmployeeId());
+			assertNotNull(e.getCompanyEmployeeId());
+			assertNotNull(e.getCompanyEmployeeId());
+			assertNotNull(e.getFirstName());
+			assertNotNull(e.getLastName());
+			assertNotNull(e.getReportingManagerId());
+		} catch (Exception e) {
+			assertEquals(e.getMessage(), "Invalid credentials!!!");
+		}
+	}
+	@Test
+	public void testLoginHr() {
+		try {
+			Employee e = l.login("emp3@i-cube.in", "abc123", "114.9.1.2", 2);
 			assertNotNull(e.getEmployeeId());
 			assertNotNull(e.getCompanyEmployeeId());
 			assertNotNull(e.getCompanyEmployeeId());

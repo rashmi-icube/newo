@@ -47,13 +47,15 @@ public class Login extends TheBorg {
 			cstmt1.setString("ip", ipAddress);
 			cstmt1.setInt("roleid", roleId);
 			ResultSet res = cstmt1.executeQuery();
-			if (res.next()) {
-				e = e.get(companyId, res.getInt("emp_id"));
-				e.setCompanyId(companyId);
-				org.apache.log4j.Logger.getLogger(Login.class).debug("Successfully validated user with userID : " + emailId);
-			} else {
-				org.apache.log4j.Logger.getLogger(Login.class).error("Invalid username/password");
-				throw new Exception("Invalid credentials!!!");
+			while (res.next()) {
+				if (res.getInt("emp_id") == 0) {
+					org.apache.log4j.Logger.getLogger(Login.class).error("Invalid username/password");
+					throw new Exception("Invalid credentials!!!");
+				} else {
+					e = e.get(companyId, res.getInt("emp_id"));
+					e.setCompanyId(companyId);
+					org.apache.log4j.Logger.getLogger(Login.class).debug("Successfully validated user with userID : " + emailId);
+				}
 			}
 
 		} catch (SQLException e1) {
