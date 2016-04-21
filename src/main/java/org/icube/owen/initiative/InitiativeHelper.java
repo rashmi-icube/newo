@@ -13,6 +13,7 @@ import java.util.Map.Entry;
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
 import org.icube.owen.employee.Employee;
+import org.icube.owen.employee.EmployeeList;
 import org.icube.owen.filter.Filter;
 import org.icube.owen.filter.FilterList;
 import org.icube.owen.helper.DatabaseConnectionHelper;
@@ -72,10 +73,8 @@ public class InitiativeHelper extends TheBorg {
 		List<Integer> resultList = (List<Integer>) resultMap.getObject("OwnersOf");
 		List<Employee> employeeList = new ArrayList<>();
 		if (!resultList.isEmpty()) {
-			for (int employeeId : resultList) {
-				Employee e = new Employee();
-				employeeList.add(e.get(companyId, employeeId));
-			}
+			EmployeeList el = new EmployeeList();
+			employeeList = el.get(companyId, resultList);
 		}
 		return employeeList;
 	}
@@ -114,12 +113,9 @@ public class InitiativeHelper extends TheBorg {
 	public List<Employee> setPartOfEmployeeList(int companyId, ResultSet res, Initiative i) throws SQLException {
 		List<Employee> existingEmployeeList = (i.getPartOfEmployeeList() == null ? new ArrayList<>() : i.getPartOfEmployeeList());
 		org.apache.log4j.Logger.getLogger(InitiativeHelper.class).debug("Setting part of employee list");
-		List<Integer> employeeIdList = new ArrayList<>();
-		employeeIdList = (List<Integer>) res.getObject("PartOfID");
-		for (int employeeId : employeeIdList) {
-			Employee e = new Employee();
-			existingEmployeeList.add(e.get(companyId, employeeId));
-		}
+		List<Integer> employeeIdList = (List<Integer>) res.getObject("PartOfID");
+		EmployeeList el = new EmployeeList();
+		existingEmployeeList = el.get(companyId, employeeIdList);
 		return existingEmployeeList;
 	}
 

@@ -244,8 +244,6 @@ public class EmployeeList extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
 		List<Employee> employeeList = new ArrayList<>();
-		Employee e = new Employee();
-
 		try {
 			int funcId = 0, posId = 0, zoneId = 0;
 			for (Filter filter : filterList) {
@@ -263,15 +261,47 @@ public class EmployeeList extends TheBorg {
 			cstmt.setInt(2, posId);
 			cstmt.setInt(3, zoneId);
 			ResultSet rs = cstmt.executeQuery();
+			List<Integer> employeeIdList = new ArrayList<>();
 			while (rs.next()) {
-				e = e.get(companyId, rs.getInt("emp_id"));
-				employeeList.add(e);
+				employeeIdList.add(rs.getInt("emp_id"));
 			}
+			employeeList = get(companyId, employeeIdList);
 		} catch (SQLException e1) {
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).error("Exception while retrieving the employee list based on dimension", e1);
 		}
 
 		return employeeList;
 
+	}
+
+	/**
+	 * Returns a list employee objects based on the employee IDs given
+	 * 
+	 * @param employeeIdList - List of IDs of the employees that need to be retrieved
+	 * @return employee object list
+	 */
+	public List<Employee> get(int companyId, List<Integer> employeeIdList) {
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
+		List<Employee> empList = new ArrayList<>();
+
+		try {
+			org.apache.log4j.Logger.getLogger(Employee.class).debug("get method started");
+			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getEmployeeDetails(?)}");
+			cstmt.setString(1, employeeIdList.toString().substring(1, employeeIdList.toString().length()-1).replaceAll(" ", ""));
+			ResultSet res = cstmt.executeQuery();
+			org.apache.log4j.Logger.getLogger(Employee.class).debug("query : " + cstmt);
+			while (res.next()) {
+				Employee e = setEmployeeDetails(companyId, res);
+				org.apache.log4j.Logger.getLogger(Employee.class).debug(
+						"Employee  : " + e.getEmployeeId() + "-" + e.getFirstName() + "-" + e.getLastName());
+				empList.add(e);
+			}
+		} catch (SQLException e1) {
+			org.apache.log4j.Logger.getLogger(Employee.class).error(
+					"Exception while retrieving employee object with employeeIds : " + employeeIdList, e1);
+
+		}
+		return empList;
 	}
 }

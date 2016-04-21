@@ -11,6 +11,7 @@ import java.util.Map;
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
 import org.icube.owen.employee.Employee;
+import org.icube.owen.employee.EmployeeList;
 import org.icube.owen.filter.Filter;
 import org.icube.owen.helper.DatabaseConnectionHelper;
 import org.icube.owen.metrics.Metrics;
@@ -61,7 +62,6 @@ public class Alert extends TheBorg {
 
 		String zone = "", function = "", position = "";
 		List<Filter> filterList = new ArrayList<>();
-		List<Employee> employeeList = new ArrayList<>();
 		Alert a = new Alert();
 		a.setAlertId(rs.getInt("alert_id"));
 
@@ -99,11 +99,12 @@ public class Alert extends TheBorg {
 		CallableStatement cstmt1 = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getListOfPeopleForAlert(?)}");
 		cstmt1.setInt(1, rs.getInt("alert_id"));
 		ResultSet rs1 = cstmt1.executeQuery();
+		List<Integer> empIdList = new ArrayList<>();
 		while (rs1.next()) {
-			Employee e = new Employee();
-			employeeList.add(e.get(companyId, rs1.getInt("emp_id")));
+			empIdList.add(rs1.getInt("emp_id"));
 		}
-		a.setEmployeeList(employeeList);
+		EmployeeList el = new EmployeeList();
+		a.setEmployeeList(el.get(companyId, empIdList));
 		a.setAlertStatus(rs.getString("status"));
 		a.setInitiativeTypeId(rs.getInt("init_type_id"));
 		return a;
