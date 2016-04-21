@@ -30,7 +30,7 @@ public class DatabaseConnectionHelper extends TheBorg {
 
 	private boolean rConInUse = false;
 	Timer timer = new Timer();
-	
+
 	private final static String MASTER_URL = UtilHelper.getConfigProperty("master_sql_url");
 	private final static String MASTER_USER = UtilHelper.getConfigProperty("master_sql_user");
 	private final static String MASTER_PASSWORD = UtilHelper.getConfigProperty("master_sql_password");
@@ -137,10 +137,13 @@ public class DatabaseConnectionHelper extends TheBorg {
 	}
 
 	public void getCompanyConnection(int companyId) {
-		if (!companySqlConnectionPool.containsKey(companyId) || !companyNeoConnectionPool.containsKey(companyId)) {
-			// get company details
+		try {
 			String sqlUrl = "", sqlUserName = "", sqlPassword = "", neoUrl = "", neoUserName = "", neoPassword = "";
-			try {
+			if (!companySqlConnectionPool.containsKey(companyId) || !companyNeoConnectionPool.containsKey(companyId)
+					|| (companySqlConnectionPool.containsKey(companyId) && !companySqlConnectionPool.get(companyId).isValid(0))
+					|| (companyNeoConnectionPool.containsKey(companyId) && !companyNeoConnectionPool.get(companyId).isValid(0))) {
+				// get company details
+
 				CallableStatement cstmt = masterCon.prepareCall("{call getCompanyConfig(?)}");
 				cstmt.setInt(1, companyId);
 				ResultSet rs = cstmt.executeQuery();
@@ -154,28 +157,29 @@ public class DatabaseConnectionHelper extends TheBorg {
 					neoUserName = rs.getString("neo_user_name");
 					neoPassword = rs.getString("neo_password");
 				}
-			} catch (Exception e) {
-				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("An error occurred while getting company configuration", e);
 			}
 
 			// company sql connection
-			if (!companySqlConnectionPool.containsKey(companyId)) {
-				try {
+			try {
+				if (!companySqlConnectionPool.containsKey(companyId)
+						|| (companySqlConnectionPool.containsKey(companyId) && !companySqlConnectionPool.get(companyId).isValid(0))) {
+
 					Class.forName("com.mysql.jdbc.Driver");
 					Connection conn = DriverManager.getConnection(sqlUrl, sqlUserName, sqlPassword);
 					companySqlConnectionPool.put(companyId, conn);
 					org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug(
 							"Successfully connected to company db with companyId : " + companyId);
-				} catch (SQLException e) {
-					org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("An error occurred. Maybe user/password is invalid", e);
-				} catch (ClassNotFoundException e) {
-					org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("JDBC Class not found", e);
 				}
+			} catch (SQLException e) {
+				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("An error occurred. Maybe user/password is invalid", e);
+			} catch (ClassNotFoundException e) {
+				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("JDBC Class not found", e);
 			}
+			try {
+				// company neo connection
+				if (!companyNeoConnectionPool.containsKey(companyId)
+						|| (companyNeoConnectionPool.containsKey(companyId) && !companyNeoConnectionPool.get(companyId).isValid(0))) {
 
-			// company neo connection
-			if (!companyNeoConnectionPool.containsKey(companyId)) {
-				try {
 					Class.forName("org.neo4j.jdbc.Driver");
 					String path = "jdbc:neo4j://" + neoUrl + "/";
 					org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Neo4j connection path : " + path);
@@ -186,10 +190,12 @@ public class DatabaseConnectionHelper extends TheBorg {
 					companyNeoConnectionPool.put(companyId, compNeoConn);
 					org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug(
 							"Successfully connected to Neo4j with company ID : " + companyId);
-				} catch (Exception e) {
-					org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("An error occurred while connecting to neo4j server", e);
 				}
+			} catch (Exception e) {
+				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("An error occurred while connecting to neo4j server", e);
 			}
+		} catch (Exception e) {
+			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("An error occurred while connecting to neo4j server", e);
 		}
 	}
 

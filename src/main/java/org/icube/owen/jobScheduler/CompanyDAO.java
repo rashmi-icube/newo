@@ -1,8 +1,6 @@
 package org.icube.owen.jobScheduler;
 
-import java.sql.Connection;
 import java.sql.Date;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -18,7 +16,6 @@ import org.rosuda.REngine.Rserve.RConnection;
 
 public class CompanyDAO extends TimerTask {
 
-	private Connection myConn;
 	private RConnection rCon;
 	private DatabaseConnectionHelper dch;
 
@@ -94,40 +91,35 @@ public class CompanyDAO extends TimerTask {
 	 */
 	public void connectToCompanyDb(ResultSet rs) {
 
-		String cUrl = "";
 		Statement stmt = null;
 		ResultSet res = null;
 		try {
-			org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("Connecting to CompanyDb with ID:" + rs.getInt("comp_id"));
-			cUrl = "jdbc:mysql://" + rs.getString("sql_server") + ":3306/" + rs.getString("comp_sql_dbname");
-			myConn = DriverManager.getConnection(cUrl, rs.getString("sql_user_id"), rs.getString("sql_password"));
+			int companyId = rs.getInt("comp_id");
+			dch.getCompanyConnection(companyId);
 			org.apache.log4j.Logger.getLogger(CompanyDAO.class)
 					.debug("Successfully connected to company db with companyId : " + rs.getInt("comp_id"));
 
 			ArrayList<String> addresses = new ArrayList<String>();
-			stmt = myConn.createStatement();
+			stmt = dch.companySqlConnectionPool.get(companyId).createStatement();
 			res = stmt
 					.executeQuery("select distinct(l.login_id) as email_id from (select Distinct(survey_batch_id) as survey_batch_id from question where date(start_date)=CURDATE()) as b join batch_target as bt on b.survey_batch_id=bt.survey_batch_id left join login_table as l on l.emp_id=bt.emp_id");
-			
-			while (res.next()){
+
+			while (res.next()) {
 				addresses.add(res.getString(1));
 				System.out.println(res.getString(1));
 			}
-			if(addresses.size() > 0){
+			if (addresses.size() > 0) {
 				EmailSender es = new EmailSender();
 				es.sendEmailforQuestions(addresses);
 			}
-			
+
 			org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("Starting query to retrieve number of questions closed");
-			stmt = myConn.createStatement();
 			Date date = new Date(System.currentTimeMillis() - 24 * 60 * 60 * 1000);
 			res = stmt.executeQuery("select count(que_id) as question_ended from question where end_date='" + date + "' and survey_batch_id=1;");
 			res.next();
 			int questionsClosed = res.getInt("question_ended");
 
 			if (questionsClosed > 0) {
-
-				int companyId = rs.getInt("comp_id");
 				String companyName = rs.getString("comp_name");
 				org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("Started jobs for company: " + companyName);
 				runRMethod("calculate_edge", companyId, companyName);
