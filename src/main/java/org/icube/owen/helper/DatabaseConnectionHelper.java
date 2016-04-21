@@ -30,16 +30,7 @@ public class DatabaseConnectionHelper extends TheBorg {
 
 	private boolean rConInUse = false;
 	Timer timer = new Timer();
-
-	// Fermion Server
-	/*private final static String mysqlurl = "jdbc:mysql://192.168.1.6:3306/owen";
-	private final static String user = "icube";
-	private final static String password = "icube123";
-
-	private final static String MASTER_URL = "jdbc:mysql://192.168.1.6:3306/owen_master";
-	private final static String MASTER_USER = "icube";
-	private final static String MASTER_PASSWORD = "icube123";*/
-
+	
 	private final static String MASTER_URL = UtilHelper.getConfigProperty("master_sql_url");
 	private final static String MASTER_USER = UtilHelper.getConfigProperty("master_sql_user");
 	private final static String MASTER_PASSWORD = UtilHelper.getConfigProperty("master_sql_password");
@@ -64,8 +55,6 @@ public class DatabaseConnectionHelper extends TheBorg {
 			rCon = (rCon != null && rCon.isConnected()) ? rCon : new RConnection();
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Successfully connected to R");
 			String rScriptPath = UtilHelper.getConfigProperty("r_script_path");
-			// Fermion Server
-			// String rScriptPath = "C:\\\\Users\\\\fermion10\\\\Documents\\\\Neo4j\\\\scripts";
 			String workingDir = "setwd(\"" + rScriptPath + "\")";
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Trying to load the RScript file at " + rScriptPath);
 			rCon.eval(workingDir);
