@@ -99,9 +99,11 @@ public class Question extends TheBorg {
 
 	/**
 	 * Retrieves the question based on the question ID passed
+	 * @param companyId - Company ID
 	 * @param questionId - ID of the question to be retrieved
 	 * @return a Question object
 	 */
+	
 	public Question getQuestion(int companyId, int questionId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Question q = new Question();
@@ -147,9 +149,11 @@ public class Question extends TheBorg {
 
 	/**
 	 * Retrieves the response data for a question
+	 * @param companyId - ID of the company for which response is retrieved
 	 * @param q - a Question object for which the response data is required
 	 * @return - A map containing the responses and the date
 	 */
+	
 	public Map<Date, Integer> getResponse(int companyId, Question q) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Map<Date, Integer> responseMap = new HashMap<>();
@@ -180,9 +184,11 @@ public class Question extends TheBorg {
 
 	/**
 	 * Retrieves the current question
+	 * @param companyId - Company ID 
 	 * @param batchId - batch ID of the question
 	 * @return - the current Question object
 	 */
+	
 	public Question getCurrentQuestion(int companyId, int batchId) {
 		Question q = null;
 		QuestionList ql = new QuestionList();
@@ -246,7 +252,9 @@ public class Question extends TheBorg {
 
 	/**
 	 * Returns the default smart list for the employee on the we question page
-	 * 
+	 * @param companyId - ID of the company to which the logged in user belongs
+	 * @param employeeId - Employee ID of the individual who is logged in
+	 * @param q - A question object
 	 * @return List of employee objects - view of the employee list should be sorted by the rank
 	 */
 	public List<Employee> getSmartListForQuestion(int companyId, int employeeId, Question q) {

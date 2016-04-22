@@ -47,11 +47,13 @@ public class Initiative extends TheBorg {
 	 * @param initiativeCategory - team or individual
 	 * @param initiativeStartDate - start date of the initiative
 	 * @param initiativeEndDate - end date of the initiative
+	 * @param initiativeCreationDate - creation date of the initiative
 	 * @param initiativeComment - comments for the initiative
 	 * @param filterList - filter list applicable to the initiative
 	 * @param ownerOfList - key people assigned to the initiative
 	 * @param partOfEmployeeList - applicable only for individual initiative should be null for team initiative list of employees for whom the initiative has been created
 	 */
+
 	public void setInitiativeProperties(String initiativeName, int initiativeTypeId, String initiativeCategory, Date initiativeStartDate,
 			Date initiativeEndDate, Date initiativeCreationDate, String initiativeComment, List<Filter> filterList, List<Employee> ownerOfList,
 			List<Employee> partOfEmployeeList) {
@@ -70,9 +72,10 @@ public class Initiative extends TheBorg {
 
 	/**
 	 * Creation of the actual initiative happens here
-	 * 
+	 * @param companyId - Company ID
 	 * @return - initiativeId of the newly created initiative
 	 */
+
 	public int create(int companyId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
@@ -197,7 +200,10 @@ public class Initiative extends TheBorg {
 
 	/**
 	 * Creates the connections with the objects that are part of the initiative
-	 * 
+	 * @param companyId - Company ID
+	 * @param initiativeId - ID of the initiative for which the partOf connections is created
+	 * @param filterList - List of filter objects
+	 * @return true/false
 	 */
 	@SuppressWarnings("unchecked")
 	private boolean setPartOf(int companyId, int initiativeId, List<Filter> filterList) {
@@ -258,10 +264,12 @@ public class Initiative extends TheBorg {
 
 	/**
 	 * Creates the part of connections for initiatives of category Individual
-	 * 
+	 * @param companyId - Company ID
 	 * @param initiativeId - ID of the initiative for which the part of connections are to be created
 	 * @param employeeList - list of employee ID's which are part of the initiative
+	 * @return true/false
 	 */
+
 	private boolean setEmployeesPartOf(int companyId, int initiativeId, List<Employee> employeeList) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
@@ -289,7 +297,8 @@ public class Initiative extends TheBorg {
 	/**
 	 * Internal Helper Function 
 	 * Get list of string filterValues from a map of filterValues
-	 * 
+	 * @param filterValues - Map of filter ID and name
+	 * @return list of filter values
 	 */
 	private List<Integer> getFilterValueIdList(Map<Integer, String> filterValues) {
 		List<Integer> filterValueStringList = new ArrayList<>();
@@ -299,11 +308,12 @@ public class Initiative extends TheBorg {
 
 	/**
 	 * Creates the connections with the employees who are owners of the initiative
-	 * 
+	 * @param companyId - Company ID
 	 * @param initiativeId - ID of the initiative for which key people are to be assigned for
 	 * @param employeeList - List of key people to be assigned to the given initiative
 	 * @return true/false based on if the operation was successful
 	 */
+
 	private boolean setOwner(int companyId, int initiativeId, List<Employee> employeeList) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
@@ -328,10 +338,11 @@ public class Initiative extends TheBorg {
 
 	/**
 	 * Retrieves the single initiative based on the initiativeId given
-	 * 
+	 * @param companyId - Company ID
 	 * @param initiativeId - ID of the initiative which needs to be retrieved
 	 * @return initiative object 
 	 */
+
 	public Initiative get(int companyId, int initiativeId) {
 		org.apache.log4j.Logger.getLogger(Initiative.class).debug("Retrieving the initiative with initiative ID " + initiativeId);
 
@@ -363,10 +374,11 @@ public class Initiative extends TheBorg {
 
 	/**
 	 * Returns the master list of initiative types based on category
-	 * 
+	 * @param companyId - Company ID
 	 * @param category - team or individual
 	 * @return initiativeTypeMap - Map of initiative types with ID/value
 	 */
+
 	public Map<Integer, String> getInitiativeTypeMap(int companyId, String category) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
@@ -388,10 +400,11 @@ public class Initiative extends TheBorg {
 
 	/**
 	 * Changes the status of the Initiative with the given initiativeId to Deleted
-	 * 
+	 * @param companyId - Company ID
 	 * @param initiativeId - ID of the initiative to be deleted
 	 * @return true/false depending on whether the delete is done or not
 	 */
+
 	public boolean delete(int companyId, int initiativeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
@@ -414,10 +427,11 @@ public class Initiative extends TheBorg {
 
 	/**
 	 * Updates the given initiative object
-	 * 
+	 * @param companyId - Company ID
 	 * @param updatedInitiative - The Initiative object to be updated
 	 * @return true/false depending on whether the update is done or not
 	 */
+
 	public boolean updateInitiative(int companyId, Initiative updatedInitiative) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
@@ -467,10 +481,11 @@ public class Initiative extends TheBorg {
 
 	/**
 	 * Sets the status of the initiative to completed based on the initiativeId provided in the parameter
-	 * 
+	 * @param companyId - Company ID
 	 * @param initiativeId - ID of the initiative to be set as completed
 	 * @return true/false based on if the action was successful
 	 */
+
 	public boolean complete(int companyId, int initiativeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);

@@ -195,9 +195,11 @@ public class MetricsHelper {
 
 	/**
 	 * Retrieves the primary metric for the Initiative
+	 * @param companyId - Company ID
 	 * @param initiativeTypeId - Initiative type ID of the Initiative
 	 * @return - The primary metric map containing the ID and name of the primary metric
 	 */
+	
 	public Map<Integer, String> getPrimaryMetricMap(int companyId, int initiativeTypeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
@@ -217,9 +219,11 @@ public class MetricsHelper {
 
 	/**
 	 * Retrieves the metric list for the specific category
+	 * @param companyId - Company ID
 	 * @param category - category for which the metric list is required
 	 * @return - A map containing the metrics for the specified category
 	 */
+	
 	public Map<Integer, String> getMetricListForCategory(int companyId, String category) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
@@ -245,8 +249,10 @@ public class MetricsHelper {
 	 * @param primaryMetricMap - Map containing the primary Metric
 	 * @param previousScoreMap - Map containing the previous score for the Metric
 	 * @param currentScoreMap - Map containing the current score for the Metric
+	 * @param dateOfCalculationMap - Map containing the date of calculation of the Metric
 	 * @return - List of Metric Objects
 	 */
+	
 	public List<Metrics> getMetricsList(String category, Map<Integer, String> metricListForCategory, Map<Integer, String> primaryMetricMap,
 			Map<Integer, Integer> previousScoreMap, Map<Integer, Integer> currentScoreMap, Map<Integer, Date> dateOfCalculationMap) {
 		List<Metrics> metricsList = new ArrayList<>();

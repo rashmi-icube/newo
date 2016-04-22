@@ -19,6 +19,10 @@ public class Login extends TheBorg {
 
 	/**
 	 * Validates user name and password for login page
+	 * @param emailId - email id of the user
+	 * @param password - passwor of the user
+	 * @param ipAddress - ip address of the machine from where the user logs in
+	 * @param roleId - 1/2 depending on either Individual or HR (1:Individual 2:HR)
 	 * @return Employee object
 	 * @throws Exception - thrown when provided with invalid credentials
 	 */
@@ -64,6 +68,11 @@ public class Login extends TheBorg {
 		return e;
 	}
 
+	/**
+	 * Retrieves the role list
+	 * @param companyId - ID of the company
+	 * @return Map of role ID and role
+	 */
 	public Map<Integer, String> getUserRoleMap(int companyId) {
 		Map<Integer, String> userRoleMap = new HashMap<>();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();

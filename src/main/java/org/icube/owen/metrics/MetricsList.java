@@ -20,6 +20,7 @@ public class MetricsList extends TheBorg {
 
 	/**
 	 * Retrieves the metrics for the filters chosen while creating the initiative for teams 
+	 * @param companyId - Company ID
 	 * @param filterList - list of filters applicable to the initiative 
 	 * @param initiativeTypeId - ID of the type of initiative
 	 * @return list of metrics objects
@@ -52,10 +53,12 @@ public class MetricsList extends TheBorg {
 
 	/**
 	 * Retrieves the metrics for the filters chosen while creating the initiative for individual
+	 * @param companyId - Company ID
 	 * @param partOfEmployeeList - list of employees to be part of the initiative
 	 * @param initiativeTypeId - ID of the kind of initiative
 	 * @return list of metrics objects
 	 */
+	
 	public List<Metrics> getInitiativeMetricsForIndividual(int companyId, int initiativeTypeId, List<Employee> partOfEmployeeList) {
 		org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Entering getInitiativeMetricsForIndividual");
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();

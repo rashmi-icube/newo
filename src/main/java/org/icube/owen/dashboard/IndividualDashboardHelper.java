@@ -41,9 +41,11 @@ public class IndividualDashboardHelper extends TheBorg {
 
 	/**
 	 * Retrieves the list of 3 metrics to be displayed for the individual
+	 * @param companyId - Company ID
 	 * @param employeeId - Employee Id of the individual who is logged in
 	 * @return A list of Metrics
 	 */
+
 	public List<Metrics> getIndividualMetrics(int companyId, int employeeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
@@ -64,9 +66,11 @@ public class IndividualDashboardHelper extends TheBorg {
 
 	/**
 	 * Retrieves the time series data
+	 * @param companyId - Comapny ID
 	 * @param employeeId - Employee Id of the individual who is logged in
 	 * @return Time series data to be displayed
 	 */
+
 	public Map<Integer, List<Map<Date, Integer>>> getIndividualMetricsTimeSeries(int companyId, int employeeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
@@ -86,9 +90,11 @@ public class IndividualDashboardHelper extends TheBorg {
 
 	/**
 	 * Retrieves the list of active initiatives for which the employee is an owner of
+	 * @param companyId - Company ID
 	 * @param employeeId - Employee Id of the individual who is logged in
 	 * @return A list of Initiative objects
 	 */
+
 	public List<Initiative> getIndividualInitiativeList(int companyId, int employeeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
@@ -137,9 +143,12 @@ public class IndividualDashboardHelper extends TheBorg {
 
 	/**
 	 * Retrieves the Activity Feed for the employee
+	 * @param companyId - Company ID
 	 * @param employeeId - Employee Id of the individual who is logged in (pass employeeId = 208 for testing)
+	 * @param pageNumber - page number of the page to be displayed
 	 * @return A list of ActivityFeed objects
 	 */
+
 	public Map<Date, List<ActivityFeed>> getActivityFeedList(int companyId, int employeeId, int pageNumber) {
 		org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug(
 				"Entering getActivityFeedList with employee ID : " + employeeId + " page number " + pageNumber);
@@ -222,6 +231,11 @@ public class IndividualDashboardHelper extends TheBorg {
 		return result;
 	}
 
+	/**
+	 * Retrieves the metric relationship type mapping
+	 * @param companyId - Company ID
+	 * @return - map of the mapping between Metric and RelationshipType
+	 */
 	private Map<Integer, Integer> getMetricRelationshipTypeMapping(int companyId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
@@ -242,10 +256,12 @@ public class IndividualDashboardHelper extends TheBorg {
 
 	/**
 	 * Retrieves the smart list of employees 
+	 * @param companyId - Company ID
 	 * @param employeeId - Employee Id of the individual who is logged in 
 	 * @param metricId - Metric Id of the selected Metric
 	 * @return - A list of Employee objects
 	 */
+
 	public List<Employee> getSmartList(int companyId, int employeeId, int metricId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
@@ -298,9 +314,10 @@ public class IndividualDashboardHelper extends TheBorg {
 	 * @param appreciationResponseMap - Map of employee object and ranking
 	 * @param companyId - Company Id of the employee who is logged in
 	 * @param employeeId - Company Id of the employee who is logged in
-	 * @param metricId
+	 * @param metricId - ID of the metric
 	 * @return true/false
 	 */
+
 	public boolean saveAppreciation(int companyId, int employeeId, int metricId, Map<Employee, Integer> appreciationResponseMap) {
 		boolean responseSaved = false;
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
@@ -333,9 +350,11 @@ public class IndividualDashboardHelper extends TheBorg {
 	/**
 	 * Updates the password 
 	 * Password Guidelines : Minimum 8 characters and should contain at least 1 numeric digit
-	 * @param currentPassword
-	 * @param newPassword
-	 * @return true/false 
+	 * @param companyId - Company ID
+	 * @param employeeId - ID of the employee who is logged in
+	 * @param currentPassword - current password
+	 * @param newPassword - new password
+	 * @return true/false
 	 */
 	public boolean changePassword(int companyId, int employeeId, String currentPassword, String newPassword) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
@@ -365,7 +384,11 @@ public class IndividualDashboardHelper extends TheBorg {
 	/**
 	 * Updates the timestamp when the user visits the individual dashboard page
 	 * Timestamp is used for getting the notification count on the individual dashboard page
+	 * @param companyId - Company ID
+	 * @param employeeId - ID of the employee who is logged in
+	 * @return true/false
 	 */
+	
 	public boolean updateNotificationTimestamp(int companyId, int employeeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
@@ -387,6 +410,9 @@ public class IndividualDashboardHelper extends TheBorg {
 
 	/**
 	 * Returns the notifications count for the individual dashboard page
+	 * @param companyId - Company ID
+	 * @param employeeId - ID of the employee who is logged in
+	 * @return the number of notifications
 	 */
 	public Integer getNotificationsCount(int companyId, int employeeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();

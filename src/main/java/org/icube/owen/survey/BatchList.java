@@ -21,8 +21,10 @@ public class BatchList extends TheBorg {
 
 	/**
 	 * Retrieves the Frequency labels to populate the Frequency drop down
+	 * @param companyId - Company ID
 	 * @return - A frequency label map containing the frequency values
 	 */
+
 	public Map<Integer, String> getFrequencyLabelMap(int companyId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 
@@ -42,8 +44,10 @@ public class BatchList extends TheBorg {
 
 	/**
 	 * Retrieves the list of Batches
+	 * @param companyId - ID of the company for which the batch list is required
 	 * @return -  A list  of batches
 	 */
+
 	public List<Batch> getBatchList(int companyId) {
 
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
@@ -88,10 +92,11 @@ public class BatchList extends TheBorg {
 	}
 
 	/**
-	 * Changes the frequency of a batch
-	 * @param batch - The batch object 
-	 * @param changedFrequency - The updated frequency value
-	 * @return - True/False depending on whether the frequency has been changed or not
+	 * Changes batch frequency
+	 * @param companyId - ID of the company for which the batch frequency has to be changed
+	 * @param batch - a batch object
+	 * @param changedFrequency - the new frequency of the batch
+	 * @return true/false - depending on if the frequency is changed successfully or not
 	 */
 	public boolean changeFrequency(int companyId, Batch batch, Frequency changedFrequency) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
@@ -224,8 +229,10 @@ public class BatchList extends TheBorg {
 
 	/**
 	 * Gets the current batch based on the comparison of the dates
+	 * @param companyId - ID of the company for which the current batch is retrieved
 	 * @return current batch
 	 */
+
 	public Batch getCurrentBatch(int companyId) {
 		// TODO This is temp... Until we use only 1 batch through out the application
 		List<Batch> batchList = getBatchList(companyId);

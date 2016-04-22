@@ -133,6 +133,7 @@ public class Employee extends TheBorg {
 	 * Returns an employee object based on the employee ID given
 	 * 
 	 * @param employeeId - ID of the employee that needs to be retrieved
+	 * @param companyId - Company ID of the employee 
 	 * @return employee object
 	 */
 	public Employee get(int companyId, int employeeId) {

@@ -17,9 +17,16 @@ import org.icube.owen.helper.UtilHelper;
 public class TheWallHelper extends TheBorg {
 
 	/**
-	 * Get list of individuals for the wall 
+	 * Get list of individuals for the wall
+	 * @param companyId - Company ID
+	 * @param metricId - ID of the metric
+	 * @param direction - top/bottom
+	 * @param percentage - percent of employees to be displayed 
+	 * @param pageNumber - page number of the page to be displayed
+	 * @param pageSize - size of the page
+	 * @param filterList - List of the filter objects
+	 * @return List of map of Employee details
 	 */
-
 	public List<Map<String, Object>> getIndividualWallFeed(int companyId, int metricId, String direction, int percentage, int pageNumber,
 			int pageSize, List<Filter> filterList) {
 		org.apache.log4j.Logger.getLogger(TheWallHelper.class).debug("Entering getIndividualWallFeed");
@@ -79,6 +86,14 @@ public class TheWallHelper extends TheBorg {
 
 	/**
 	 * Get the list of teams for the wall
+	 * @param companyId - Company ID
+	 * @param metricId - ID of the metric
+	 * @param direction - top/bottom
+	 * @param percentage - percent of team to be displayed 
+	 * @param pageNumber - page number of the page 
+	 * @param pageSize - size of the page to be displayed
+	 * @param filterList - List of filter objects
+	 * @return List of map of Employee details
 	 */
 	public List<Map<String, Object>> getTeamWallFeed(int companyId, int metricId, String direction, int percentage, int pageNumber, int pageSize,
 			List<Filter> filterList) {

@@ -26,10 +26,12 @@ public class EmployeeList extends TheBorg {
 	/**
 	 * Returns the employee smart list based on the filter objects provided for initiatives of type Team
 	 * 
+	 * @param companyId - Company ID of the employee
 	 * @param filterList - list of filter objects
 	 * @param initiativeType - type of the initiative
 	 * @return list of employee objects
 	 */
+
 	public List<Employee> getEmployeeSmartListForTeam(int companyId, List<Filter> filterList, int initiativeType) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
@@ -107,10 +109,12 @@ public class EmployeeList extends TheBorg {
 
 	/**
 	 * Returns the employee smart list for initiatives of type Individual based on the filter objects provided
+	 * @param companyId - Company ID of the employee
 	 * @param partOfEmployeeList - List of employee objects which are part of the initiative
 	 * @param initiativeType - ID of the type of initiative
 	 * @return List of employee objects
 	 */
+
 	public List<Employee> getEmployeeSmartListForIndividual(int companyId, List<Employee> partOfEmployeeList, int initiativeType) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
@@ -171,9 +175,10 @@ public class EmployeeList extends TheBorg {
 
 	/**
 	 * Retrieves the employee master list from the company db
-
+	 * @param companyId - Company ID of the employee
 	 * @return list of employee objects
 	 */
+
 	public List<Employee> getEmployeeMasterList(int companyId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
@@ -202,8 +207,8 @@ public class EmployeeList extends TheBorg {
 
 	/**
 	 * Set the employee details based on the result from sql
-	 * @param res -  actual result from sql
-	 * @param setScore - if the score should be set for the employee or not
+	 * @param companyId - Company ID of the employee
+	 * @param res - actual result from sql
 	 * @return employee object
 	 * @throws SQLException - if employee details are not set
 	 */
@@ -235,8 +240,9 @@ public class EmployeeList extends TheBorg {
 	}
 
 	/**
-	 * Retrieves the employee list based on the dimension provided 
-	 * 
+	 * Retrieves the employee list based on the dimension provided
+	 * @param companyId - List of employee objects
+	 * @param filterList - List of filter objects
 	 * @return List of employee objects
 	 */
 	public List<Employee> getEmployeeListByFilters(int companyId, List<Filter> filterList) {
@@ -276,7 +282,7 @@ public class EmployeeList extends TheBorg {
 
 	/**
 	 * Returns a list employee objects based on the employee IDs given
-	 * 
+	 * @param companyId - List of employee objects
 	 * @param employeeIdList - List of IDs of the employees that need to be retrieved
 	 * @return employee object list
 	 */
@@ -288,7 +294,7 @@ public class EmployeeList extends TheBorg {
 		try {
 			org.apache.log4j.Logger.getLogger(Employee.class).debug("get method started");
 			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getEmployeeDetails(?)}");
-			cstmt.setString(1, employeeIdList.toString().substring(1, employeeIdList.toString().length()-1).replaceAll(" ", ""));
+			cstmt.setString(1, employeeIdList.toString().substring(1, employeeIdList.toString().length() - 1).replaceAll(" ", ""));
 			ResultSet res = cstmt.executeQuery();
 			org.apache.log4j.Logger.getLogger(Employee.class).debug("query : " + cstmt);
 			while (res.next()) {

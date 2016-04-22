@@ -18,10 +18,12 @@ public class InitiativeList extends TheBorg {
 
 	/**
 	 * Get the list of initiatives based on the status provided in the filter
+	 * @param companyId - Company ID
 	 * @param category - category for the initiative
 	 * @param initiativeStatus - Status of the initiatives to be listed
 	 * @return - list of initiatives
 	 */
+
 	public List<Initiative> getInitiativeListByStatus(int companyId, String category, String initiativeStatus) {
 		List<Initiative> initiativeList = new ArrayList<Initiative>();
 		initiativeList = getInitiativeList(companyId, category, "Status", initiativeStatus);
@@ -30,10 +32,12 @@ public class InitiativeList extends TheBorg {
 
 	/**
 	 * Get the list of initiatives based on the type provided in the filter
+	 * @param companyId - Company ID
 	 * @param category - category for the initiative
 	 * @param initiativeTypeId - ID of the type of initiative to be listed
 	 * @return - list of initiatives
 	 */
+
 	public List<Initiative> getInitiativeListByType(int companyId, String category, int initiativeTypeId) {
 		List<Initiative> initiativeList = new ArrayList<Initiative>();
 		initiativeList = getInitiativeList(companyId, category, "Type", initiativeTypeId);
@@ -41,11 +45,13 @@ public class InitiativeList extends TheBorg {
 	}
 
 	/**
+	 * Retrieves the list of initiatives of specific category and status/type
+	 * @param companyId - Company ID
+	 * @param category - Category of the initiative(Team/Individual)
 	 * @param viewByCriteria - Retrieves list of initiative based on criteria(Status/Type)
 	 * @param viewByValue - Status/Type of initiative to be viewed
 	 * @return List of initiatives
 	 */
-
 	private List<Initiative> getInitiativeList(int companyId, String category, String viewByCriteria, Object viewByValue) {
 		org.apache.log4j.Logger.getLogger(InitiativeList.class).debug(
 				"entering getInitiativeList with category : " + category + " ; viewByCriteria : " + viewByCriteria + " viewByValue : " + viewByValue);
@@ -125,10 +131,10 @@ public class InitiativeList extends TheBorg {
 
 	/**
 	 * Retrieves the list of Initiatives along with all its attributes and connections
-	 * 
-	 * @return - A list of Initiatives
+	 * @param companyId - Company ID
+	 * @param category - Category of the initiative(Team/Individual)
+	 * @return A list of Initiatives
 	 */
-
 	public List<Initiative> getInitiativeList(int companyId, String category) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
@@ -177,9 +183,12 @@ public class InitiativeList extends TheBorg {
 	}
 
 	/**
+	 * Sets the initiative values
+	 * @param companyId - Company ID
 	 * @param res- A map containing the Initiative attributes and connections
 	 * @param i - An Initiative object
 	 */
+
 	public void setInitiativeValues(int companyId, ResultSet res, Initiative i) {
 		InitiativeHelper ih = new InitiativeHelper();
 		org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Setting initiative values");
@@ -200,7 +209,8 @@ public class InitiativeList extends TheBorg {
 			i.setOwnerOfList(ih.getOwnerOfList(companyId, res));
 			if (i.getInitiativeCategory().equalsIgnoreCase("Team")) {
 				i.setFilterList(ih.setPartOfConnections(companyId, res, i));
-				org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Filter list size for " + i.getInitiativeName() + " is " + i.getFilterList().size());
+				org.apache.log4j.Logger.getLogger(InitiativeList.class).debug(
+						"Filter list size for " + i.getInitiativeName() + " is " + i.getFilterList().size());
 			} else if (i.getInitiativeCategory().equalsIgnoreCase("Individual")) {
 				i.setPartOfEmployeeList(ih.setPartOfEmployeeList(companyId, res, i));
 			}

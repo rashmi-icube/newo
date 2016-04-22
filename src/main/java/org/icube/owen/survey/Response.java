@@ -17,7 +17,12 @@ public class Response extends TheBorg {
 
 	/**
 	 * Saves the response for the ME question
-	 * @return boolean value if the response was stored successfully
+	 * @param companyId - Company ID
+	 * @param employeeId - ID of the employee who is logged in
+	 * @param q - the question object
+	 * @param responseValue - Value of the response
+	 * @param feedback - The comments for the question
+	 * @return true/false - if the response is saved or not
 	 */
 	public boolean saveMeResponse(int companyId, int employeeId, Question q, int responseValue, String feedback) {
 		boolean responseSaved = false;
@@ -48,7 +53,11 @@ public class Response extends TheBorg {
 
 	/**
 	 * Saves the response for the WE question
-	 * @return boolean value if the response was stored successfully
+	 * @param companyId - ID of the company to which the employee belongs
+	 * @param employeeId - ID of the employee who is logged in
+	 * @param q - A question object
+	 * @param employeeRating - Ratings given in the answer
+	 * @return true/false - if the response is saved successfully or not
 	 */
 	public boolean saveWeResponse(int companyId, int employeeId, Question q, Map<Employee, Integer> employeeRating) {
 

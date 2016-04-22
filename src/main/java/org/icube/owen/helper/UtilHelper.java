@@ -55,8 +55,13 @@ public class UtilHelper {
 	}
 
 	/**
-	 * Parses the filter list for metric value calculations 
+	 * 
 	 *
+	 */
+	/**
+	 * Parses the filter list for metric value calculations 
+	 * @param filterList - List of filter objects
+	 * @return Map of values of filter object 
 	 */
 	public static Map<String, Object> parseFilterList(List<Filter> filterList) {
 		Map<String, Object> result = new HashMap<>();

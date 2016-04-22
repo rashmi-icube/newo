@@ -19,9 +19,11 @@ public class HrDashboardHelper extends TheBorg {
 
 	/**
 	 * Calculates the organizational metrics - for specific filter selection
+	 * @param companyId - Company ID
 	 * @param filter - filter object for which the metric is to be calculated
 	 * @return list of metric objects 
 	 */
+
 	public List<Metrics> getFilterMetrics(int companyId, Filter filter) {
 		List<Metrics> dimensionMetricsList = new ArrayList<>();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
@@ -57,8 +59,10 @@ public class HrDashboardHelper extends TheBorg {
 
 	/**
 	 * Calculates the organizational metrics - for ALL selection
+	 * @param companyId - Company ID
 	 * @return list of metric objects 
 	 */
+
 	public List<Metrics> getOrganizationalMetrics(int companyId) {
 		List<Metrics> orgMetricsList = new ArrayList<>();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
@@ -87,9 +91,11 @@ public class HrDashboardHelper extends TheBorg {
 
 	/**
 	 * Returns all the details for the time series graph to be displayed on the HR dashboard
+	 * @param companyId - Company ID
 	 * @param filter - filter selection
 	 * @return Map of metric Id and List of map of calculation date and metric score for the time series graph
 	 */
+
 	public Map<Integer, List<Map<Date, Integer>>> getTimeSeriesGraph(int companyId, Filter filter) {
 		Map<Integer, List<Map<Date, Integer>>> result = new HashMap<>();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
@@ -110,6 +116,11 @@ public class HrDashboardHelper extends TheBorg {
 		return result;
 	}
 
+	/**
+	 * @param rs - Resultset
+	 * @return - Map of Metric ID and list of map of calculation date and score
+	 * @throws SQLException
+	 */
 	private Map<Integer, List<Map<Date, Integer>>> getTimeSeriesMap(ResultSet rs) throws SQLException {
 		Map<Integer, List<Map<Date, Integer>>> result = new HashMap<>();
 
@@ -134,6 +145,7 @@ public class HrDashboardHelper extends TheBorg {
 
 	/**
 	 * Returns all the details for the time series graph for Organization to be displayed on the HR dashboard
+	 * @param companyId - Company ID
 	 * @return Map of metric Id and List of map of calculation date and metric score for the time series graph
 	 */
 
@@ -154,8 +166,10 @@ public class HrDashboardHelper extends TheBorg {
 
 	/**
 	 * Retrieves the list of alerts
+	 * @param companyId - Company ID
 	 * @return alert list
 	 */
+
 	public List<Alert> getAlertList(int companyId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);

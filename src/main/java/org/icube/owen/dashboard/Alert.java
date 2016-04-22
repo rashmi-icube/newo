@@ -31,6 +31,7 @@ public class Alert extends TheBorg {
 
 	/**
 	 * Get populated alert object based on the alertId
+	 * @param companyId - ID of the company
 	 * @param alertId - ID of the alert for which the data is required
 	 * @return alert object
 	 */
@@ -53,8 +54,10 @@ public class Alert extends TheBorg {
 
 	/**
 	 * Helper method to fill alert object from database query
+	 * @param companyId - Company ID
 	 * @param rs - result from the database query
 	 * @return alert object
+	 * @throws SQLException - if the alert details are not filled in properly
 	 */
 	public Alert fillAlertDetails(int companyId, ResultSet rs) throws SQLException {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
@@ -112,8 +115,9 @@ public class Alert extends TheBorg {
 
 	/**
 	 * Deletes the alert 
+	 * @param companyId - ID of the company
 	 * @param alertId - ID of the alert to be deleted
-	 * @return boolean value if the alert has been deleted or not
+	 * @return true/false
 	 */
 	public boolean delete(int companyId, int alertId) {
 		org.apache.log4j.Logger.getLogger(Alert.class).debug("Entering the delete alert function");

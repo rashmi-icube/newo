@@ -59,7 +59,9 @@ public class EmployeeHelper extends TheBorg {
 	 * Retrieves the list of work experiences of a given employee
 	 * @param companyId - companyId
 	 * @param employeeId - employeeId of the given employee
+	 * @return - List of work experience objects
 	 */
+
 	public List<WorkExperience> getWorkExperienceDetails(int companyId, int employeeId) {
 
 		List<WorkExperience> workExList = new ArrayList<>();
@@ -106,6 +108,9 @@ public class EmployeeHelper extends TheBorg {
 
 	/**
 	 * Returns a list of education details for a given employee
+	 * @param companyId - Company ID of the employee
+	 * @param employeeId - ID of the employee to be retrieved
+	 * @return - List of EducationDetails objects
 	 */
 	public List<EducationDetails> getEducationDetails(int companyId, int employeeId) {
 
@@ -139,6 +144,9 @@ public class EmployeeHelper extends TheBorg {
 
 	/**
 	 * Retrieves the list of languages spoken by a given employee
+	 * @param companyId - Company ID of the employee
+	 * @param employeeId - ID of the employee to be retrieved
+	 * @return - List of LanguageDetails objects
 	 */
 	public List<LanguageDetails> getEmployeeLanguageDetails(int companyId, int employeeId) {
 		List<LanguageDetails> languageDetailsList = new ArrayList<>();
@@ -167,6 +175,8 @@ public class EmployeeHelper extends TheBorg {
 
 	/**
 	 * Returns a map of languages that can be spoken by any employee
+	 * @param companyId - Company ID of the employee
+	 * @return - A map of language id and language name
 	 */
 	public Map<Integer, String> getLanguageMasterMap(int companyId) {
 		Map<Integer, String> languageMasterMap = new HashMap<>();
@@ -220,7 +230,7 @@ public class EmployeeHelper extends TheBorg {
 	/**
 	 * Removes an Education 
 	 * @param companyId - Company Id of the employee
-	 * @param educationId - Work experience Id to be deleted
+	 * @param educationId - educationId to be deleted
 	 * @return true/false
 	 */
 	public boolean removeEducation(int companyId, int educationId) {
@@ -271,6 +281,12 @@ public class EmployeeHelper extends TheBorg {
 		return status;
 	}
 
+	/**
+	 * Updates the basic details of employee
+	 * @param companyId - Company Id of the employee
+	 * @param bed - BasicEmployeeDetails objects
+	 * @return - true/false
+	 */
 	public boolean updateBasicDetails(int companyId, BasicEmployeeDetails bed) {
 		boolean status = false;
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
@@ -297,6 +313,9 @@ public class EmployeeHelper extends TheBorg {
 
 	/**
 	 * Add a new work experience to the given employee
+	 * @param companyId - Company Id of the employee
+	 * @param wek - WorkExperience object
+	 * @return true/false
 	 */
 	public boolean addWorkExperience(int companyId, WorkExperience wek) {
 		boolean status = false;
@@ -326,8 +345,12 @@ public class EmployeeHelper extends TheBorg {
 		return status;
 	}
 
+	
 	/**
 	 * Add a new education to the given employee
+	 * @param companyId - Company Id of the employee
+	 * @param ed - EducationDetails object
+	 * @return true/false
 	 */
 	public boolean addEducation(int companyId, EducationDetails ed) {
 		boolean status = false;
@@ -359,6 +382,9 @@ public class EmployeeHelper extends TheBorg {
 
 	/**
 	 * Add a new language to the given employee
+	 * @param companyId - Company Id of the employee
+	 * @param ld - LanguageDetails object
+	 * @return true/false
 	 */
 	public boolean addLanguage(int companyId, LanguageDetails ld) {
 		boolean status = false;

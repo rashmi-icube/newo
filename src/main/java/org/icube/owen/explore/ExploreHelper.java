@@ -22,7 +22,8 @@ import org.icube.owen.metrics.MetricsHelper;
 public class ExploreHelper extends TheBorg {
 
 	/**
-	 * Retrieve data for metrics 
+	 * Retrieves data for metrics 
+	 * @param companyId - Company ID of the employee
 	 * @param teamListMap - Map with the (teamName, filterList) pair, can have as many teams as desired by the UI
 	 * @return metricsMapList - Map with (teamName, metricList) pair
 	 */
@@ -46,7 +47,8 @@ public class ExploreHelper extends TheBorg {
 	}
 
 	/**
-	 * Retrieve data for the time series graph 
+	 * Retrieves data for the time series graph 
+	 * @param companyId - Company ID of the employee
 	 * @param teamListMap - Map with the (teamName, filterList) pair, can have as many teams as desired by the UI
 	 * @return metricsMapList - Map with (teamName, metricList) pair
 	 */
@@ -101,8 +103,9 @@ public class ExploreHelper extends TheBorg {
 
 	/**
 	 * Retrieves the individual metrics data
+	 * @param companyId - Company ID of the employee
 	 * @param employeeList - list of employees selected
-	 * @return map of employee linked to a list of metrics
+	 * @return - map of employee linked to a list of metrics
 	 */
 	public Map<Employee, List<Metrics>> getIndividualMetricsData(int companyId, List<Employee> employeeList) {
 
@@ -128,6 +131,7 @@ public class ExploreHelper extends TheBorg {
 
 	/**
 	 * Retrieves the individual time series graph data
+	 * @param companyId - Company ID of the employee
 	 * @param employeeList - list of employees selected
 	 * @return map of employee linked to a list of metrics
 	 */
@@ -153,6 +157,12 @@ public class ExploreHelper extends TheBorg {
 
 	}
 
+	/**
+	 * Retrieves the Time series map
+	 * @param rs - Resultset
+	 * @return A map of metric ID and list of calculation date and and respective score
+	 * @throws SQLException - if the time series map is not retrieved
+	 */
 	public Map<Integer, List<Map<Date, Integer>>> getTimeSeriesMap(ResultSet rs) throws SQLException {
 		Map<Integer, List<Map<Date, Integer>>> result = new HashMap<>();
 
@@ -177,7 +187,9 @@ public class ExploreHelper extends TheBorg {
 
 	/**
 	 * Get the node list and edge list for team network diagram
-	 * 
+	 * @param companyId - Company ID of the employee
+	 * @param teamListMap - List of filters which define the team
+	 * @param relationshipType - Map of relationship id and name
 	 * @return map with node list and edge list
 	 */
 	public Map<String, List<?>> getTeamNetworkDiagram(int companyId, Map<String, List<Filter>> teamListMap, Map<Integer, String> relationshipType) {
@@ -273,7 +285,9 @@ public class ExploreHelper extends TheBorg {
 
 	/**
 	 * Get the node list and edge list for the individual network diagram
-	 * 
+	 * @param companyId - Company ID
+	 * @param employeeList - List of employee objects
+	 * @param relationshipTypeMap - Map of relationship id and name
 	 * @return map with node list and edge list
 	 */
 	public Map<String, List<?>> getIndividualNetworkDiagram(int companyId, List<Employee> employeeList, Map<Integer, String> relationshipTypeMap) {
@@ -394,6 +408,7 @@ public class ExploreHelper extends TheBorg {
 
 	/**
 	 * Returns a map of relationship type ID + relationship type Name
+	 * @param companyId - Company ID
 	 * @return relationshipTypeMap
 	 */
 	public Map<Integer, String> getRelationshipTypeMap(int companyId) {

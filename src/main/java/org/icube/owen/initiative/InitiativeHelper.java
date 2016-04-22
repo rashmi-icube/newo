@@ -22,11 +22,13 @@ import org.icube.owen.metrics.Metrics;
 public class InitiativeHelper extends TheBorg {
 
 	/**
+	 * @param companyId - Company ID
 	 * @param res - A resultset containing the Initiative attributes and connections
 	 * @param i - An Initiative object
 	 * @return - List of Filter objects
 	 * @throws SQLException - if partOf connections are not set
 	 */
+
 	@SuppressWarnings("unchecked")
 	public List<Filter> setPartOfConnections(int companyId, ResultSet res, Initiative i) throws SQLException {
 		List<Filter> existingFilterList = (i.getFilterList() == null ? new ArrayList<>() : i.getFilterList());
@@ -56,18 +58,18 @@ public class InitiativeHelper extends TheBorg {
 					"Filter list being passed : " + ff.getFilterId() + " " + ff.getFilterName() + " " + ff.getFilterValues().toString());
 
 		}
-		
 
 		return existingFilterList;
 	}
 
 	/**
 	 * Returns the owners of initiative
-	 * 
+	 * @param companyId - Company ID
 	 * @param resultMap - A map containing the Initiative attributes and connections
 	 * @return list of employee object who are owners of the initiative
 	 *  @throws SQLException - if error in getting employee list
 	 */
+
 	@SuppressWarnings("unchecked")
 	public List<Employee> getOwnerOfList(int companyId, ResultSet resultMap) throws SQLException {
 		List<Integer> resultList = (List<Integer>) resultMap.getObject("OwnersOf");
@@ -81,9 +83,11 @@ public class InitiativeHelper extends TheBorg {
 
 	/**
 	 * Retrieves the initiative count for the view initiatives page
+	 * @param companyId - Company ID
 	 * @return map of details required for the graphical representation
 	 *
 	 */
+
 	public List<Map<String, Object>> getInitiativeCount(int companyId) {
 		List<Map<String, Object>> initiativeCountMapList = new ArrayList<>();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
@@ -109,6 +113,14 @@ public class InitiativeHelper extends TheBorg {
 		return initiativeCountMapList;
 	}
 
+	/**
+	 * Retrieves the list of existing partOfEmployee list
+	 * @param companyId - Company ID
+	 * @param res - A resultset containing the Initiative attributes and connections
+	 * @param i - An initiative object
+	 * @return List of employee objects
+	 * @throws SQLException - if the partOfEmployee list is not retrieved 
+	 */
 	@SuppressWarnings("unchecked")
 	public List<Employee> setPartOfEmployeeList(int companyId, ResultSet res, Initiative i) throws SQLException {
 		List<Employee> existingEmployeeList = (i.getPartOfEmployeeList() == null ? new ArrayList<>() : i.getPartOfEmployeeList());
@@ -121,9 +133,11 @@ public class InitiativeHelper extends TheBorg {
 
 	/**
 	 * Sets the values for Metrics object
+	 * @param companyId - Company ID
 	 * @param i - Initiative object
 	 * @return - List of Metrics object
 	 */
+
 	public List<Metrics> setInitiativeMetrics(int companyId, Initiative i) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Metrics> metricsList = new ArrayList<>();

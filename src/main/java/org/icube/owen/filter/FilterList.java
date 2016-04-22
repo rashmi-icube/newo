@@ -16,8 +16,8 @@ public class FilterList extends TheBorg {
 
 	/**
 	 * Returns a filter object of the given filterName
-	 * 
-	 * @param filterName  - Name of the filter for which all values are to be returned
+	 * @param companyId - Company ID
+	 * @param filterName - Name of the filter for which all values are to be returned
 	 * @return filter object - A filter object of the given filterName
 	 */
 	public Filter getFilterValues(int companyId, String filterName) {
@@ -56,8 +56,8 @@ public class FilterList extends TheBorg {
 
 	/**
 	 * Retrieves all the objects which are filters
-	 * 
-	 * @return returns a list of all filter objects
+	 * @param companyId - Company ID
+	 * @return a list of all filter objects
 	 */
 	public List<Filter> getFilterValues(int companyId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
@@ -99,7 +99,7 @@ public class FilterList extends TheBorg {
 
 	/**
 	 * Returns the map of filter labels
-	 * 
+	 * @param companyId - Company ID
 	 * @return filterLabelMap - A map of filter labels
 	 */
 	public Map<Integer, String> getFilterLabelMap(int companyId) {

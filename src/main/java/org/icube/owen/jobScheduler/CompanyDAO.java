@@ -87,8 +87,8 @@ public class CompanyDAO extends TimerTask {
 	/**
 	 * Connects to the company database and execute the methods
 	 * @param rs - ResultSet containing the details of the company
-	 * @throws SQLException 
 	 */
+
 	public void connectToCompanyDb(ResultSet rs) {
 
 		Statement stmt = null;
@@ -140,6 +140,13 @@ public class CompanyDAO extends TimerTask {
 
 	}
 
+	/**
+	 * Runs the R functions
+	 * @param rFunctionName - R function name
+	 * @param companyId - Company ID
+	 * @param companyName - Company name
+	 * @throws Exception - if the R functions are not executed successfully
+	 */
 	public void runRMethod(String rFunctionName, int companyId, String companyName) throws Exception {
 		org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("Parameters for R function :  CompanyId : " + companyId);
 		rCon = dch.getRConn();
@@ -155,6 +162,14 @@ public class CompanyDAO extends TimerTask {
 		dch.releaseRcon();
 	}
 
+	/**
+	 * Sends email
+	 * @param companyId - Company ID
+	 * @param companyName - Name of the company
+	 * @param rFunctionName - R function name
+	 * @param status - status after running the function
+	 * @throws Exception - if the email is not sent successfully
+	 */
 	public void sendEmail(int companyId, String companyName, String rFunctionName, REXP status) throws Exception {
 		EmailSender es = new EmailSender();
 		es.sendEmail("Error in executing " + rFunctionName + "method for Company Id:" + companyId + "Company Name:" + companyName);
