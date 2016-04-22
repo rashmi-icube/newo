@@ -83,13 +83,14 @@ public class InitiativeHelper extends TheBorg {
 
 	/**
 	 * Retrieves the initiative count for the view initiatives page
-	 * @param companyId - Company ID
+	 * @param companyId - companyId for the db connection
 	 * @return map of details required for the graphical representation
 	 *
 	 */
-
 	public List<Map<String, Object>> getInitiativeCount(int companyId) {
 		List<Map<String, Object>> initiativeCountMapList = new ArrayList<>();
+		Map<String, Map<String, Object>> masterMap = getEmptyInitiativeCountMap(companyId, "Team");
+		masterMap.putAll(getEmptyInitiativeCountMap(companyId, "Individual"));
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
 		try {
@@ -99,18 +100,50 @@ public class InitiativeHelper extends TheBorg {
 			Statement stmt = dch.companyNeoConnectionPool.get(companyId).createStatement();
 			ResultSet res = stmt.executeQuery(query);
 			while (res.next()) {
-				Map<String, Object> initiativeCountMap = new HashMap<>();
+				String key = res.getString("initiativeType") + "_" + res.getString("status");
+				Map<String, Object> initiativeCountMap = masterMap.get(key);
 				initiativeCountMap.put("status", res.getString("status"));
 				initiativeCountMap.put("category", res.getString("category"));
 				initiativeCountMap.put("initiativeType", res.getString("initiativeType"));
 				initiativeCountMap.put("totalInitiatives", res.getInt("totalInitiatives"));
-				initiativeCountMapList.add(initiativeCountMap);
+				masterMap.put(key, initiativeCountMap);
 			}
+			initiativeCountMapList.addAll(masterMap.values());
 			stmt.close();
-		} catch (Exception e) {
-			org.apache.log4j.Logger.getLogger(InitiativeHelper.class).error("Exception while getting the initiative list", e);
+		} catch (SQLException e) {
+			org.apache.log4j.Logger.getLogger(InitiativeHelper.class).error("Exception while getting the initiative count list", e);
 		}
 		return initiativeCountMapList;
+	}
+
+	/**
+	 * Creates a list of maps for all initiative types with the count as 0
+	 * Useful for when there is no initiative of a specific type and doesn't come up in the 
+	 * result for the query from neo4j for display on the list of initiative count in view initiative list
+	 * @param companyId - companyId for the db connection
+	 * @param category - Team / Individual
+	 * @return empty initiative count map
+	 */
+	private Map<String, Map<String, Object>> getEmptyInitiativeCountMap(int companyId, String category) {
+		Map<String, Map<String, Object>> initiativeCountMasterMap = new HashMap<>();
+		Initiative i = new Initiative();
+		Map<Integer, String> initiativeTypeMap = i.getInitiativeTypeMap(companyId, category);
+		for (int initiativeTypeId : initiativeTypeMap.keySet()) {
+			Map<String, Object> m = new HashMap<>();
+			m.put("status", "Completed");
+			m.put("category", "Team");
+			m.put("initiativeType", initiativeTypeId);
+			m.put("totalInitiatives", 0);
+			initiativeCountMasterMap.put(initiativeTypeId + "_Completed", m);
+
+			m.clear();
+			m.put("status", "Active");
+			m.put("category", "Team");
+			m.put("initiativeType", initiativeTypeId);
+			m.put("totalInitiatives", 0);
+			initiativeCountMasterMap.put(initiativeTypeId + "_Active", m);
+		}
+		return initiativeCountMasterMap;
 	}
 
 	/**
