@@ -184,11 +184,12 @@ public class Question extends TheBorg {
 	 * @return - the current Question object
 	 */
 	public Question getCurrentQuestion(int companyId, int batchId) {
-		Question q = new Question();
+		Question q = null;
 		QuestionList ql = new QuestionList();
 		for (Question q1 : ql.getQuestionListForBatch(companyId, batchId)) {
 			if (UtilHelper.getStartOfDay(q1.getStartDate()).compareTo(Date.from(Instant.now())) <= 0
 					&& UtilHelper.getEndOfDay(q1.getEndDate()).after(Date.from(Instant.now()))) {
+				q = new Question();
 				q.setQuestionId(q1.getQuestionId());
 				q.setQuestionText(q1.getQuestionText());
 				q.setStartDate(q1.getStartDate());
@@ -199,6 +200,10 @@ public class Question extends TheBorg {
 				q.setRelationshipTypeId(q1.getRelationshipTypeId());
 				org.apache.log4j.Logger.getLogger(Question.class).debug("Retrieved the current question " + q.getQuestionId());
 			}
+		}
+		if (q == null) {
+			org.apache.log4j.Logger.getLogger(Question.class).debug("No current question to display");
+			return null;
 		}
 		return q;
 	}

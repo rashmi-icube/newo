@@ -42,12 +42,11 @@ public class DatabaseConnectionHelper extends TheBorg {
 			Class.forName("com.mysql.jdbc.Driver");
 			masterCon = (masterCon != null && !masterCon.isValid(0)) ? masterCon : DriverManager.getConnection(MASTER_URL, MASTER_USER,
 					MASTER_PASSWORD);
-			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Successfully connected to MySql with owen master database");
+			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Successfully connected to MySql with master database");
 
-		} catch (SQLException e) {
-			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("An error occurred. Maybe user/password is invalid", e);
-		} catch (ClassNotFoundException e) {
-			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("JDBC Class not found", e);
+		} catch (SQLException | ClassNotFoundException e) {
+			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error(
+					"An error occurred while connecting to the master database on : " + MASTER_URL + " with user name : " + MASTER_USER, e);
 		}
 
 		// R connection
@@ -63,7 +62,8 @@ public class DatabaseConnectionHelper extends TheBorg {
 
 			REXP loadRScript = rCon.eval(s);
 			if (loadRScript.inherits("try-error")) {
-				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("Error: " + loadRScript.asString());
+				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error(
+						"An error occurred while trying to loading the R script : " + loadRScript.asString());
 				throw new REXPMismatchException(loadRScript, "Error: " + loadRScript.asString());
 			} else {
 				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Successfully loaded metric.r script");
@@ -72,10 +72,8 @@ public class DatabaseConnectionHelper extends TheBorg {
 			companySqlConnectionPool = new HashMap<>();
 			companyImagePath = new HashMap<>();
 			companyNeoConnectionPool = new HashMap<>();
-		} catch (RserveException e) {
+		} catch (RserveException | REXPMismatchException e) {
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("An error occurred while trying to connect to R", e);
-		} catch (REXPMismatchException e) {
-			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("An error occurred while trying to loading the R script", e);
 		}
 
 		runScheduler();
@@ -90,27 +88,21 @@ public class DatabaseConnectionHelper extends TheBorg {
 		today.set(Calendar.MINUTE, 01);
 		today.set(Calendar.SECOND, 0);
 
-		try {
-			System.out.println(today.getTime());
-			CompanyDAO cdao = new CompanyDAO();
-			timer.scheduleAtFixedRate(cdao, today.getTime(), TimeUnit.MILLISECONDS.convert(1, TimeUnit.DAYS));
-			// timer.scheduleAtFixedRate(cdao, today.getTime(), 300000);
-
-		} catch (Exception e) {
-			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("Unable to execute the scheduled task");
-			e.printStackTrace();
-		}
+		System.out.println(today.getTime());
+		CompanyDAO cdao = new CompanyDAO();
+		timer.scheduleAtFixedRate(cdao, today.getTime(), TimeUnit.MILLISECONDS.convert(1, TimeUnit.DAYS));
+		// timer.scheduleAtFixedRate(cdao, today.getTime(), 300000);
 
 	}
 
 	@Override
 	public void finalize() {
-		org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Shutting down database ...");
+		org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Shutting down databases ...");
 		try {
 			if (!masterCon.isClosed()) {
 				try {
 					masterCon.close();
-					org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Connection to mySql closed!!!!");
+					org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Connection to master database closed!!!!");
 				} catch (SQLException e) {
 					org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class)
 							.error("An error occurred while closing the mysql connection", e);
@@ -139,6 +131,8 @@ public class DatabaseConnectionHelper extends TheBorg {
 	public void getCompanyConnection(int companyId) {
 		try {
 			String sqlUrl = "", sqlUserName = "", sqlPassword = "", neoUrl = "", neoUserName = "", neoPassword = "";
+			// check if the sql connection pool contains the connection for the given company and if it is valid else call the db procedure for
+			// connection details
 			if (!companySqlConnectionPool.containsKey(companyId) || !companyNeoConnectionPool.containsKey(companyId)
 					|| (companySqlConnectionPool.containsKey(companyId) && !companySqlConnectionPool.get(companyId).isValid(0))
 					|| (companyNeoConnectionPool.containsKey(companyId) && !companyNeoConnectionPool.get(companyId).isValid(0))) {
@@ -170,13 +164,13 @@ public class DatabaseConnectionHelper extends TheBorg {
 					org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug(
 							"Successfully connected to company db with companyId : " + companyId);
 				}
-			} catch (SQLException e) {
-				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("An error occurred. Maybe user/password is invalid", e);
-			} catch (ClassNotFoundException e) {
-				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("JDBC Class not found", e);
+			} catch (SQLException | ClassNotFoundException e) {
+				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error(
+						"An error occurred while connecting to the sql db for companyId : " + companyId, e);
 			}
+
+			// company neo connection
 			try {
-				// company neo connection
 				if (!companyNeoConnectionPool.containsKey(companyId)
 						|| (companyNeoConnectionPool.containsKey(companyId) && !companyNeoConnectionPool.get(companyId).isValid(0))) {
 
@@ -191,11 +185,13 @@ public class DatabaseConnectionHelper extends TheBorg {
 					org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug(
 							"Successfully connected to Neo4j with company ID : " + companyId);
 				}
-			} catch (Exception e) {
-				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("An error occurred while connecting to neo4j server", e);
+			} catch (SQLException e) {
+				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error(
+						"An error occurred while connecting to neo4j db for companyId : " + companyId, e);
 			}
 		} catch (Exception e) {
-			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("An error occurred while connecting to neo4j server", e);
+			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error(
+					"An error occurred while retrieving connection details for companyId : " + companyId, e);
 		}
 	}
 
@@ -205,7 +201,8 @@ public class DatabaseConnectionHelper extends TheBorg {
 				Thread.sleep(100);
 				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Waiting for R connection");
 			} catch (InterruptedException e) {
-				e.printStackTrace();
+				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("An error occurred while trying to get the R connection", e);
+
 			}
 		org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("RConnection provided...");
 		rConInUse = true;

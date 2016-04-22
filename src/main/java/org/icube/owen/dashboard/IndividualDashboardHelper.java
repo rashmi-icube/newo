@@ -178,40 +178,41 @@ public class IndividualDashboardHelper extends TheBorg {
 						af.getDate() + ":" + af.getActivityType() + " : " + af.getBodyText() + ":" + af.getHeaderText());
 				afList.add(af);
 			}
+			if (!afList.isEmpty()) {
+				Collections.sort(afList, new Comparator<ActivityFeed>() {
+					@Override
+					public int compare(ActivityFeed af1, ActivityFeed af2) {
+						return af2.getDate().compareTo(af1.getDate());
+					}
+				});
 
-			Collections.sort(afList, new Comparator<ActivityFeed>() {
-				@Override
-				public int compare(ActivityFeed af1, ActivityFeed af2) {
-					return af2.getDate().compareTo(af1.getDate());
-				}
-			});
+				// return a sublist of result based on the page number
+				int feedThreshold = 25;
+				int fromIndex = pageNumber == 1 ? 0 : (pageNumber - 1) * feedThreshold + 1;
+				int toIndex = pageNumber == 1 ? feedThreshold : pageNumber * feedThreshold;
 
-			// return a sublist of result based on the page number
-			int feedThreshold = 25;
-			int fromIndex = pageNumber == 1 ? 0 : (pageNumber - 1) * feedThreshold + 1;
-			int toIndex = pageNumber == 1 ? feedThreshold : pageNumber * feedThreshold;
+				ArrayList<ActivityFeed> afSubList = new ArrayList<ActivityFeed>(afList.subList(fromIndex, toIndex > afList.size() ? afList.size() - 1
+						: toIndex));
 
-			ArrayList<ActivityFeed> afSubList = new ArrayList<ActivityFeed>(afList.subList(fromIndex, toIndex > afList.size() ? afList.size() - 1
-					: toIndex));
-
-			for (ActivityFeed af1 : afSubList) {
-				Date d = DateUtils.truncate(af1.getDate(), Calendar.DAY_OF_MONTH);
-				if (result.containsKey(d)) {
-					result.get(d).add(af1);
-				} else {
-					List<ActivityFeed> resultAfList = new ArrayList<>();
-					resultAfList.add(af1);
-					result.put(d, resultAfList);
-				}
-			}
-			result.toString();
-			for (List<ActivityFeed> afl : result.values()) {
-				for (ActivityFeed af : afl) {
-					org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug(
-							af.getDate() + ":" + af.getActivityType() + " : " + af.getBodyText() + ":" + af.getHeaderText());
-
+				for (ActivityFeed af1 : afSubList) {
+					Date d = DateUtils.truncate(af1.getDate(), Calendar.DAY_OF_MONTH);
+					if (result.containsKey(d)) {
+						result.get(d).add(af1);
+					} else {
+						List<ActivityFeed> resultAfList = new ArrayList<>();
+						resultAfList.add(af1);
+						result.put(d, resultAfList);
+					}
 				}
 
+				for (List<ActivityFeed> afl : result.values()) {
+					for (ActivityFeed af : afl) {
+						org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug(
+								af.getDate() + ":" + af.getActivityType() + " : " + af.getBodyText() + ":" + af.getHeaderText());
+
+					}
+
+				}
 			}
 			stmt.close();
 		} catch (SQLException | ParseException e) {
