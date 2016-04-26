@@ -92,10 +92,10 @@ public class Alert extends TheBorg {
 		Metrics m = new Metrics();
 		m.setId(rs.getInt("metric_id"));
 		m.setName(rs.getString("metric_name"));
-		m.setScore(rs.getInt("score"));
+		m.setScore(rs.getInt("score")); // score of the alert
 		m.setDateOfCalculation(rs.getDate("calc_time"));
 		m.setCategory(rs.getString("category"));
-		m.setDirection(rs.getDouble("delta_score") > 0 ? "Positive" : "Negative");
+		m.setDirection(rs.getDouble("delta_score") > 0 ? "Positive" : "Negative"); // direction of the arrow for the alert
 		a.setAlertMetric(m);
 		a.setDeltaScore(rs.getDouble("delta_score"));
 		a.setTeamSize(rs.getInt("team_size"));

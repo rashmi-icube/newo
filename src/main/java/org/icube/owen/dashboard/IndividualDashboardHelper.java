@@ -47,6 +47,7 @@ public class IndividualDashboardHelper extends TheBorg {
 	 */
 
 	public List<Metrics> getIndividualMetrics(int companyId, int employeeId) {
+		//TODO Swarna : return a default empty metrics object 
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
 		MetricsHelper mh = new MetricsHelper();
@@ -72,6 +73,7 @@ public class IndividualDashboardHelper extends TheBorg {
 	 */
 
 	public Map<Integer, List<Map<Date, Integer>>> getIndividualMetricsTimeSeries(int companyId, int employeeId) {
+		//TODO Swarna : return a default empty time series object
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
 		ExploreHelper eh = new ExploreHelper();
