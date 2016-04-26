@@ -13,7 +13,7 @@ import org.junit.Test;
 
 public class InitiativeHelperTest {
 	InitiativeHelper ih = (InitiativeHelper) ObjectFactory.getInstance("org.icube.owen.initiative.InitiativeHelper");
-	int companyId = 1;
+	int companyId = 2;
 
 	@Test
 	public void testGetInitiativeCount() {

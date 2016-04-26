@@ -44,6 +44,7 @@ public class Login extends TheBorg {
 				dch.getCompanyConnection(companyId);
 				companySqlCon = dch.companySqlConnectionPool.get(companyId);
 			}
+			org.apache.log4j.Logger.getLogger(Login.class).debug("Role ID for user : " + emailId + " is : " + roleId);
 			CallableStatement cstmt1 = companySqlCon.prepareCall("{call verifyLogin(?,?,?,?,?)}");
 			cstmt1.setString("loginid", emailId);
 			cstmt1.setString("pass", password);
