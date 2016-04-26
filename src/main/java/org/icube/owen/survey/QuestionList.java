@@ -88,36 +88,12 @@ public class QuestionList extends TheBorg {
 	 */
 
 	public List<Question> getQuestionListByStatus(int companyId, int batchId, String filter) {
-		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		List<Question> questionList = new ArrayList<Question>();
+		List<Question> questionList = getQuestionListForBatch(companyId, batchId);
 		List<Question> questionListByStatus = new ArrayList<Question>();
 
-		try {
-			dch.getCompanyConnection(companyId);
-			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getBatchQuestionList(?)}");
-			cstmt.setInt(1, batchId);
-			ResultSet rs = cstmt.executeQuery();
-			while (rs.next()) {
-				Question q = new Question();
-				q.setEndDate(rs.getDate("end_date"));
-				q.setStartDate(rs.getDate("start_date"));
-				q.setQuestionText(rs.getString("question"));
-				q.setQuestionId(rs.getInt("que_id"));
-				q.setResponsePercentage(rs.getDouble("resp"));
-				q.setQuestionType(QuestionType.values()[rs.getInt("que_type")]);
-				q.setSurveyBatchId(rs.getInt("survey_batch_id"));
-				q.setRelationshipTypeId(rs.getInt("rel_id"));
-				questionList.add(q);
-			}
-		} catch (SQLException e) {
-			org.apache.log4j.Logger.getLogger(QuestionList.class).error("Exception while retrieving the list of questions having status" + filter, e);
-		}
-
 		for (Question q1 : questionList) {
-
 			if ((q1.getQuestionStatus(q1.getStartDate(), q1.getEndDate())).equalsIgnoreCase(filter)) {
 				questionListByStatus.add(q1);
-
 			}
 		}
 		org.apache.log4j.Logger.getLogger(QuestionList.class).debug(

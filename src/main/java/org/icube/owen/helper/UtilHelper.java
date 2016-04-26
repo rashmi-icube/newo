@@ -55,10 +55,6 @@ public class UtilHelper {
 	}
 
 	/**
-	 * 
-	 *
-	 */
-	/**
 	 * Parses the filter list for metric value calculations 
 	 * @param filterList - List of filter objects
 	 * @return Map of values of filter object 

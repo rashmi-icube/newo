@@ -36,6 +36,7 @@ public class InitiativeHelper extends TheBorg {
 		FilterList fl = new FilterList();
 		Filter f = new Filter();
 		Map<Integer, String> filterLabelMap = fl.getFilterLabelMap(companyId);
+		// substring-ing it to get rid of [] in the list
 		String filterName = res.getString("Filters").substring(2, res.getString("Filters").length() - 2);
 		for (Entry<Integer, String> entry : filterLabelMap.entrySet()) {
 			if (filterName.equals(entry.getValue())) {
@@ -89,6 +90,8 @@ public class InitiativeHelper extends TheBorg {
 	 */
 	public List<Map<String, Object>> getInitiativeCount(int companyId) {
 		List<Map<String, Object>> initiativeCountMapList = new ArrayList<>();
+		// creating a master map of all types of initiatives if in case there are no initiatives to be returned
+		// atleast the initiative types + the count of 0 will be returned to display on the UI
 		Map<String, Map<String, Object>> masterMap = getEmptyInitiativeCountMap(companyId, "Team");
 		masterMap.putAll(getEmptyInitiativeCountMap(companyId, "Individual"));
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();

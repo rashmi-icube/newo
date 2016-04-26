@@ -101,9 +101,7 @@ public class Initiative extends TheBorg {
 			}
 			if (initiativeId > 0) {
 				this.initiativeId = initiativeId;
-
-				// Check if the initiative is of the category Individual
-
+				// based on the category of the initiative either the part of employee list is set for individual or the filter list is set for team
 				if (this.initiativeCategory.equalsIgnoreCase("Individual")) {
 					if (setEmployeesPartOf(companyId, initiativeId, this.partOfEmployeeList)) {
 						org.apache.log4j.Logger.getLogger(Initiative.class).debug("Success in setting part_of connections for initiative");
@@ -146,7 +144,9 @@ public class Initiative extends TheBorg {
 							+ "  return count(a) as TeamSize";
 					org.apache.log4j.Logger.getLogger(Initiative.class).debug("Query for finding team size for metric of an initiative : " + query);
 					res = stmt.executeQuery(query);
-
+					
+					// the team size is used to determine in the procedure whether the metric gauge should be shown or not; calculation done in sql
+					// based on the threshold team size
 					while (res.next()) {
 						teamSize = res.getInt("TeamSize");
 					}
@@ -426,7 +426,7 @@ public class Initiative extends TheBorg {
 	}
 
 	/**
-	 * Updates the given initiative object
+	 * Updates the given initiative object  
 	 * @param companyId - Company ID
 	 * @param updatedInitiative - The Initiative object to be updated
 	 * @return true/false depending on whether the update is done or not
@@ -439,6 +439,7 @@ public class Initiative extends TheBorg {
 		boolean status = false;
 		int updatedInitiativeId = updatedInitiative.getInitiativeId();
 		try {
+			// Possible fields for updation : End Date, Comments, Owners + Start Date if the initiative is in a pending state
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Started update of The initiative with ID " + updatedInitiative.initiativeId);
 			List<Employee> updatedOwnerOfList = updatedInitiative.getOwnerOfList();
 			String ownersOfQuery = "match(i:Init {Id:" + updatedInitiativeId + "})<-[r:owner_of]-(e:Employee) delete r";

@@ -56,6 +56,7 @@ public class BatchList extends TheBorg {
 
 		try {
 			dch.getCompanyConnection(companyId);
+			// TODO hardcoded with only one batch 1 since the UI doesn't have the functionality to display multiple batches
 			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getBatch(?)}");
 			cstmt.setInt(1, 1);
 			ResultSet rs = cstmt.executeQuery();
@@ -103,7 +104,7 @@ public class BatchList extends TheBorg {
 
 		boolean isChanged = false;
 
-		// Should trigger the updation of all future dates for the questions part of the batch
+		// Should trigger the update of all future dates for the questions part of the batch
 		if (batch.getBatchFrequency().equals(changedFrequency)) {
 			org.apache.log4j.Logger.getLogger(BatchList.class).debug("Do nothing... Old frequency same as changed frequency : " + changedFrequency);
 			return isChanged;
@@ -142,6 +143,7 @@ public class BatchList extends TheBorg {
 			}
 
 		}
+		// update the batch once all questions have been successfully updated
 		try {
 			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call updateBatch(?, ?, ?, ?)}");
 			cstmt.setInt(1, batch.getBatchId());

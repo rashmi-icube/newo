@@ -117,6 +117,7 @@ public class InitiativeList extends TheBorg {
 				initiativeList.add(initiativeIdMap.get(initiativeId));
 			}
 
+			// sort initiatives based on the end date for displaying purpose
 			Collections.sort(initiativeList, (o1, o2) -> o1.getInitiativeEndDate().compareTo(o2.getInitiativeEndDate()));
 
 			org.apache.log4j.Logger.getLogger(InitiativeList.class).debug(

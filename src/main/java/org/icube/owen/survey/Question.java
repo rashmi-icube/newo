@@ -103,7 +103,7 @@ public class Question extends TheBorg {
 	 * @param questionId - ID of the question to be retrieved
 	 * @return a Question object
 	 */
-	
+
 	public Question getQuestion(int companyId, int questionId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Question q = new Question();
@@ -153,7 +153,7 @@ public class Question extends TheBorg {
 	 * @param q - a Question object for which the response data is required
 	 * @return - A map containing the responses and the date
 	 */
-	
+
 	public Map<Date, Integer> getResponse(int companyId, Question q) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Map<Date, Integer> responseMap = new HashMap<>();
@@ -169,6 +169,8 @@ public class Question extends TheBorg {
 					responseMap.put(utilDate, rs.getInt("responses"));
 				} while (rs.next());
 			} else {
+				// if no response is available for the question we return an empty map with the response count 0 from the date the question was
+				// started
 				org.apache.log4j.Logger.getLogger(Question.class).debug("No response available for question : " + q.getQuestionId());
 				for (Date d = q.getStartDate(); d.before(Date.from(Instant.now())); d = UtilHelper.convertJavaDateToSqlDate(DateUtils.addDays(d, 1))) {
 					responseMap.put(d, 0);
@@ -188,7 +190,7 @@ public class Question extends TheBorg {
 	 * @param batchId - batch ID of the question
 	 * @return - the current Question object
 	 */
-	
+
 	public Question getCurrentQuestion(int companyId, int batchId) {
 		Question q = null;
 		QuestionList ql = new QuestionList();
@@ -207,6 +209,8 @@ public class Question extends TheBorg {
 				org.apache.log4j.Logger.getLogger(Question.class).debug("Retrieved the current question " + q.getQuestionId());
 			}
 		}
+
+		// if there isn't any current question return null so that the UI doesn't break
 		if (q == null) {
 			org.apache.log4j.Logger.getLogger(Question.class).debug("No current question to display");
 			return null;
@@ -292,15 +296,10 @@ public class Question extends TheBorg {
 			}
 			Map<Integer, Employee> sorted_map = new TreeMap<Integer, Employee>(employeeRankMap);
 			employeeList = new ArrayList<Employee>(sorted_map.values());
-
+			dch.releaseRcon();
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(Question.class).error("Error while trying to retrieve the smart list for employee from question", e);
 		}
-
-		finally {
-			dch.releaseRcon();
-		}
-
 		return employeeList;
 	}
 
