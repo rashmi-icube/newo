@@ -1,6 +1,7 @@
 package org.icube.owen.test.initiative;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +19,10 @@ public class InitiativeHelperTest {
 	public void testGetInitiativeCount() {
 		List<Map<String, Object>> initiativeCountMapList = new ArrayList<>();
 		initiativeCountMapList = ih.getInitiativeCount(companyId);
+		for (int i = 0; i < initiativeCountMapList.size(); i++) {
+			Map<String, Object> m = initiativeCountMapList.get(i);
+			assertTrue(m.get("initiativeType") instanceof Integer);
+		}
 		assertNotNull(initiativeCountMapList);
 	}
-
 }
