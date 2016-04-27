@@ -22,6 +22,12 @@ public class EmailSender {
 
 	public static final int MAX_EMAILS_TO_BE_SENT = 50;
 
+	/**
+	 * Sends email for the Scheduler Job
+	 * @param text - The text to be sent in the mail
+	 * @throws AddressException - If the email ID is incorrect
+	 * @throws MessagingException - If error in sending email
+	 */
 	public void sendEmail(String text) throws AddressException, MessagingException {
 		String host = "smtp.zoho.com";
 		String username = "info@i-cube.in";
@@ -54,6 +60,10 @@ public class EmailSender {
 
 	}
 
+	/**
+	 * Sends the email for asctive questions
+	 * @param addresses - List of email ID's
+	 */
 	public void sendEmailforQuestions(List<String> addresses) {
 		String host = "smtp.zoho.com";
 		String username = "info@i-cube.in";
@@ -93,6 +103,11 @@ public class EmailSender {
 
 	}
 
+	/**
+	 * Retrieves an array of email ID's
+	 * @param addr - List of email ID's
+	 * @return - An array of email ID's
+	 */
 	private Address[] getEmailsArray(List<String> addr) {
 		Address[] emailAddresses = new Address[addr.size()];
 		for (int i = 0; i < addr.size(); i++) {

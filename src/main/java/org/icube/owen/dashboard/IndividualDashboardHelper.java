@@ -69,6 +69,12 @@ public class IndividualDashboardHelper extends TheBorg {
 		return metricsList;
 	}
 
+	/**
+	 * Retrieves a metrics list with score set as empty
+	 * @param companyId - Company ID
+	 * @param category - Should be set to Individual
+	 * @return A map of metric ID and Metrics object
+	 */
 	private Map<Integer, Metrics> getEmptyMetricScoreList(int companyId, String category) {
 		Map<Integer, Metrics> metricsMasterMap = new HashMap<>();
 		MetricsHelper mh = new MetricsHelper();
@@ -120,6 +126,12 @@ public class IndividualDashboardHelper extends TheBorg {
 		return metricsTimeSeriesMasterMap;
 	}
 
+	/**
+	 * Retrieves an empty time series map
+	 * @param companyId - Comapny ID
+	 * @param category - Should be Individual
+	 * @return A map of metric Id and list of maps of date and metric score set to 0
+	 */
 	private Map<Integer, List<Map<Date, Integer>>> getEmptyTimeSeriesMap(int companyId, String category) {
 		Map<Integer, List<Map<Date, Integer>>> metricsTimeSeriesMasterMap = new HashMap<>();
 		MetricsHelper mh = new MetricsHelper();

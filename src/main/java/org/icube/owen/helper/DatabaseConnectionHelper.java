@@ -128,6 +128,10 @@ public class DatabaseConnectionHelper extends TheBorg {
 		}
 	}
 
+	/**
+	 * Retrieves the company database connections
+	 * @param companyId - The ID of the company for which the connections are required
+	 */
 	public void getCompanyConnection(int companyId) {
 		try {
 			String sqlUrl = "", sqlUserName = "", sqlPassword = "", neoUrl = "", neoUserName = "", neoPassword = "";

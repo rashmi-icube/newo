@@ -161,6 +161,14 @@ public class BatchList extends TheBorg {
 
 	}
 
+	/**
+	 * Updates the question frequency
+	 * @param q - The question object to be updated
+	 * @param frequency - The frequency value
+	 * @param isCurrent - tru/false if the question is current or not
+	 * @param previousEndDate - The previous end date
+	 * @return The updated date
+	 */
 	private static Date updateQuestion(Question q, Frequency frequency, boolean isCurrent, Date previousEndDate) {
 
 		switch (frequency) {

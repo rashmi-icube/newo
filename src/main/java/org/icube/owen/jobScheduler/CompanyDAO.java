@@ -171,7 +171,7 @@ public class CompanyDAO extends TimerTask {
 	 */
 	public void sendEmail(int companyId, String companyName, String rFunctionName, REXP status) throws Exception {
 		EmailSender es = new EmailSender();
-		es.sendEmail("Error in executing " + rFunctionName + "method for Company Id:" + companyId + "Company Name:" + companyName);
+		es.sendEmail("Error in executing " + rFunctionName + " method for Company Id: " + companyId + " Company Name: " + companyName);
 		org.apache.log4j.Logger.getLogger(CompanyDAO.class).error("Error: " + status.asString());
 		throw new Exception("Error: " + status.asString());
 	}

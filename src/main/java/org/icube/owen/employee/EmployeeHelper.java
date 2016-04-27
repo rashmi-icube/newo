@@ -345,7 +345,6 @@ public class EmployeeHelper extends TheBorg {
 		return status;
 	}
 
-	
 	/**
 	 * Add a new education to the given employee
 	 * @param companyId - Company Id of the employee
