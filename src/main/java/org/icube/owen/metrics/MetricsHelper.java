@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.icube.owen.ObjectFactory;
+import org.icube.owen.TheBorg;
 import org.icube.owen.filter.Filter;
 import org.icube.owen.helper.DatabaseConnectionHelper;
 import org.icube.owen.helper.UtilHelper;
@@ -20,7 +21,7 @@ import org.rosuda.REngine.REXPString;
 import org.rosuda.REngine.RList;
 import org.rosuda.REngine.Rserve.RConnection;
 
-public class MetricsHelper {
+public class MetricsHelper extends TheBorg{
 
 	/**
 	 * Retrieves the list of metrics of category team
