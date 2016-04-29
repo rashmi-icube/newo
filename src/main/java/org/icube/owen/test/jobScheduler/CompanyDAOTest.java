@@ -1,9 +1,5 @@
 package org.icube.owen.test.jobScheduler;
 
-import java.sql.SQLException;
-
-import org.icube.owen.ObjectFactory;
-import org.icube.owen.helper.DatabaseConnectionHelper;
 import org.icube.owen.jobScheduler.CompanyDAO;
 import org.junit.Test;
 
@@ -14,7 +10,7 @@ public class CompanyDAOTest {
 	public void testCompanyDAO() {
 		// cdao.getCompanyDetails();
 		cdao.run();
-		cdao.run();
+		/*cdao.run();
 
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		try {
@@ -34,7 +30,7 @@ public class CompanyDAOTest {
 			dch.companyNeoConnectionPool.get(1).close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(CompanyDAOTest.class).error("Error in closing the database connections (Sql/Neo)", e);
-		}
+		}*/
 	}
 
 }
