@@ -23,3 +23,6 @@
 /.project
 *DS_Store
 *Rlog.txt
+/.metadata/
+/RemoteSystemsTempFiles/
+/scripts/
