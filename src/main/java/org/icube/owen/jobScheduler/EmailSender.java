@@ -157,4 +157,65 @@ public class EmailSender {
 		return emailAddresses;
 
 	}
+
+	/**
+	 * Sends the email for new password
+	 * @param address - email id of the employee
+	 * @param newPassword - the new generated password
+	 * @throws AddressException - if email id is not valid
+	 * @throws MessagingException - if unable to send email
+	 */
+	public void sendNewPasswordEmail(List<String> address, String newPassword) throws AddressException, MessagingException {
+		String host = "smtp.zoho.com";
+		String username = "info@i-cube.in";
+		String password = "test1234";
+		String from = "info@i-cube.in";
+		Properties props = new Properties();
+		props.put("mail.debug", "true");
+		props.put("mail.smtp.ssl.enable", "true");
+		props.put("mail.smtp.auth", "true");
+		props.put("mail.smtp.host", host);
+		props.put("mail.smtp.port", 465);
+		Session session = Session.getInstance(props);
+		MimeMessage msg = new MimeMessage(session);
+		msg.setFrom(new InternetAddress(from));
+		msg.addRecipients(Message.RecipientType.TO, getEmailsArray(address));
+		msg.setSubject("New Password");
+		msg.setContent(getPasswordemailText(newPassword).toString(), "text/html");
+		try {
+			Transport.send(msg, username, password);
+		} catch (MessagingException e) {
+			org.apache.log4j.Logger.getLogger(EmailSender.class).error("Error in sending Email", e);
+			dch.releaseRcon();
+		}
+	}
+
+	/**
+	 * Builds the email content for the forgot password
+	 * @param newPassword - new random password
+	 * @return String Builder object
+	 */
+	private StringBuilder getPasswordemailText(String newPassword) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("<html>");
+		sb.append("<html>");
+
+		sb.append("<h1> Oops. Seems you forgot your password. </h1>");
+		sb.append("<h2> Use this temporary password to sign into your account </h2>");
+		sb.append("<h3>Password :" + newPassword + " </h3>");
+		sb.append("<h4> How to change your password while you are logged in: </h4>");
+		sb.append("<p> 1. From your logged in account, click on the <b>profile icon </b>the upper right hand corner of your screen and select <b>Settings</b>.</p>");
+
+		sb.append("<p> 2. Click on the <b>Change Password</b> tab </p>");
+
+		sb.append("<p> 3. Enter your <b>current password </b></p>");
+
+		sb.append("<p> 4. Choose your <b>new password </b></p>");
+
+		sb.append("<p> 5. Save your changes by clicking <b>Save </b></p>");
+
+		sb.append("</body>");
+		sb.append("</html>");
+		return sb;
+	}
 }

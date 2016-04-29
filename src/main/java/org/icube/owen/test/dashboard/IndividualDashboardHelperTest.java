@@ -22,6 +22,16 @@ public class IndividualDashboardHelperTest {
 	int companyId = 1;
 
 	@Test
+	public void testGenerateNePassword(){
+		try {
+			boolean status = idh.generateNewPassword("ssrivastava@i-cube.in");
+			assertNotNull(status);
+		} catch (Exception e) {
+			org.apache.log4j.Logger.getLogger(IndividualDashboardHelperTest.class).error("Error in generating new password", e);
+		}
+	}
+	
+	@Test
 	public void testGetActivityFeedList() {
 		Map<Date, List<ActivityFeed>> result = idh.getActivityFeedList(1, 130, 1);
 		for (Date d : result.keySet()) {

@@ -1,6 +1,7 @@
 package org.icube.owen.dashboard;
 
 import java.sql.CallableStatement;
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -9,6 +10,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
@@ -17,7 +19,10 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.TreeMap;
+
+import javax.mail.MessagingException;
 
 import org.apache.commons.lang3.time.DateUtils;
 import org.icube.owen.ObjectFactory;
@@ -26,9 +31,11 @@ import org.icube.owen.employee.Employee;
 import org.icube.owen.explore.ExploreHelper;
 import org.icube.owen.helper.DatabaseConnectionHelper;
 import org.icube.owen.helper.UtilHelper;
+import org.icube.owen.individual.Login;
 import org.icube.owen.initiative.Initiative;
 import org.icube.owen.initiative.InitiativeHelper;
 import org.icube.owen.initiative.InitiativeList;
+import org.icube.owen.jobScheduler.EmailSender;
 import org.icube.owen.metrics.Metrics;
 import org.icube.owen.metrics.MetricsHelper;
 import org.icube.owen.survey.Question;
@@ -38,6 +45,8 @@ import org.rosuda.REngine.RList;
 import org.rosuda.REngine.Rserve.RConnection;
 
 public class IndividualDashboardHelper extends TheBorg {
+	
+	 String charList = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
 
 	/**
 	 * Retrieves the list of 3 metrics to be displayed for the individual
@@ -439,6 +448,80 @@ public class IndividualDashboardHelper extends TheBorg {
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while validating password ", e);
 		}
 		return passwordChanged;
+	}
+	
+	
+	/**
+	 * @param emailId - email id of the employee whose password needs to be reset
+	 * @throws Exception 
+	 */
+	public boolean generateNewPassword(String emailId) throws Exception{
+		boolean passwordChanged = false;
+		EmailSender es = new EmailSender();
+		List<String> address = Arrays.asList(emailId);
+		
+		//generate a random password
+		 int RandomPasswordLength = 8;
+		 StringBuffer randStr = new StringBuffer();
+	        for(int i=0; i<RandomPasswordLength; i++){
+	            int number = getRandomNumber();
+	            char ch = charList.charAt(number);
+	            randStr.append(ch);
+	        }
+		
+		//save the new password in the database
+		
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		Connection companySqlCon = null;
+		int index = emailId.indexOf('@');
+		String companyDomain = emailId.substring(index + 1);
+		int companyId = 0;
+		try {
+			CallableStatement cstmt = dch.masterCon.prepareCall("{call getCompanyDb(?)}");
+			cstmt.setString(1, companyDomain);
+			ResultSet rs = cstmt.executeQuery();
+			while (rs.next()) {
+				companyId = rs.getInt("comp_id");
+				dch.getCompanyConnection(companyId);
+				companySqlCon = dch.companySqlConnectionPool.get(companyId);
+			}
+			Statement stmt = companySqlCon.createStatement();
+			int updatePassword = stmt
+					.executeUpdate("update login_table set password = " + '"' + randStr.toString() + '"' + " where login_id = " + '"' + emailId + '"' +"");
+			if (updatePassword == 0) {
+				org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Current password is incorrect");
+				throw new Exception("Error in resetting the password");
+			} else {
+				passwordChanged = true;
+			}
+
+		}catch (SQLException e1) {
+			org.apache.log4j.Logger.getLogger(Login.class).error("Exception while retrieving the company database", e1);
+		}
+		
+        //send the new password to the employee
+	try {
+		es.sendNewPasswordEmail(address, randStr.toString());
+	} catch (MessagingException e) {
+		org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Error in sending email",e);
+	}
+	
+		return passwordChanged;
+	}
+
+	
+	/**
+	 * @return random numbers
+	 */
+	private int getRandomNumber() {
+		 int randomInt = 0;
+	        Random randomGenerator = new Random();
+	        randomInt = randomGenerator.nextInt(charList.length());
+	        if (randomInt - 1 == -1) {
+	            return randomInt;
+	        } else {
+	            return randomInt - 1;
+	        }
 	}
 
 	/**

@@ -16,11 +16,11 @@ import org.icube.owen.helper.DatabaseConnectionHelper;
 import org.icube.owen.helper.UtilHelper;
 
 public class Login extends TheBorg {
-
+//TODO HP : add a timestamp in the login table
 	/**
 	 * Validates user name and password for login page
 	 * @param emailId - email id of the user
-	 * @param password - passwor of the user
+	 * @param password - password of the user
 	 * @param ipAddress - ip address of the machine from where the user logs in
 	 * @param roleId - 1/2 depending on either Individual or HR (1:Individual 2:HR)
 	 * @return Employee object
