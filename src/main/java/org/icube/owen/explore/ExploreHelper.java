@@ -370,6 +370,13 @@ public class ExploreHelper extends TheBorg {
 		return result;
 	}
 
+	/**
+	 * Retrieves the list of Edge objects
+	 * @param companyId - Company ID
+	 * @param employeeIdList - List of employee ID's
+	 * @param relationshipTypeMap - Map of relationship type ID and name
+	 * @return A list of Edge objects
+	 */
 	public List<Edge> getEdges(int companyId, List<Integer> employeeIdList, Map<Integer, String> relationshipTypeMap) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);

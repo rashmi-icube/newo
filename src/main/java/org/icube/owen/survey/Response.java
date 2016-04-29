@@ -60,7 +60,8 @@ public class Response extends TheBorg {
 	 * @return true/false - if the response is saved successfully or not
 	 */
 	public boolean saveWeResponse(int companyId, int employeeId, Question q, Map<Employee, Integer> employeeRating) {
-
+		org.apache.log4j.Logger.getLogger(Response.class).debug(
+				"Entering the saveWeResponse for companyId " + companyId + " employeeId " + employeeId);
 		boolean responseSaved = false;
 		int count = 0;
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
@@ -68,6 +69,10 @@ public class Response extends TheBorg {
 			dch.getCompanyConnection(companyId);
 
 			for (Employee e : employeeRating.keySet()) {
+				org.apache.log4j.Logger.getLogger(Response.class).debug(
+						"Saving the response in the db for questionId " + q.getQuestionId() + "target employee " + e.getEmployeeId()
+								+ " with the response " + employeeRating.get(e));
+
 				CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call insertWeResponse(?,?,?,?,?,?)}");
 				cstmt.setInt(1, employeeId);
 				cstmt.setInt(2, q.getQuestionId());

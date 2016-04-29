@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.icube.owen.ObjectFactory;
+import org.icube.owen.TheBorg;
 import org.icube.owen.filter.Filter;
 import org.icube.owen.helper.DatabaseConnectionHelper;
 import org.icube.owen.helper.UtilHelper;
@@ -20,8 +21,17 @@ import org.rosuda.REngine.REXPString;
 import org.rosuda.REngine.RList;
 import org.rosuda.REngine.Rserve.RConnection;
 
-public class MetricsHelper {
-	
+public class MetricsHelper extends TheBorg{
+
+	/**
+	 * Retrieves the list of metrics of category team
+	 * @param companyId - Comapny ID 
+	 * @param initiativeTypeId - Initiative type ID
+	 * @param parsedFilterListResult - A map of Filter objects
+	 * @param previousScoreNeeded - true/false if previous score is required or not
+	 * @return List of metrics objects
+	 * @throws SQLException - If unable to retrieve the metrics list
+	 */
 	@SuppressWarnings("unchecked")
 	public List<Metrics> getTeamMetricsList(int companyId, int initiativeTypeId, Map<String, Object> parsedFilterListResult,
 			boolean previousScoreNeeded) throws SQLException {
@@ -92,6 +102,15 @@ public class MetricsHelper {
 		return metricList;
 	}
 
+	/**
+	 * Fills the metrics object
+	 * @param initiativeTypeId - Initiative type ID
+	 * @param rs - Resultset containing the metrics details
+	 * @param primaryMetricMap - Map containing the primary metric ID and name
+	 * @param category - Tem/Individual
+	 * @return - List of metrics objects 
+	 * @throws SQLException If unable to fill the metrrics object
+	 */
 	public List<Metrics> fillMetricsData(int initiativeTypeId, ResultSet rs, Map<Integer, String> primaryMetricMap, String category)
 			throws SQLException {
 		List<Metrics> metricsList = new ArrayList<>();
@@ -122,6 +141,13 @@ public class MetricsHelper {
 		return metricsList;
 	}
 
+	/**
+	 * Retrieves the Metrics object for Team 
+	 * @param companyId - Company ID
+	 * @param initiativeTypeId - Initiative type ID
+	 * @param parsedFilterListResult - Map of filter objects
+	 * @return A list of Metrics object
+	 */
 	@SuppressWarnings("unchecked")
 	public List<Metrics> getDynamicTeamMetrics(int companyId, int initiativeTypeId, Map<String, Object> parsedFilterListResult) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
@@ -200,7 +226,7 @@ public class MetricsHelper {
 	 * @param initiativeTypeId - Initiative type ID of the Initiative
 	 * @return - The primary metric map containing the ID and name of the primary metric
 	 */
-	
+
 	public Map<Integer, String> getPrimaryMetricMap(int companyId, int initiativeTypeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
@@ -224,7 +250,7 @@ public class MetricsHelper {
 	 * @param category - category for which the metric list is required
 	 * @return - A map containing the metrics for the specified category
 	 */
-	
+
 	public Map<Integer, String> getMetricListForCategory(int companyId, String category) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
@@ -253,7 +279,7 @@ public class MetricsHelper {
 	 * @param dateOfCalculationMap - Map containing the date of calculation of the Metric
 	 * @return - List of Metric Objects
 	 */
-	
+
 	public List<Metrics> getMetricsList(String category, Map<Integer, String> metricListForCategory, Map<Integer, String> primaryMetricMap,
 			Map<Integer, Integer> previousScoreMap, Map<Integer, Integer> currentScoreMap, Map<Integer, Date> dateOfCalculationMap) {
 		List<Metrics> metricsList = new ArrayList<>();

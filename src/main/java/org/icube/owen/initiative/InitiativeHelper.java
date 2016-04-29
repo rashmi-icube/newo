@@ -107,7 +107,7 @@ public class InitiativeHelper extends TheBorg {
 				Map<String, Object> initiativeCountMap = masterMap.get(key);
 				initiativeCountMap.put("status", res.getString("status"));
 				initiativeCountMap.put("category", res.getString("category"));
-				initiativeCountMap.put("initiativeType", res.getString("initiativeType"));
+				initiativeCountMap.put("initiativeType", res.getInt("initiativeType"));
 				initiativeCountMap.put("totalInitiatives", res.getInt("totalInitiatives"));
 				masterMap.put(key, initiativeCountMap);
 			}
@@ -134,14 +134,14 @@ public class InitiativeHelper extends TheBorg {
 		for (int initiativeTypeId : initiativeTypeMap.keySet()) {
 			Map<String, Object> m = new HashMap<>();
 			m.put("status", "Completed");
-			m.put("category", "Team");
+			m.put("category", category);
 			m.put("initiativeType", initiativeTypeId);
 			m.put("totalInitiatives", 0);
 			initiativeCountMasterMap.put(initiativeTypeId + "_Completed", m);
 
-			m.clear();
+			m = new HashMap<>();
 			m.put("status", "Active");
-			m.put("category", "Team");
+			m.put("category", category);
 			m.put("initiativeType", initiativeTypeId);
 			m.put("totalInitiatives", 0);
 			initiativeCountMasterMap.put(initiativeTypeId + "_Active", m);

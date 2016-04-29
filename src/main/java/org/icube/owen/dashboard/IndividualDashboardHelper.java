@@ -47,22 +47,54 @@ public class IndividualDashboardHelper extends TheBorg {
 	 */
 
 	public List<Metrics> getIndividualMetrics(int companyId, int employeeId) {
-		//TODO Swarna : return a default empty metrics object 
+		Map<Integer, Metrics> metricsMasterMap = getEmptyMetricScoreList(companyId, "Individual");
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
 		MetricsHelper mh = new MetricsHelper();
+		List<Metrics> actualMetricsList = new ArrayList<>();
 		List<Metrics> metricsList = new ArrayList<>();
 		try {
 			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getIndividualMetricValueForIndividual(?)}");
 			cstmt.setInt(1, employeeId);
 			ResultSet rs = cstmt.executeQuery();
-			metricsList = mh.fillMetricsData(0, rs, null, "Individual");
+			actualMetricsList = mh.fillMetricsData(0, rs, null, "Individual");
+			for (Metrics m : actualMetricsList) {
+				metricsMasterMap.put(m.getId(), m);
+			}
+			metricsList.addAll(metricsMasterMap.values());
 
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while retrieving individual metrics data", e);
 		}
-
 		return metricsList;
+	}
+
+	/**
+	 * Retrieves a metrics list with score set as empty
+	 * @param companyId - Company ID
+	 * @param category - Should be set to Individual
+	 * @return A map of metric ID and Metrics object
+	 */
+	private Map<Integer, Metrics> getEmptyMetricScoreList(int companyId, String category) {
+		Map<Integer, Metrics> metricsMasterMap = new HashMap<>();
+		MetricsHelper mh = new MetricsHelper();
+		Map<Integer, String> metricListMap = mh.getMetricListForCategory(companyId, category);
+		for (int metric_id : metricListMap.keySet()) {
+			if (metric_id == 1 || metric_id == 2 || metric_id == 4) {
+				Metrics m = new Metrics();
+				m.setId(metric_id);
+				m.setName(metricListMap.get(metric_id));
+				m.setCategory("Individual");
+				m.setScore(0);
+				m.setDateOfCalculation(Date.from(Instant.now()));
+				m.setDirection("Neutral");
+				m.setAverage(0);
+				m.setPrimary(false);
+				metricsMasterMap.put(metric_id, m);
+			}
+		}
+
+		return metricsMasterMap;
 	}
 
 	/**
@@ -73,7 +105,7 @@ public class IndividualDashboardHelper extends TheBorg {
 	 */
 
 	public Map<Integer, List<Map<Date, Integer>>> getIndividualMetricsTimeSeries(int companyId, int employeeId) {
-		//TODO Swarna : return a default empty time series object
+		Map<Integer, List<Map<Date, Integer>>> metricsTimeSeriesMasterMap = getEmptyTimeSeriesMap(companyId, "Individual");
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
 		ExploreHelper eh = new ExploreHelper();
@@ -83,11 +115,37 @@ public class IndividualDashboardHelper extends TheBorg {
 			cstmt.setInt(1, employeeId);
 			ResultSet rs = cstmt.executeQuery();
 			metricsListMap = eh.getTimeSeriesMap(rs);
+			for (int i : metricsListMap.keySet()) {
+				metricsTimeSeriesMasterMap.put(i, metricsListMap.get(i));
+			}
+
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while retrieving individual metrics data", e);
 		}
 
-		return metricsListMap;
+		return metricsTimeSeriesMasterMap;
+	}
+
+	/**
+	 * Retrieves an empty time series map
+	 * @param companyId - Comapny ID
+	 * @param category - Should be Individual
+	 * @return A map of metric Id and list of maps of date and metric score set to 0
+	 */
+	private Map<Integer, List<Map<Date, Integer>>> getEmptyTimeSeriesMap(int companyId, String category) {
+		Map<Integer, List<Map<Date, Integer>>> metricsTimeSeriesMasterMap = new HashMap<>();
+		MetricsHelper mh = new MetricsHelper();
+		Map<Integer, String> metricListMap = mh.getMetricListForCategory(companyId, category);
+		for (int metric_id : metricListMap.keySet()) {
+			List<Map<Date, Integer>> metricsTimeSeriesList = new ArrayList<>();
+			if (metric_id == 1 || metric_id == 2 || metric_id == 4) {
+				Map<Date, Integer> metricsTimeSeriesMap = new HashMap<>();
+				metricsTimeSeriesMap.put(Date.from(Instant.now()), 0);
+				metricsTimeSeriesList.add(metricsTimeSeriesMap);
+				metricsTimeSeriesMasterMap.put(metric_id, metricsTimeSeriesList);
+			}
+		}
+		return metricsTimeSeriesMasterMap;
 	}
 
 	/**
@@ -390,7 +448,7 @@ public class IndividualDashboardHelper extends TheBorg {
 	 * @param employeeId - ID of the employee who is logged in
 	 * @return true/false
 	 */
-	
+
 	public boolean updateNotificationTimestamp(int companyId, int employeeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
