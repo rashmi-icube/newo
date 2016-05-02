@@ -246,6 +246,7 @@ public class EmployeeList extends TheBorg {
 	 * @return List of employee objects
 	 */
 	public List<Employee> getEmployeeListByFilters(int companyId, List<Filter> filterList) {
+		org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("Company ID " + companyId);
 
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
@@ -271,6 +272,7 @@ public class EmployeeList extends TheBorg {
 			while (rs.next()) {
 				employeeIdList.add(rs.getInt("emp_id"));
 			}
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("Employee ID List : " + employeeIdList);
 			employeeList = get(companyId, employeeIdList);
 		} catch (SQLException e1) {
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).error("Exception while retrieving the employee list based on dimension", e1);
@@ -292,19 +294,19 @@ public class EmployeeList extends TheBorg {
 		List<Employee> empList = new ArrayList<>();
 
 		try {
-			org.apache.log4j.Logger.getLogger(Employee.class).debug("get method started");
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("get method started");
 			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getEmployeeDetails(?)}");
 			cstmt.setString(1, employeeIdList.toString().substring(1, employeeIdList.toString().length() - 1).replaceAll(" ", ""));
 			ResultSet res = cstmt.executeQuery();
-			org.apache.log4j.Logger.getLogger(Employee.class).debug("query : " + cstmt);
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("query : " + cstmt);
 			while (res.next()) {
 				Employee e = setEmployeeDetails(companyId, res);
-				org.apache.log4j.Logger.getLogger(Employee.class).debug(
+				org.apache.log4j.Logger.getLogger(EmployeeList.class).debug(
 						"Employee  : " + e.getEmployeeId() + "-" + e.getFirstName() + "-" + e.getLastName());
 				empList.add(e);
 			}
 		} catch (SQLException e1) {
-			org.apache.log4j.Logger.getLogger(Employee.class).error(
+			org.apache.log4j.Logger.getLogger(EmployeeList.class).error(
 					"Exception while retrieving employee object with employeeIds : " + employeeIdList, e1);
 
 		}

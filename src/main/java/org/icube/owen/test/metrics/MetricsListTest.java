@@ -16,7 +16,7 @@ import org.junit.Test;
 
 public class MetricsListTest {
 	MetricsList ml = (MetricsList) ObjectFactory.getInstance("org.icube.owen.metrics.MetricsList");
-	int companyId = 1;
+	int companyId = 2;
 
 	@Test
 	public void testGetInitiativeMetricsForTeam() {

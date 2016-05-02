@@ -137,6 +137,14 @@ public class MetricsHelper extends TheBorg {
 			masterMetricsMap.put(m.getId(), m);
 		}
 		metricsList.addAll(masterMetricsMap.values());
+		// display all metrics for testing purpose
+		for (int i = 0; i < metricsList.size(); i++) {
+			Metrics m = metricsList.get(i);
+			org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug(
+					m.getId() + " - " + m.getName() + " - " + m.getCategory() + " - " + m.getAverage() + " - " + m.getDirection() + " - "
+							+ m.getScore());
+		}
+
 		return metricsList;
 	}
 
@@ -144,6 +152,7 @@ public class MetricsHelper extends TheBorg {
 	 * Retrieves the Metrics object for Team 
 	 * @param companyId - Company ID
 	 * @param initiativeTypeId - Initiative type ID
+	 * 
 	 * @param parsedFilterListResult - Map of filter objects
 	 * @return A list of Metrics object
 	 */
