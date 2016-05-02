@@ -58,7 +58,7 @@ public class MetricsListTest {
 	public void testGetInitiativeMetricsForIndividual() {
 		List<Employee> partOfEmployeeList = new ArrayList<>();
 		Employee e = (Employee) ObjectFactory.getInstance("org.icube.owen.employee.Employee");
-		partOfEmployeeList.add(e.get(companyId, 16));
+		partOfEmployeeList.add(e.get(companyId, 1));
 		List<Metrics> metricsList = ml.getInitiativeMetricsForIndividual(companyId, 1, partOfEmployeeList);
 		for (Metrics m : metricsList) {
 			assertTrue(!m.getName().isEmpty());

@@ -80,8 +80,22 @@ TeamMetric=function(CompanyId,Function,Position,Zone){
   
   #nodes of current Team
   vertexlist=cypher(graph, querynode) 
+  
+  # no rmployee in team
+  if (is.null(vertexlist)){
+    currtime=format(Sys.time(), "%Y-%m-%d %H:%M:%S")
+    op=data.frame(metric_id=c(6,7,8,9,10),score=c(-1,-1,-1,-1,-1),calc_time=currtime)
+    dbDisconnect(mydb)
+    return(op)
+  }
+  
+  # filter for Active
+  query=paste("select emp_id as `a.emp_id` from login_table where status='active' and emp_id in (",paste(vertexlist$a.emp_id,collapse = ","),")",sep = "")
+  res <- dbSendQuery(mydb,query)
+  vertexlist=fetch(res,-1)
+  
   # To return -1 if team size is small
-  if (nrow(vertexlist)<variable$value[variable$variable_name=="MinTeamSize"]){
+  if (nrow(vertexlist)<variable$value[variable$variable_name=="MinTeamSize"] ){
     currtime=format(Sys.time(), "%Y-%m-%d %H:%M:%S")
     op=data.frame(metric_id=c(6,7,8,9,10),score=c(-1,-1,-1,-1,-1),calc_time=currtime)
     dbDisconnect(mydb)
@@ -98,74 +112,73 @@ TeamMetric=function(CompanyId,Function,Position,Zone){
   # master list of edge 
   edgelist1 = cypher(graph, queryedge1)
   
+  # no edge
+  if (is.null(edgelist1)){
+    currtime=format(Sys.time(), "%Y-%m-%d %H:%M:%S")
+    op=data.frame(metric_id=c(6,7,8,9,10),score=c(0,0,0,0,0),calc_time=currtime)
+    dbDisconnect(mydb)
+    return(op)
+  }
+  
   # filte edge for current team and learning relation from Master
   edgelist=edgelist1[edgelist1$from %in% vertexlist$a.emp_id &
                        edgelist1$to %in% vertexlist$a.emp_id & 
                        edgelist1$relation=="learning",c("from","to","weight")]
   
-  # create graph for current team and learning relation
-  g <- graph.data.frame(edgelist, directed=TRUE, vertices=vertexlist)
-  
-  # calcualte degree of ind in team (incomming)
-  indegree=degree(g,mode="in")
-  
-  instrength=strength(g,mode="in")
-  
-  #average of instrength
-  avginstrength=mean(instrength)
-  
-  #   # sql query to get max instrength for relation learning
-  #   query=paste("SELECT max(t1.nw_metric_value) as Score FROM individual_nw_metric_value as t1
-  #               where t1.nw_metric_id=2 and t1.rel_id=4 and t1.calc_time=
-  #               (select max(t2.calc_time) from individual_nw_metric_value as t2
-  #               where t2.nw_metric_id=t1.nw_metric_id and t2.rel_id=t1.rel_id and t1.emp_id=t2.emp_id);"
-  #               ,sep="")
-  #   
-  #   #run query
-  #   res <- dbSendQuery(mydb,query)
-  #   
-  #   maxinstrength <- fetch(res,-1)
-  #   maxinstrength=maxinstrength[1,1]
-  
-  edgelist=edgelist1[edgelist1$relation=="learning",c("from","to","weight")]
-  
-  # create graph for current team and learning relation
-  g <- graph.data.frame(edgelist, directed=TRUE)
-  
-  maxinstrength=max(strength(g,mode="in"))
-  
-  # normalize by dividing with max of in strength overall
-  avginstrength=avginstrength/maxinstrength
-  
-  #claculate Skewness
-  skew=skewness(indegree)
-  
-  if(is.nan(skew)){
-    skew=3
-  }
-  
-  #limit to +3 to -3 
-  if(skew>3){
-    skew=3
-  }else{
-    if(skew<(-3)){
-      skew=(-3)
+  if (nrow(edgelist)>0){
+    
+    # create graph for current team and learning relation
+    g <- graph.data.frame(edgelist, directed=TRUE, vertices=vertexlist)
+    
+    # calcualte degree of ind in team (incomming)
+    indegree=degree(g,mode="in")
+    
+    instrength=strength(g,mode="in")
+    
+    #average of instrength
+    avginstrength=mean(instrength)
+    
+    edgelist=edgelist1[edgelist1$relation=="learning",c("from","to","weight")]
+    
+    # create graph for current team and learning relation
+    g <- graph.data.frame(edgelist, directed=TRUE)
+    
+    maxinstrength=max(strength(g,mode="in"))
+    
+    # normalize by dividing with max of in strength overall
+    avginstrength=avginstrength/maxinstrength
+    
+    #claculate Skewness
+    skew=skewness(indegree)
+    
+    if(is.nan(skew)){
+      skew=3
     }
+    
+    #limit to +3 to -3 
+    if(skew>3){
+      skew=3
+    }else{
+      if(skew<(-3)){
+        skew=(-3)
+      }
+    }
+    
+    # scale it 0 to 1
+    skew=1-((skew+3)/6)
+    
+    #calcualte Performance for Team
+    Performancescore=variable$value[variable$variable_name=="Metric6Wt1"]*avginstrength+variable$value[variable$variable_name=="Metric6Wt2"]*sqrt(skew)
+    
+    #scale to 0-100
+    Performancescore=round(Performancescore*100,0)
+    
+    # copy performance score to op
+    op=rbind(op,data.frame(metric_id=6,score=Performancescore))
+    
+  }else{
+    op=rbind(op,data.frame(metric_id=6,score=0))
   }
-  
-  # scale it 0 to 1
-  skew=1-((skew+3)/6)
-  
-  #calcualte Performance for Team
-  Performancescore=variable$value[variable$variable_name=="Metric6Wt1"]*avginstrength+variable$value[variable$variable_name=="Metric6Wt2"]*sqrt(skew)
-  
-  #scale to 0-100
-  Performancescore=round(Performancescore*100,0)
-  
-  # copy performance score to op
-  op=rbind(op,data.frame(metric_id=6,score=Performancescore))
-  
-  
   # Socaial Cohesion start
   
   # filte edge for current team and learning relation from Master
@@ -173,121 +186,113 @@ TeamMetric=function(CompanyId,Function,Position,Zone){
                        edgelist1$to %in% vertexlist$a.emp_id & 
                        edgelist1$relation=="social",c("from","to","weight")]
   
-  # create graph for current team and learning relation
-  g <- graph.data.frame(edgelist, directed=TRUE, vertices=vertexlist)
-  
-  # calculate in strength
-  instrength=strength(g,mode="in")
-  
-  #average of instrength
-  avginstrength=mean(instrength)
-  
-  #   # sql query to get max instrength for relation social
-  #   query=paste("SELECT max(t1.nw_metric_value) as Score FROM individual_nw_metric_value as t1
-  #               where t1.nw_metric_id=2 and t1.rel_id=3 and t1.calc_time=
-  #               (select max(t2.calc_time) from individual_nw_metric_value as t2
-  #               where t2.nw_metric_id=t1.nw_metric_id and t2.rel_id=t1.rel_id and t1.emp_id=t2.emp_id);"
-  #               ,sep="")
-  #   
-  #   #run query
-  #   res <- dbSendQuery(mydb,query)
-  #   
-  #   maxinstrength <- fetch(res,-1)
-  #   maxinstrength=maxinstrength[1,1]
-  #   # normalize by dividing with max of in strength overall
-  
-  edgelist=edgelist1[edgelist1$relation=="social",c("from","to","weight")]
-  
-  # create graph for current team and learning relation
-  g <- graph.data.frame(edgelist, directed=TRUE)
-  
-  maxinstrength=max(strength(g,mode="in"))
-  
-  socialcohesionscore=avginstrength/maxinstrength
-  # scale 0-100
-  socialcohesionscore=round(socialcohesionscore*100,0)
-  
-  # copy social cohesion score to op
-  op=rbind(op,data.frame(metric_id=7,score=socialcohesionscore))
-  
+  if(nrow(edgelist)>0){
+    
+    # create graph for current team and learning relation
+    g <- graph.data.frame(edgelist, directed=TRUE, vertices=vertexlist)
+    
+    # calculate in strength
+    instrength=strength(g,mode="in")
+    
+    #average of instrength
+    avginstrength=mean(instrength)
+    
+    edgelist=edgelist1[edgelist1$relation=="social",c("from","to","weight")]
+    
+    # create graph for current team and learning relation
+    g <- graph.data.frame(edgelist, directed=TRUE)
+    
+    maxinstrength=max(strength(g,mode="in"))
+    
+    socialcohesionscore=avginstrength/maxinstrength
+    # scale 0-100
+    socialcohesionscore=round(socialcohesionscore*100,0)
+    
+    # copy social cohesion score to op
+    op=rbind(op,data.frame(metric_id=7,score=socialcohesionscore))
+  }else{
+    op=rbind(op,data.frame(metric_id=7,score=0))
+  }
   
   # retention
   
   # query to get individual retention for people in current team from individual_metric_value in sql
-  query=paste("Select * from individual_metric_value where metric_id=3 and emp_id in (",
-              paste(vertexlist$a.emp_id,sep = "",collapse = ","),") order by metric_val_id desc Limit ",
-              nrow(vertexlist),sep = "")
+  query=paste("Select * from individual_metric_value  as t
+              where t.metric_id=3 and t.emp_id in (",
+              paste(vertexlist$a.emp_id,sep = "",collapse = ","),
+              ") and t.calc_time=(select max(t1.calc_time) from individual_metric_value as t1 where t1.emp_id=t.emp_id and t1.metric_id=t.metric_id)"
+              ,sep = "")
   
   res <- dbSendQuery(mydb,query)
   # individual retention
   indretention <- fetch(res,-1)
   
+  if (nrow(indretention)>0){
   
-  #change threshold ?????50
-  #to find people at risk based on Threshold
-  PeopleAtRisk=indretention[indretention$metric_value<=variable$value[variable$variable_name=="Metric8RiskThreshold"],]
-  #to find people not at risk 
-  peopleNotRisk=indretention[!(indretention$emp_id %in% PeopleAtRisk$emp_id),]
-  
-  #  to filter edge for mentor and current team
-  edgelist=edgelist1[edgelist1$from %in% vertexlist$a.emp_id &
-                       edgelist1$to %in% vertexlist$a.emp_id & 
-                       edgelist1$relation=="mentor",c("from","to","weight")]
-  
-  # function to find influence on (me) by (by)
-  influence=function(me,by,edge){
-    # subset edge from me
-    sub=edge[edge$from==me,]  
-    # % of weigth i.e. me influence by other
-    sub$per=sub$weight/sum(sub$weight)
-    #me influence by (by)
-    influenceper=sub$per[sub$to==by]
-    # if no (by) make influenceper to 0
-    if(length(influenceper)==0){
-      influenceper=0
-    }
-    return(influenceper)
-  }
-  
-  #initiate fraction to 0
-  fraction=0
-  if(nrow(PeopleAtRisk)>0){
-    for (i in 1:nrow(PeopleAtRisk)){
-      # emp who is inflencing
-      riskemp=PeopleAtRisk$emp_id[i]
-      # retention risk rate of emp who is inflencing
-      riskrate=1-(PeopleAtRisk$metric_value[i]/100)
-      if (nrow(peopleNotRisk)>0){
-        for(j in 1:nrow(peopleNotRisk)){
-          # emp who is inflenced
-          meemp=peopleNotRisk$emp_id[j]
-          # percent of inflence on me by influencer
-          meinfluence=influence(meemp,riskemp,edgelist) 
-          # product of inflencer retention , inflence percentage
-          merisk=riskrate*meinfluence
-          #add to fraction 
-          fraction=fraction+merisk
-        }
+    #to find people at risk based on Threshold
+    PeopleAtRisk=indretention[indretention$metric_value<=variable$value[variable$variable_name=="Metric8RiskThreshold"],]
+    #to find people not at risk 
+    peopleNotRisk=indretention[!(indretention$emp_id %in% PeopleAtRisk$emp_id),]
+    
+    #  to filter edge for mentor and current team
+    edgelist=edgelist1[edgelist1$from %in% vertexlist$a.emp_id &
+                         edgelist1$to %in% vertexlist$a.emp_id & 
+                         edgelist1$relation=="mentor",c("from","to","weight")]
+    
+    # function to find influence on (me) by (by)
+    influence=function(me,by,edge){
+      # subset edge from me
+      sub=edge[edge$from==me,]  
+      # % of weigth i.e. me influence by other
+      sub$per=sub$weight/sum(sub$weight)
+      #me influence by (by)
+      influenceper=sub$per[sub$to==by]
+      # if no (by) make influenceper to 0
+      if(length(influenceper)==0){
+        influenceper=0
       }
+      return(influenceper)
     }
     
-  }
-  
-  #Retention of tean = count of people at rsik + fraction of people whom they influence
-  RetentionTeam=(nrow(PeopleAtRisk)+fraction)/nrow(vertexlist)
-  
-  # reverse The Retention scale
-  RetentionTeam=1-RetentionTeam
-  
-  #Round and scale 0-100
-  RetentionTeam=round(RetentionTeam*100,0)
-  
-  #add to op table
-  op=rbind(op,data.frame(metric_id=8,score=RetentionTeam))
-  
+    #initiate fraction to 0
+    fraction=0
+    if(nrow(PeopleAtRisk)>0){
+      for (i in 1:nrow(PeopleAtRisk)){
+        # emp who is inflencing
+        riskemp=PeopleAtRisk$emp_id[i]
+        # retention risk rate of emp who is inflencing
+        riskrate=1-(PeopleAtRisk$metric_value[i]/100)
+        if (nrow(peopleNotRisk)>0){
+          for(j in 1:nrow(peopleNotRisk)){
+            # emp who is inflenced
+            meemp=peopleNotRisk$emp_id[j]
+            # percent of inflence on me by influencer
+            meinfluence=influence(meemp,riskemp,edgelist) 
+            # product of inflencer retention , inflence percentage
+            merisk=riskrate*meinfluence
+            #add to fraction 
+            fraction=fraction+merisk
+          }
+        }
+      }
+      
+    }
+    
+    #Retention of tean = count of people at rsik + fraction of people whom they influence
+    RetentionTeam=(nrow(PeopleAtRisk)+fraction)/nrow(vertexlist)
+    
+    # reverse The Retention scale
+    RetentionTeam=1-RetentionTeam
+    
+    #Round and scale 0-100
+    RetentionTeam=round(RetentionTeam*100,0)
+    
+    #add to op table
+    op=rbind(op,data.frame(metric_id=8,score=RetentionTeam))
+  }else{
+    op=rbind(op,data.frame(metric_id=8,score=0))
+  }  
   # retention end
-  
-  
   
   # innovation
   # filte edge for current team and innovation relation from Master
@@ -295,88 +300,75 @@ TeamMetric=function(CompanyId,Function,Position,Zone){
                        edgelist1$to %in% vertexlist$a.emp_id & 
                        edgelist1$relation=="innovation",c("from","to")]
   
-  # create graph
-  g <- graph.data.frame(edgelist, directed=TRUE, vertices=vertexlist)
-  
-  # calculate in strength
-  instrength=strength(g,mode="in")
-  
-  #average of instrength
-  avginstrength=mean(instrength)
-  
-  # sql query to get max instrength for relation innovation
-  #   query=paste("SELECT max(t1.nw_metric_value) as Score FROM individual_nw_metric_value as t1
-  #               where t1.nw_metric_id=2 and t1.rel_id=1 and t1.calc_time=
-  #               (select max(t2.calc_time) from individual_nw_metric_value as t2
-  #               where t2.nw_metric_id=t1.nw_metric_id and t2.rel_id=t1.rel_id and t1.emp_id=t2.emp_id);"
-  #               ,sep="")
-  #   
-  #   #run query
-  #   res <- dbSendQuery(mydb,query)
-  #   
-  #   maxinstrength <- fetch(res,-1)
-  #   maxinstrength=maxinstrength[1,1]
-  
-  edgelist=edgelist1[edgelist1$relation=="innovation",c("from","to","weight")]
-  
-  # create graph for current team and learning relation
-  g <- graph.data.frame(edgelist, directed=TRUE)
-  
-  maxinstrength=max(strength(g,mode="in"))
-  
-  # normalize by dividing with max of in strength overall
-  avginstrength=avginstrength/maxinstrength
-  # query to get list of all node
-  querynode = "match (a:Employee) return a.emp_id"
-  
-  # get list of all node
-  vertexlist1=cypher(graph, querynode)
-  
-  # filter for edge from master for all employee and innovation
-  edgelist=edgelist1[edgelist1$relation=="innovation",c("from","to")]
-  
-  # create graph for all employee and innovation relation
-  g1 <- graph.data.frame(edgelist, directed=TRUE, vertices=vertexlist1)
-  
-  #oberall betweenness for innovation
-  between=data.frame(betweenness(g1))
-  
-  # rename column
-  names(between)="Betweenness"
-  
-  #add column for emp_id
-  between$emp_id=row.names(between)
-  
-  between$Rank=rank(-between$Betweenness,ties.method= "random")
-  
-  # calcualte mu(mean) for betweeness
-  #mu=mean(between$Betweenness)
-  # calculate threshold i.e mu+sigma
-  #threshold=mu+sd(between$Betweenness)
-  
-  
-  #list of innovators in organization i.e top 20 percentile
-  innovators=between$emp_id[between$Rank<(nrow(between)*variable$value[variable$variable_name=="Metric9InnovatorPercentile"])]
-  
-  # percentage of find innovators in team
-  innovatorsinteam=length(vertexlist$a.emp_id[vertexlist$a.emp_id %in% innovators])/nrow(vertexlist)
-  
-  # innovators score
-  innovationscore=variable$value[variable$variable_name=="Metric9Wt1"]*avginstrength+variable$value[variable$variable_name=="Metric9Wt2"]*sqrt(innovatorsinteam)
-  
-  #round and scale 0-100
-  innovationscore=round(innovationscore*100,0)
-  
-  # add to op
-  op=rbind(op,data.frame(metric_id=9,score=innovationscore))
-  
+  if (nrow(edgelist)>0) {
+    
+    # create graph
+    g <- graph.data.frame(edgelist, directed=TRUE, vertices=vertexlist)
+    
+    # calculate in strength
+    instrength=strength(g,mode="in")
+    
+    #average of instrength
+    avginstrength=mean(instrength)
+    
+    edgelist=edgelist1[edgelist1$relation=="innovation",c("from","to","weight")]
+    
+    # create graph for current team and learning relation
+    g <- graph.data.frame(edgelist, directed=TRUE)
+    
+    maxinstrength=max(strength(g,mode="in"))
+    
+    # normalize by dividing with max of in strength overall
+    avginstrength=avginstrength/maxinstrength
+    # query to get list of all node
+    querynode = "match (a:Employee) return a.emp_id"
+    
+    # get list of all node
+    vertexlist1=cypher(graph, querynode)
+    
+    # filter for edge from master for all employee and innovation
+    edgelist=edgelist1[edgelist1$relation=="innovation",c("from","to")]
+    
+    # create graph for all employee and innovation relation
+    g1 <- graph.data.frame(edgelist, directed=TRUE, vertices=vertexlist1)
+    
+    #oberall betweenness for innovation
+    between=data.frame(betweenness(g1))
+    
+    # rename column
+    names(between)="Betweenness"
+    
+    #add column for emp_id
+    between$emp_id=row.names(between)
+    
+    between$Rank=rank(-between$Betweenness,ties.method= "random")
+    
+    #list of innovators in organization i.e top 20 percentile
+    innovators=between$emp_id[between$Rank<(nrow(between)*variable$value[variable$variable_name=="Metric9InnovatorPercentile"])]
+    
+    # percentage of find innovators in team
+    innovatorsinteam=length(vertexlist$a.emp_id[vertexlist$a.emp_id %in% innovators])/nrow(vertexlist)
+    
+    # innovators score
+    innovationscore=variable$value[variable$variable_name=="Metric9Wt1"]*avginstrength+variable$value[variable$variable_name=="Metric9Wt2"]*sqrt(innovatorsinteam)
+    
+    #round and scale 0-100
+    innovationscore=round(innovationscore*100,0)
+    
+    # add to op
+    op=rbind(op,data.frame(metric_id=9,score=innovationscore))
+  }else{
+    op=rbind(op,data.frame(metric_id=9,score=0))
+  }  
   #sentiment
   
   
   # query to get individual sentiment for people in current team from individual_metric_value in sql
-  query=paste("Select * from individual_metric_value where metric_id=5 and emp_id in (",
-              paste(vertexlist$a.emp_id,sep = "",collapse = ","),") order by metric_val_id desc Limit ",
-              nrow(vertexlist),sep = "")
+  query=paste("Select * from individual_metric_value as t  where t.metric_id=5 and t.emp_id in (",
+              paste(vertexlist$a.emp_id,sep = "",collapse = ","),") 
+              and t.calc_time=(select max(t1.calc_time) from individual_metric_value as t1 
+              where t1.emp_id=t.emp_id and t1.metric_id=t.metric_id) ",
+              sep = "")
   
   res <- dbSendQuery(mydb,query)
   # individual sentiment
@@ -389,32 +381,36 @@ TeamMetric=function(CompanyId,Function,Position,Zone){
   #aggregate edges for dif relatin
   edgelist=unique(edgelist)
   
-  # create graph
-  g <- graph.data.frame(edgelist, directed=TRUE, vertices=vertexlist)
-  
-  # calcualte in degree
-  indegree=data.frame(degree(g,mode = "in"))
-  
-  names(indegree)="indegree"
-  
-  indegree$emp_id=row.names(indegree)
-  indegree$emp_id=as.numeric(indegree$emp_id)
-  
-  #merge sentiment to indegree dataframe
-  indegree=merge(indegree,sentiment, by = "emp_id")
-  #product of indgeree and sentiment of ind
-  indegree$product=indegree$indegree*indegree$metric_value
-  
-  # summation of product divide by summation of indegree
-  sentimentScore=round(sum(indegree$product)/sum(indegree$indegree),0)
-  
-  if(is.nan(sentimentScore)){
-    sentimentScore=0
-  }
-  
-  # add to op
-  op=rbind(op,data.frame(metric_id=10,score=sentimentScore))
-  
+  if (nrow(sentiment)>0 & nrow(edgelist)>0)  {
+    
+    # create graph
+    g <- graph.data.frame(edgelist, directed=TRUE, vertices=vertexlist)
+    
+    # calcualte in degree
+    indegree=data.frame(degree(g,mode = "in"))
+    
+    names(indegree)="indegree"
+    
+    indegree$emp_id=row.names(indegree)
+    indegree$emp_id=as.numeric(indegree$emp_id)
+    
+    #merge sentiment to indegree dataframe
+    indegree=merge(indegree,sentiment, by = "emp_id")
+    #product of indgeree and sentiment of ind
+    indegree$product=indegree$indegree*indegree$metric_value
+    
+    # summation of product divide by summation of indegree
+    sentimentScore=round(sum(indegree$product)/sum(indegree$indegree),0)
+    
+    if(is.nan(sentimentScore)){
+      sentimentScore=0
+    }
+    
+    # add to op
+    op=rbind(op,data.frame(metric_id=10,score=sentimentScore))
+  }else{
+    op=rbind(op,data.frame(metric_id=10,score=0))
+  }  
   dbDisconnect(mydb)
   
   currtime=format(Sys.time(), "%Y-%m-%d %H:%M:%S")
@@ -452,8 +448,6 @@ SmartListResponse=function(CompanyId,emp_id,rel_id){
   
   relname<- fetch(res,-1)
   
-  dbDisconnect(mydb)  
-  
   relname=relname[1,1]
   
   # graph DB connection
@@ -471,6 +465,15 @@ SmartListResponse=function(CompanyId,emp_id,rel_id){
                     ,sep="")
   
   FirstConn=cypher(graph, querynode)
+  
+  if (!is.null(FirstConn)){
+    query=paste("select emp_id from login_table where status='active' and emp_id in (",paste(FirstConn$emp_id,collapse = ","),");",sep = "")
+    res <- dbSendQuery(mydb,query)
+    active_emp=fetch(res,-1)
+
+    FirstConn=FirstConn[FirstConn$emp_id %in% active_emp$emp_id,]
+  }
+  
   if (!is.null(FirstConn)){
     FirstConn$Rank=rank(-FirstConn$weight,ties.method = "random")
     
@@ -479,6 +482,12 @@ SmartListResponse=function(CompanyId,emp_id,rel_id){
                       ,sep="")
     
     SecondConn=cypher(graph, querynode)
+    
+    query=paste("select emp_id from login_table where status='active' and emp_id in (",paste(SecondConn$c.emp_id,collapse = ","),")",sep = "")
+    res <- dbSendQuery(mydb,query)
+    active_emp=fetch(res,-1)
+    
+    SecondConn=SecondConn[SecondConn$c.emp_id %in% active_emp$emp_id,]
     
     SecondConn=aggregate(SecondConn$r.weight,by=list(emp_id=SecondConn$c.emp_id),max)
     
@@ -513,16 +522,21 @@ SmartListResponse=function(CompanyId,emp_id,rel_id){
     op=data.frame(emp_id=as.numeric(),Rank=as.numeric())
   }
   
-  
-  mydb = dbConnect(MySQL(), user=mysqlusername, password=mysqlpasswod, dbname=mysqldbname, host=mysqlhost, port=mysqlport)
-  
-  query=paste("call owen.getListColleague('",emp_id,"')",sep="")
+  query=paste("call getListColleague(",emp_id,");",sep="")
   
   res <- dbSendQuery(mydb,query)
   
   employeeCube<- fetch(res,-1)
   
   dbDisconnect(mydb)
+  
+  mydb = dbConnect(MySQL(), user=comp_sql_user_id, password=comp_sql_password, dbname=comp_sql_dbname, host=comp_sql_server, port=mysqlport)
+  
+  query=paste("select emp_id from login_table where status='active' and emp_id in (",paste(employeeCube$emp_id,collapse = ","),");",sep = "")
+  res <- dbSendQuery(mydb,query)
+  active_emp=fetch(res,-1)
+  
+  employeeCube=data.frame(emp_id=employeeCube[employeeCube$emp_id %in% active_emp$emp_id,])
   
   employeeCube=data.frame(employeeCube[!(employeeCube$emp_id %in% emp_id),])
   names(employeeCube)[1]="emp_id"
@@ -531,16 +545,16 @@ SmartListResponse=function(CompanyId,emp_id,rel_id){
   names(employeeCube)="emp_id"
   
   if(nrow(employeeCube)>0){
+    
     employeeCube$Rank=(nrow(op)+1):(nrow(employeeCube)+nrow(op))
     op=rbind(op,employeeCube)
   }
   
   op$emp_id=as.integer(op$emp_id)
   op$Rank=as.integer(op$Rank)
-  
+  dbDisconnect(mydb)
   return(op)
 }
-
 
 
 #Team
@@ -608,6 +622,12 @@ TeamSmartList=function(CompanyId,Function,Position,Zone,init_type_id){
   # run query and store reslut in vertexlist
   vertexlist=cypher(graph, querynode)
   
+  if (is.null(vertexlist)){
+    op=data.frame(Score=as.integer(),emp_id=as.integer(),Rank=as.integer(),flag=as.character())
+    dbDisconnect(mydb)
+    return(op)
+  }
+  
   # performance
   if(init_type_id==6){
     cat("\n calculating for type 6",file="Rlog.txt",sep=" ",append=TRUE)  
@@ -622,6 +642,12 @@ TeamSmartList=function(CompanyId,Function,Position,Zone,init_type_id){
     
     # run query and store reslut in edgelist
     edgelist = cypher(graph, queryedge)
+    
+    if (is.null(edgelist)){
+      op=data.frame(Score=as.integer(),emp_id=as.integer(),Rank=as.integer(),flag=as.character())
+      dbDisconnect(mydb)
+      return(op)
+    }
     
     # create graph of dynamic cube with learning relation
     g <- graph.data.frame(edgelist, directed=TRUE, vertices=vertexlist)
@@ -651,6 +677,11 @@ TeamSmartList=function(CompanyId,Function,Position,Zone,init_type_id){
     # run query and store reslut in edgelist
     edgelist = cypher(graph, queryedge)
     
+    if (is.null(edgelist)){
+      op=data.frame(Score=as.integer(),emp_id=as.integer(),Rank=as.integer(),flag=as.character())
+      dbDisconnect(mydb)
+      return(op)
+    }
     # create graph of dynamic cube with social relation
     g <- graph.data.frame(edgelist, directed=TRUE, vertices=vertexlist)
     
@@ -676,7 +707,11 @@ TeamSmartList=function(CompanyId,Function,Position,Zone,init_type_id){
                       return a.emp_id as from ,b.emp_id as to ,r.weight as weight",sep="")
     # run query and store reslut in edgelist
     edgelist = cypher(graph, queryedge)
-    
+    if (is.null(edgelist)){
+      op=data.frame(Score=as.integer(),emp_id=as.integer(),Rank=as.integer(),flag=as.character())
+      dbDisconnect(mydb)
+      return(op)
+    }
     # create graph of dynamic cube with mentor relation
     g <- graph.data.frame(edgelist, directed=TRUE, vertices=vertexlist)
     # calculate instrength for team
@@ -704,17 +739,34 @@ TeamSmartList=function(CompanyId,Function,Position,Zone,init_type_id){
     res <- dbSendQuery(mydb,query)
     #extract result
     op<- fetch(res,-1)
+    if (nrow(op)==0){
+      op=data.frame(Score=as.integer(),emp_id=as.integer(),Rank=as.integer(),flag=as.character())
+      dbDisconnect(mydb)
+      return(op)
+    }
     #disconnect sql data
     
     cat("\n done calculating for type 10",file="Rlog.txt",sep=" ",append=TRUE)  
   }
   
+  query=paste("select emp_id from login_table where status='active' and emp_id in (",paste(op$emp_id,collapse = ","),");",sep = "")
+  res <- dbSendQuery(mydb,query)
+  active_emp=fetch(res,-1)
+  
+  op=op[op$emp_id %in% active_emp$emp_id,]
+  
+  op$emp_id=as.integer(op$emp_id)
+  
   # Rank Score in descending order
-  op$Rank=rank(-op$Score,ties.method= "random")
+  
+  op=op[with(op, order(emp_id)), ]
+  op=op[with(op, order(-Score)), ]
+  op$Rank=1:nrow(op)
+  
+  
   # flag high medium low
   op$flag=ifelse(op$Rank<=nrow(op)/3,"High fit",ifelse(op$Rank<=nrow(op)*2/3,"Med fit","Low fit"))
   # return op
-  op$emp_id=as.integer(op$emp_id)
   op$Rank=as.integer(op$Rank)
   cat("\n Returning op for Team SmartList",file="Rlog.txt",sep=" ",append=TRUE)  
   
@@ -756,7 +808,7 @@ IndividualSmartList=function(CompanyId,emp_id,init_type_id){
   if(init_type_id==1){
     
     # query to  get list of people form same cube
-    query=paste("call getListColleague('",emp_id,"')",sep="")
+    query=paste("call getListColleague(",emp_id,");",sep="")
     
     # run query 
     res <- dbSendQuery(mydb,query)
@@ -773,6 +825,12 @@ IndividualSmartList=function(CompanyId,emp_id,init_type_id){
     
     # run query
     edgelist = cypher(graph, queryedge)
+    
+    if (is.null(edgelist)){
+      op=data.frame(Score=as.integer(),emp_id=as.integer(),Rank=as.integer(),flag=as.character())
+      dbDisconnect(mydb)
+      return(op)
+    }
     # create graph of people from same cube and learning nw
     g <- graph.data.frame(edgelist, directed=TRUE, vertices=emoloyeeCube$emp_id)
     
@@ -793,7 +851,11 @@ IndividualSmartList=function(CompanyId,emp_id,init_type_id){
                       return distinct(b.emp_id) as emp_id",sep="")
     # reiun query
     vertexlist=cypher(graph, querynode)
-    
+    if (is.null(vertexlist)){
+      op=data.frame(Score=as.integer(),emp_id=as.integer(),Rank=as.integer(),flag=as.character())
+      dbDisconnect(mydb)
+      return(op)
+    }
     # query to get Mentorship metric score for second degree people
     query=paste("SELECT t1.emp_id,t1.metric_value as Score  FROM individual_metric_value as t1 where t1.metric_id=2 and t1.emp_id in (",paste(vertexlist$emp_id,collapse = ","),")
                 and t1.calc_time=(select max(t2.calc_time) from  individual_metric_value as t2 
@@ -803,6 +865,12 @@ IndividualSmartList=function(CompanyId,emp_id,init_type_id){
     # op with mentorship score
     op<- fetch(res,-1)
     # remove employee on whom init created
+    
+    if (is.null(op)){
+      op=data.frame(Score=as.integer(),emp_id=as.integer(),Rank=as.integer(),flag=as.character())
+      dbDisconnect(mydb)
+      return(op)
+    }
     op=op[op$emp_id!=emp_id,]
   }  
   
@@ -824,6 +892,13 @@ IndividualSmartList=function(CompanyId,emp_id,init_type_id){
                       return a.emp_id as from ,b.emp_id as to,r.weight as weight ",sep="")
     # run query
     edgelist = cypher(graph, queryedge)
+    
+    if (is.null(edgelist)){
+      op=data.frame(Score=as.integer(),emp_id=as.integer(),Rank=as.integer(),flag=as.character())
+      dbDisconnect(mydb)
+      return(op)
+    }
+    
     # create graph fro cube and mentor rel
     g <- graph.data.frame(edgelist, directed=TRUE, vertices=emoloyeeCube$emp_id)
     # calculate instrength 
@@ -850,19 +925,41 @@ IndividualSmartList=function(CompanyId,emp_id,init_type_id){
     res <- dbSendQuery(mydb,query)
     # fetch result
     op<- fetch(res,-1)
+    if (is.null(op)){
+      op=data.frame(Score=as.integer(),emp_id=as.integer(),Rank=as.integer(),flag=as.character())
+      dbDisconnect(mydb)
+      return(op)
+    }
   }
   # disconnect db
-  dbDisconnect(mydb)
   
   # rempve employee on whom initiative created
   op=op[op$emp_id!=emp_id,]
   # rank score
-  op$Rank=rank(-op$Score,ties.method= "random")
+  dbDisconnect(mydb)
+  
+  mydb = dbConnect(MySQL(), user=comp_sql_user_id, password=comp_sql_password, dbname=comp_sql_dbname, host=comp_sql_server, port=mysqlport)
+  
+  query=paste("select emp_id from login_table where status='active' and emp_id in (",paste(op$emp_id,collapse = ","),");",sep = "")
+  res <- dbSendQuery(mydb,query)
+  active_emp=fetch(res,-1)
+  
+  op=op[op$emp_id %in% active_emp$emp_id,]
+  
+  op$emp_id=as.integer(op$emp_id)
+  
+  # Rank Score in descending order
+  
+  op=op[with(op, order(emp_id)), ]
+  op=op[with(op, order(-Score)), ]
+  op$Rank=1:nrow(op)
+  
   # flag high medium low
   op$flag=ifelse(op$Rank<=nrow(op)/3,"High fit",ifelse(op$Rank<=nrow(op)*2/3,"Med fit","Low fit"))
   
-  op$emp_id=as.integer(op$emp_id)
   op$Rank=as.integer(op$Rank)
+  
+  dbDisconnect(mydb)
   
   # return op
   return(op)
@@ -959,12 +1056,14 @@ calculate_edge=function(CompanyId){
       op=rbind(op,sub)
       d=d*decay
     }
+    if (nrow(op)>0) {
+      op1=aggregate(op$weight,by=list(emp_id=op$emp_id,target_emp_id=op$target_emp_id,rel_id=op$rel_id),sum)
+      names(op1)[4]="weight"
+      op1$weight=op1$weight/decayweight
+      
+      opcal=rbind(opcal,op1)  
+    }
     
-    op1=aggregate(op$weight,by=list(emp_id=op$emp_id,target_emp_id=op$target_emp_id,rel_id=op$rel_id),sum)
-    names(op1)[4]="weight"
-    op1$weight=op1$weight/decayweight
-    
-    opcal=rbind(opcal,op1)
   }
   
   

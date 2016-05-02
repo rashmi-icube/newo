@@ -32,7 +32,7 @@ public class InitiativeTest {
 				.now()), "You are owners of the initiative", null, ownerOfList, partOfEmployeeList);
 		initiative.create(companyId);
 		initiative.setInitiativeProperties("1Team", 6, "Team", Date.from(Instant.now()), Date.from(Instant.now()), Date.from(Instant.now()),
-				"You are owners of the initiative", TestHelper.getAllForAllFilters(), ownerOfList, null);
+				"You are owners of the initiative", TestHelper.getAllForAllFilters(companyId), ownerOfList, null);
 		initiative.create(companyId);
 		initiative.setInitiativeProperties("3Individual", 3, "Individual", Date.from(Instant.now()), Date.from(Instant.now()), Date.from(Instant
 				.now()), "You are owners of the initiative", null, ownerOfList, partOfEmployeeList);
@@ -47,23 +47,23 @@ public class InitiativeTest {
 		initiative.create(companyId);
 
 		initiative.setInitiativeProperties("1Team", 6, "Team", Date.from(Instant.now()), Date.from(Instant.now()), Date.from(Instant.now()),
-				"You are owners of the initiative", TestHelper.getAllForOneFilter(), ownerOfList, null);
+				"You are owners of the initiative", TestHelper.getAllForOneFilter(companyId), ownerOfList, null);
 		initiative.create(companyId);
 
 		initiative.setInitiativeProperties("2Team", 7, "Team", Date.from(Instant.now()), Date.from(Instant.now()), Date.from(Instant.now()),
-				"You are owners of the initiative", TestHelper.getAllForTwoFilters(), ownerOfList, null);
+				"You are owners of the initiative", TestHelper.getAllForTwoFilters(companyId), ownerOfList, null);
 		initiative.create(companyId);
 
 		initiative.setInitiativeProperties("3Team", 8, "Team", Date.from(Instant.now()), Date.from(Instant.now()), Date.from(Instant.now()),
-				"You are owners of the initiative", TestHelper.getOneForEachFilter(), ownerOfList, null);
+				"You are owners of the initiative", TestHelper.getOneForEachFilter(companyId), ownerOfList, null);
 		initiative.create(companyId);
 
 		initiative.setInitiativeProperties("4Team", 9, "Team", Date.from(Instant.now()), Date.from(Instant.now()), Date.from(Instant.now()),
-				"You are owners of the initiative", TestHelper.getTwoForEachFilter(), ownerOfList, null);
+				"You are owners of the initiative", TestHelper.getTwoForEachFilter(companyId), ownerOfList, null);
 		initiative.create(companyId);
 
 		initiative.setInitiativeProperties("5Team", 10, "Team", Date.from(Instant.now()), Date.from(Instant.now()), Date.from(Instant.now()),
-				"You are owners of the initiative", TestHelper.getAllForAllFilters(), ownerOfList, null);
+				"You are owners of the initiative", TestHelper.getAllForAllFilters(companyId), ownerOfList, null);
 		initiative.create(companyId);
 
 	}

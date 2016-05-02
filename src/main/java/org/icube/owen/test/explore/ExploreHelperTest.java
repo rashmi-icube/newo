@@ -129,7 +129,7 @@ public class ExploreHelperTest {
 
 		Map<String, List<Filter>> teamListMap = new HashMap<>();
 
-		List<Filter> filterList = TestHelper.getOneForEachFilter();
+		List<Filter> filterList = TestHelper.getOneForEachFilter(companyId);
 
 		teamListMap.put("team1", filterList);
 
@@ -146,19 +146,19 @@ public class ExploreHelperTest {
 			checkTimeSeriesData(teamMetricsData.get(name));
 		}
 
-		filterList = TestHelper.getAllForOneFilter();
+		filterList = TestHelper.getAllForOneFilter(companyId);
 		teamMetricsData = eh.getTeamTimeSeriesGraph(companyId, teamListMap); // 1 filter has selected as ALL
 		for (String name : teamMetricsData.keySet()) {
 			checkTimeSeriesData(teamMetricsData.get(name));
 		}
 
-		filterList = TestHelper.getAllForTwoFilters();
+		filterList = TestHelper.getAllForTwoFilters(companyId);
 		teamMetricsData = eh.getTeamTimeSeriesGraph(companyId, teamListMap); // 2 filters have selected as ALL
 		for (String name : teamMetricsData.keySet()) {
 			checkTimeSeriesData(teamMetricsData.get(name));
 		}
 
-		filterList = TestHelper.getAllForAllFilters();
+		filterList = TestHelper.getAllForAllFilters(companyId);
 		teamMetricsData = eh.getTeamTimeSeriesGraph(companyId, teamListMap); // 3 filters have selected as ALL
 		for (String name : teamMetricsData.keySet()) {
 			checkTimeSeriesData(teamMetricsData.get(name));

@@ -11,13 +11,13 @@ import org.icube.owen.ObjectFactory;
 import org.icube.owen.employee.Employee;
 import org.icube.owen.employee.EmployeeList;
 import org.icube.owen.filter.Filter;
-import org.icube.owen.filter.FilterList;
+import org.icube.owen.test.TestHelper;
 import org.junit.Test;
 
 public class EmployeeListTest {
 	EmployeeList el = (EmployeeList) ObjectFactory.getInstance("org.icube.owen.employee.EmployeeList");
 	Employee e = (Employee) ObjectFactory.getInstance("org.icube.owen.employee.Employee");
-	int companyId = 1;
+	int companyId = 2;
 
 	@Test
 	public void testGetEmployeeMasterList() {
@@ -83,21 +83,8 @@ public class EmployeeListTest {
 
 	@Test
 	public void testGetEmployeeListByFilters() {
-		FilterList fl = new FilterList();
-		List<Filter> filterList = fl.getFilterValues(companyId);
-		for (Filter f : filterList) {
-			while (f.getFilterValues().size() > 1) {
-				f.getFilterValues().remove(f.getFilterValues().keySet().iterator().next());
-			}
-		}
-
-		Filter filter = filterList.get(0);
-		if (filter.getFilterName().equalsIgnoreCase("Function")) {
-			filter.getFilterValues().clear();
-			filter.getFilterValues().put(2, "Business");
-		}
-
-		List<Employee> result = el.getEmployeeListByFilters(1, filterList);
+		List<Filter> filterList = TestHelper.getAllForTwoFilters(companyId);
+		List<Employee> result = el.getEmployeeListByFilters(companyId, filterList);
 		assertNotNull(result);
 	}
 

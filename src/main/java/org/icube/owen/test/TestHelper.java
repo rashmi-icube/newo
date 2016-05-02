@@ -10,9 +10,7 @@ import org.icube.owen.filter.FilterList;
 
 public class TestHelper {
 
-	static int companyId = 1;
-
-	public static List<Filter> getAllForAllFilters() {
+	public static List<Filter> getAllForAllFilters(int companyId) {
 		List<Filter> filterList = new ArrayList<Filter>();
 		Map<Integer, String> filterValuesMap = new HashMap<>();
 		filterValuesMap.put(0, "All");
@@ -39,7 +37,7 @@ public class TestHelper {
 		return filterList;
 	}
 
-	public static List<Filter> getOneForEachFilter() {
+	public static List<Filter> getOneForEachFilter(int companyId) {
 		FilterList fl = new FilterList();
 		List<Filter> filterList = fl.getFilterValues(companyId);
 		for (Filter f : filterList) {
@@ -50,7 +48,7 @@ public class TestHelper {
 		return filterList;
 	}
 
-	public static List<Filter> getTwoForEachFilter() {
+	public static List<Filter> getTwoForEachFilter(int companyId) {
 		FilterList fl = new FilterList();
 		List<Filter> filterList = fl.getFilterValues(companyId);
 		for (Filter f : filterList) {
@@ -61,15 +59,15 @@ public class TestHelper {
 		return filterList;
 	}
 
-	public static List<Filter> getAllForOneFilter() {
-		List<Filter> filterList = getOneForEachFilter();
+	public static List<Filter> getAllForOneFilter(int companyId) {
+		List<Filter> filterList = getOneForEachFilter(companyId);
 		filterList.get(0).getFilterValues().clear();
 		filterList.get(0).getFilterValues().put(0, "All");
 		return filterList;
 	}
 
-	public static List<Filter> getAllForTwoFilters() {
-		List<Filter> filterList = getAllForOneFilter();
+	public static List<Filter> getAllForTwoFilters(int companyId) {
+		List<Filter> filterList = getAllForOneFilter(companyId);
 		filterList.get(1).getFilterValues().clear();
 		filterList.get(1).getFilterValues().put(0, "All");
 		return filterList;

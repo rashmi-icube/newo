@@ -296,9 +296,9 @@ public class MetricsHelper extends TheBorg {
 			m.setCategory(category);
 			m.setId(id);
 			m.setName(metricListForCategory.get(id));
-			m.setScore(currentScoreMap.get(id));
+			m.setScore(currentScoreMap.isEmpty() ? 0 : currentScoreMap.get(id));
 			if (category == "Individual") {
-				String direction = m.calculateMetricDirection(currentScoreMap.get(id), previousScoreMap.get(id));
+				String direction = (currentScoreMap.isEmpty() || previousScoreMap.isEmpty())? "Neutral" : m.calculateMetricDirection(currentScoreMap.get(id), previousScoreMap.get(id));
 				m.setDirection(direction);
 			} else if (category == "Team") {
 				// when metrics come from R the direction will always be neutral
@@ -309,7 +309,7 @@ public class MetricsHelper extends TheBorg {
 			} else {
 				m.setPrimary(false);
 			}
-			m.setDateOfCalculation(dateOfCalculationMap.get(id));
+			m.setDateOfCalculation(dateOfCalculationMap.isEmpty() ? null : dateOfCalculationMap.get(id));
 			metricsList.add(m);
 		}
 		return metricsList;
