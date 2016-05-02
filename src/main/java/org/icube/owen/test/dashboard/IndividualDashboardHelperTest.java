@@ -19,10 +19,10 @@ import org.junit.Test;
 
 public class IndividualDashboardHelperTest {
 	IndividualDashboardHelper idh = (IndividualDashboardHelper) ObjectFactory.getInstance("org.icube.owen.dashboard.IndividualDashboardHelper");
-	int companyId = 1;
+	int companyId = 2;
 
 	@Test
-	public void testGenerateNePassword(){
+	public void testGenerateNewPassword() {
 		try {
 			boolean status = idh.generateNewPassword("ssrivastava@i-cube.in");
 			assertNotNull(status);
@@ -30,10 +30,10 @@ public class IndividualDashboardHelperTest {
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelperTest.class).error("Error in generating new password", e);
 		}
 	}
-	
+
 	@Test
 	public void testGetActivityFeedList() {
-		Map<Date, List<ActivityFeed>> result = idh.getActivityFeedList(1, 130, 1);
+		Map<Date, List<ActivityFeed>> result = idh.getActivityFeedList(companyId, 130, 1);
 		for (Date d : result.keySet()) {
 			List<ActivityFeed> afl = result.get(d);
 			for (ActivityFeed af : afl) {
@@ -48,7 +48,7 @@ public class IndividualDashboardHelperTest {
 
 	@Test
 	public void testGetIndividualMetrics() {
-		List<Metrics> metricsList = idh.getIndividualMetrics(1, 1);
+		List<Metrics> metricsList = idh.getIndividualMetrics(companyId, 1);
 		for (Metrics m : metricsList) {
 			assertNotNull(m.getName());
 			assertNotNull(m.getScore());
@@ -58,7 +58,7 @@ public class IndividualDashboardHelperTest {
 
 	@Test
 	public void testGetIndividualMetricsTimeSeries() {
-		Map<Integer, List<Map<Date, Integer>>> metricsListMap = idh.getIndividualMetricsTimeSeries(1, 1);
+		Map<Integer, List<Map<Date, Integer>>> metricsListMap = idh.getIndividualMetricsTimeSeries(companyId, 1);
 		for (int i = 1; i <= metricsListMap.keySet().size(); i++) {
 			assertTrue(!metricsListMap.keySet().isEmpty());
 		}
@@ -89,26 +89,26 @@ public class IndividualDashboardHelperTest {
 		appreciationResponseMap.put(e.get(companyId, 3), 7);
 		appreciationResponseMap.put(e.get(companyId, 4), 8);
 		appreciationResponseMap.put(e.get(companyId, 5), 9);
-		boolean status = idh.saveAppreciation(1, 1, 1, appreciationResponseMap);
+		boolean status = idh.saveAppreciation(companyId, 1, 1, appreciationResponseMap);
 		assertTrue(status);
 
 	}
 
 	@Test
 	public void testChangePassword() {
-		boolean status = idh.changePassword(1, 100, "abc123", "efg456");
+		boolean status = idh.changePassword(companyId, 100, "abc123", "efg456");
 		assertTrue(status);
 	}
 
 	@Test
 	public void testUpdateNotificationTimestamp() {
-		boolean status = idh.updateNotificationTimestamp(1, 1);
+		boolean status = idh.updateNotificationTimestamp(companyId, 1);
 		assertTrue(status);
 	}
 
 	@Test
 	public void testGetNotificationsCount() {
-		int count = idh.getNotificationsCount(1, 1);
+		int count = idh.getNotificationsCount(companyId, 1);
 		assertTrue(count > 0);
 	}
 }

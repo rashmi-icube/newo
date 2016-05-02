@@ -45,8 +45,8 @@ import org.rosuda.REngine.RList;
 import org.rosuda.REngine.Rserve.RConnection;
 
 public class IndividualDashboardHelper extends TheBorg {
-	
-	 String charList = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+
+	String charList = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
 
 	/**
 	 * Retrieves the list of 3 metrics to be displayed for the individual
@@ -56,59 +56,31 @@ public class IndividualDashboardHelper extends TheBorg {
 	 */
 
 	public List<Metrics> getIndividualMetrics(int companyId, int employeeId) {
-		Map<Integer, Metrics> metricsMasterMap = getEmptyMetricScoreList(companyId, "Individual");
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
 		MetricsHelper mh = new MetricsHelper();
-		List<Metrics> actualMetricsList = new ArrayList<>();
 		List<Metrics> metricsList = new ArrayList<>();
 		try {
 			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getIndividualMetricValueForIndividual(?)}");
 			cstmt.setInt(1, employeeId);
 			ResultSet rs = cstmt.executeQuery();
-			actualMetricsList = mh.fillMetricsData(0, rs, null, "Individual");
-			for (Metrics m : actualMetricsList) {
-				metricsMasterMap.put(m.getId(), m);
+			List<Metrics> initialMetricsList = mh.fillMetricsData(companyId, 0, rs, null, "Individual");
+			// removing 2 metrics since only 3 default ones are shown in the panel i.e. Expertise, Mentorship, Influence
+			for (Metrics m : initialMetricsList) {
+				if (m.getId() == 1 || m.getId() == 2 || m.getId() == 4) {
+					metricsList.add(m);
+				}
 			}
-			metricsList.addAll(metricsMasterMap.values());
-
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while retrieving individual metrics data", e);
 		}
+
 		return metricsList;
 	}
 
 	/**
-	 * Retrieves a metrics list with score set as empty
-	 * @param companyId - Company ID
-	 * @param category - Should be set to Individual
-	 * @return A map of metric ID and Metrics object
-	 */
-	private Map<Integer, Metrics> getEmptyMetricScoreList(int companyId, String category) {
-		Map<Integer, Metrics> metricsMasterMap = new HashMap<>();
-		MetricsHelper mh = new MetricsHelper();
-		Map<Integer, String> metricListMap = mh.getMetricListForCategory(companyId, category);
-		for (int metric_id : metricListMap.keySet()) {
-			if (metric_id == 1 || metric_id == 2 || metric_id == 4) {
-				Metrics m = new Metrics();
-				m.setId(metric_id);
-				m.setName(metricListMap.get(metric_id));
-				m.setCategory("Individual");
-				m.setScore(0);
-				m.setDateOfCalculation(Date.from(Instant.now()));
-				m.setDirection("Neutral");
-				m.setAverage(0);
-				m.setPrimary(false);
-				metricsMasterMap.put(metric_id, m);
-			}
-		}
-
-		return metricsMasterMap;
-	}
-
-	/**
 	 * Retrieves the time series data
-	 * @param companyId - Comapny ID
+	 * @param companyId - company ID
 	 * @param employeeId - Employee Id of the individual who is logged in
 	 * @return Time series data to be displayed
 	 */
@@ -137,7 +109,7 @@ public class IndividualDashboardHelper extends TheBorg {
 
 	/**
 	 * Retrieves an empty time series map
-	 * @param companyId - Comapny ID
+	 * @param companyId - Company ID
 	 * @param category - Should be Individual
 	 * @return A map of metric Id and list of maps of date and metric score set to 0
 	 */
@@ -449,28 +421,27 @@ public class IndividualDashboardHelper extends TheBorg {
 		}
 		return passwordChanged;
 	}
-	
-	
+
 	/**
 	 * @param emailId - email id of the employee whose password needs to be reset
 	 * @throws Exception 
 	 */
-	public boolean generateNewPassword(String emailId) throws Exception{
+	public boolean generateNewPassword(String emailId) throws Exception {
 		boolean passwordChanged = false;
 		EmailSender es = new EmailSender();
 		List<String> address = Arrays.asList(emailId);
-		
-		//generate a random password
-		 int RandomPasswordLength = 8;
-		 StringBuffer randStr = new StringBuffer();
-	        for(int i=0; i<RandomPasswordLength; i++){
-	            int number = getRandomNumber();
-	            char ch = charList.charAt(number);
-	            randStr.append(ch);
-	        }
-		
-		//save the new password in the database
-		
+
+		// generate a random password
+		int RandomPasswordLength = 8;
+		StringBuffer randStr = new StringBuffer();
+		for (int i = 0; i < RandomPasswordLength; i++) {
+			int number = getRandomNumber();
+			char ch = charList.charAt(number);
+			randStr.append(ch);
+		}
+
+		// save the new password in the database
+
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Connection companySqlCon = null;
 		int index = emailId.indexOf('@');
@@ -486,8 +457,8 @@ public class IndividualDashboardHelper extends TheBorg {
 				companySqlCon = dch.companySqlConnectionPool.get(companyId);
 			}
 			Statement stmt = companySqlCon.createStatement();
-			int updatePassword = stmt
-					.executeUpdate("update login_table set password = " + '"' + randStr.toString() + '"' + " where login_id = " + '"' + emailId + '"' +"");
+			int updatePassword = stmt.executeUpdate("update login_table set password = " + '"' + randStr.toString() + '"' + " where login_id = "
+					+ '"' + emailId + '"' + "");
 			if (updatePassword == 0) {
 				org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Current password is incorrect");
 				throw new Exception("Error in resetting the password");
@@ -495,33 +466,32 @@ public class IndividualDashboardHelper extends TheBorg {
 				passwordChanged = true;
 			}
 
-		}catch (SQLException e1) {
+		} catch (SQLException e1) {
 			org.apache.log4j.Logger.getLogger(Login.class).error("Exception while retrieving the company database", e1);
 		}
-		
-        //send the new password to the employee
-	try {
-		es.sendNewPasswordEmail(address, randStr.toString());
-	} catch (MessagingException e) {
-		org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Error in sending email",e);
-	}
-	
+
+		// send the new password to the employee
+		try {
+			es.sendNewPasswordEmail(address, randStr.toString());
+		} catch (MessagingException e) {
+			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Error in sending email", e);
+		}
+
 		return passwordChanged;
 	}
 
-	
 	/**
 	 * @return random numbers
 	 */
 	private int getRandomNumber() {
-		 int randomInt = 0;
-	        Random randomGenerator = new Random();
-	        randomInt = randomGenerator.nextInt(charList.length());
-	        if (randomInt - 1 == -1) {
-	            return randomInt;
-	        } else {
-	            return randomInt - 1;
-	        }
+		int randomInt = 0;
+		Random randomGenerator = new Random();
+		randomInt = randomGenerator.nextInt(charList.length());
+		if (randomInt - 1 == -1) {
+			return randomInt;
+		} else {
+			return randomInt - 1;
+		}
 	}
 
 	/**

@@ -16,7 +16,7 @@ import org.junit.Test;
 
 public class InitiativeTest {
 	Initiative initiative = (Initiative) ObjectFactory.getInstance("org.icube.owen.initiative.Initiative");
-	int companyId = 1;
+	int companyId = 2;
 
 	@Test
 	public void testSetInitiativeProperties() {

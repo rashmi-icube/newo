@@ -4,6 +4,7 @@ import java.sql.CallableStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -21,7 +22,7 @@ import org.rosuda.REngine.REXPString;
 import org.rosuda.REngine.RList;
 import org.rosuda.REngine.Rserve.RConnection;
 
-public class MetricsHelper extends TheBorg{
+public class MetricsHelper extends TheBorg {
 
 	/**
 	 * Retrieves the list of metrics of category team
@@ -53,7 +54,7 @@ public class MetricsHelper extends TheBorg{
 				cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getOrganizationMetricValue()}");
 			}
 			ResultSet rs = cstmt.executeQuery();
-			metricList = fillMetricsData(initiativeTypeId, rs, primaryMetricMap, "Team");
+			metricList = fillMetricsData(companyId, initiativeTypeId, rs, primaryMetricMap, "Team");
 			org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Calculated metrics for organization : " + metricList.size());
 		} else if ((int) parsedFilterListResult.get("countAll") == 2) {
 			// if two of the filters are ALL then it is a dimension metric
@@ -75,7 +76,7 @@ public class MetricsHelper extends TheBorg{
 			}
 
 			ResultSet rs = cstmt.executeQuery();
-			metricList = fillMetricsData(initiativeTypeId, rs, primaryMetricMap, "Team");
+			metricList = fillMetricsData(companyId, initiativeTypeId, rs, primaryMetricMap, "Team");
 			org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Calculated metrics for dimension : " + metricList.size());
 		} else if ((int) parsedFilterListResult.get("countAll") == 0) {
 			// if none of the filters is ALL then it is a cube metric
@@ -91,7 +92,7 @@ public class MetricsHelper extends TheBorg{
 			cstmt.setInt(2, (int) parsedFilterListResult.get("posId"));
 			cstmt.setInt(3, (int) parsedFilterListResult.get("zoneId"));
 			ResultSet rs = cstmt.executeQuery();
-			metricList = fillMetricsData(initiativeTypeId, rs, primaryMetricMap, "Team");
+			metricList = fillMetricsData(companyId, initiativeTypeId, rs, primaryMetricMap, "Team");
 			org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Calculated metrics for team : " + metricList.size());
 		} else {
 			// else call metric.R
@@ -105,39 +106,37 @@ public class MetricsHelper extends TheBorg{
 	/**
 	 * Fills the metrics object
 	 * @param initiativeTypeId - Initiative type ID
-	 * @param rs - Resultset containing the metrics details
+	 * @param rs - ResultSet containing the metrics details
 	 * @param primaryMetricMap - Map containing the primary metric ID and name
-	 * @param category - Tem/Individual
+	 * @param category - Team/Individual
 	 * @return - List of metrics objects 
-	 * @throws SQLException If unable to fill the metrrics object
+	 * @throws SQLException If unable to fill the metrics object
 	 */
-	public List<Metrics> fillMetricsData(int initiativeTypeId, ResultSet rs, Map<Integer, String> primaryMetricMap, String category)
+	public List<Metrics> fillMetricsData(int companyId, int initiativeTypeId, ResultSet rs, Map<Integer, String> primaryMetricMap, String category)
 			throws SQLException {
+		Map<Integer, Metrics> masterMetricsMap = getEmptyMetricScoreList(companyId, category);
 		List<Metrics> metricsList = new ArrayList<>();
-		if (rs != null) {
-			while (rs.next()) {
-				Metrics m = new Metrics();
-				m.setId(rs.getInt("metric_id"));
-				m.setName(rs.getString("metric_name"));
-				m.setScore(rs.getInt("current_score"));
-				m.setDateOfCalculation(rs.getDate("calc_time"));
-				m.setCategory(category);
-				if (UtilHelper.hasColumn(rs, "previous_score")) {
-					m.setDirection(m.calculateMetricDirection(rs.getInt("current_score"), rs.getInt("previous_score")));
-				}
-				if (primaryMetricMap != null && primaryMetricMap.containsKey(rs.getInt("metric_id"))) {
-					m.setPrimary(true);
-				} else {
-					m.setPrimary(false);
-				}
-				if (UtilHelper.hasColumn(rs, "average_score")) {
-					m.setAverage(rs.getInt("average_score"));
-				}
-				metricsList.add(m);
+		while (rs.next()) {
+			Metrics m = new Metrics();
+			m.setId(rs.getInt("metric_id"));
+			m.setName(rs.getString("metric_name"));
+			m.setScore(rs.getInt("current_score"));
+			m.setDateOfCalculation(rs.getDate("calc_time"));
+			m.setCategory(category);
+			if (UtilHelper.hasColumn(rs, "previous_score")) {
+				m.setDirection(m.calculateMetricDirection(rs.getInt("current_score"), rs.getInt("previous_score")));
 			}
-		} else {
-			org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("No metrics returned");
+			if (primaryMetricMap != null && primaryMetricMap.containsKey(rs.getInt("metric_id"))) {
+				m.setPrimary(true);
+			} else {
+				m.setPrimary(false);
+			}
+			if (UtilHelper.hasColumn(rs, "average_score")) {
+				m.setAverage(rs.getInt("average_score"));
+			}
+			masterMetricsMap.put(m.getId(), m);
 		}
+		metricsList.addAll(masterMetricsMap.values());
 		return metricsList;
 	}
 
@@ -305,5 +304,31 @@ public class MetricsHelper extends TheBorg{
 			metricsList.add(m);
 		}
 		return metricsList;
+	}
+
+	/**
+	 * Retrieves a metrics list with score set as empty
+	 * @param companyId - Company ID
+	 * @param category - Should be set to Individual
+	 * @return A map of metric ID and Metrics object
+	 */
+	public Map<Integer, Metrics> getEmptyMetricScoreList(int companyId, String category) {
+		Map<Integer, Metrics> metricsMasterMap = new HashMap<>();
+		MetricsHelper mh = new MetricsHelper();
+		Map<Integer, String> metricListMap = mh.getMetricListForCategory(companyId, category);
+		for (int metric_id : metricListMap.keySet()) {
+			Metrics m = new Metrics();
+			m.setId(metric_id);
+			m.setName(metricListMap.get(metric_id));
+			m.setCategory("Individual");
+			m.setScore(0);
+			m.setDateOfCalculation(Date.from(Instant.now()));
+			m.setDirection("Neutral");
+			m.setAverage(0);
+			m.setPrimary(false);
+			metricsMasterMap.put(metric_id, m);
+		}
+
+		return metricsMasterMap;
 	}
 }
