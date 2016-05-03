@@ -169,9 +169,9 @@ public class EmailSender {
 	 */
 	public void sendNewPasswordEmail(List<String> address, String newPassword) throws AddressException, MessagingException {
 		String host = "smtp.zoho.com";
-		String username = "info@i-cube.in";
-		String password = "test1234";
-		String from = "info@i-cube.in";
+		String username = "support@owenanalytics.com";
+		String password = "Abcd@654321";
+		String from = "support@owenanalytics.com";
 		Properties props = new Properties();
 		props.put("mail.debug", "true");
 		props.put("mail.smtp.ssl.enable", "true");
