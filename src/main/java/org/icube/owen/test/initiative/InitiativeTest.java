@@ -23,10 +23,10 @@ public class InitiativeTest {
 		List<Employee> ownerOfList = new ArrayList<>();
 		List<Employee> partOfEmployeeList = new ArrayList<>();
 		Employee e = new Employee();
-		ownerOfList.add(e.get(companyId, 19));
-		ownerOfList.add(e.get(companyId, 18));
+		ownerOfList.add(e.get(companyId, 2));
+		ownerOfList.add(e.get(companyId, 4));
 		ownerOfList.add(e.get(companyId, 3));
-		partOfEmployeeList.add(e.get(companyId, 16));
+		partOfEmployeeList.add(e.get(companyId, 7));
 
 		initiative.setInitiativeProperties("1Individual", 1, "Individual", Date.from(Instant.now()), Date.from(Instant.now()), Date.from(Instant
 				.now()), "You are owners of the initiative", null, ownerOfList, partOfEmployeeList);

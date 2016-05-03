@@ -241,7 +241,7 @@ public class IndividualDashboardHelper extends TheBorg {
 				int fromIndex = pageNumber == 1 ? 0 : (pageNumber - 1) * feedThreshold + 1;
 				int toIndex = pageNumber == 1 ? feedThreshold : pageNumber * feedThreshold;
 
-				ArrayList<ActivityFeed> afSubList = new ArrayList<ActivityFeed>(afList.subList(fromIndex, toIndex > afList.size() ? afList.size() - 1
+				ArrayList<ActivityFeed> afSubList = new ArrayList<ActivityFeed>(afList.subList(fromIndex, toIndex > afList.size() ? afList.size()
 						: toIndex));
 
 				for (ActivityFeed af1 : afSubList) {

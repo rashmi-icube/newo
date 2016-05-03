@@ -17,12 +17,14 @@ import javax.mail.internet.MimeMessage;
 
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.helper.DatabaseConnectionHelper;
+import org.icube.owen.helper.UtilHelper;
 
 public class EmailSender {
 
 	DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 
 	public static final int MAX_EMAILS_TO_BE_SENT = 50;
+	private String loginUrl = UtilHelper.getConfigProperty("login_page_url");
 	List<String> toAddresses = Arrays.asList("hpatel@i-cube.in", "rashmi@i-cube.in", "ssrivastava@i-cube.in", "adoshi@i-cube.in");
 
 	/**
@@ -35,9 +37,9 @@ public class EmailSender {
 	 */
 	public void sendEmail(Map<Integer, List<Map<String, String>>> schedulerJobStatusMap, String subject) throws AddressException, MessagingException {
 		String host = "smtp.zoho.com";
-		String username = "info@i-cube.in";
-		String password = "test1234";
-		String from = "info@i-cube.in";
+		String username = "owen@owenanalytics.com";
+		String password = "Abcd@654321";
+		String from = "owen@owenanalytics.com";
 		Properties props = new Properties();
 		props.put("mail.debug", "true");
 		props.put("mail.smtp.ssl.enable", "true");
@@ -103,9 +105,9 @@ public class EmailSender {
 	 */
 	public void sendEmailforQuestions(List<String> addresses) {
 		String host = "smtp.zoho.com";
-		String username = "info@i-cube.in";
-		String password = "test1234";
-		String from = "info@i-cube.in";
+		String username = "owen@owenanalytics.com";
+		String password = "Abcd@654321";
+		String from = "owen@owenanalytics.com";
 		Properties props = new Properties();
 		props.put("mail.debug", "true");
 		props.put("mail.smtp.ssl.enable", "true");
@@ -129,7 +131,7 @@ public class EmailSender {
 				msg.setFrom(new InternetAddress(from));
 				msg.setRecipients(Message.RecipientType.BCC, getEmailsArray(addr));
 				msg.setSubject("You have a new question");
-				msg.setText("You have new questions to answer.Please login to answer: http://ec2-52-35-113-15.us-west-2.compute.amazonaws.com:8080/OWENWeb/individual/login.jsp");
+				msg.setText("You have new questions to answer. Please login to answer : " + loginUrl + "");
 				Transport.send(msg, username, password);
 			} catch (MessagingException e) {
 				org.apache.log4j.Logger.getLogger(EmailSender.class).error("Error in sending Emails for current questions", e);
