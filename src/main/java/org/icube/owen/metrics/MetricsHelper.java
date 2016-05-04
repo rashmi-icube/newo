@@ -54,7 +54,7 @@ public class MetricsHelper extends TheBorg {
 				cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getOrganizationMetricValue()}");
 			}
 			ResultSet rs = cstmt.executeQuery();
-			metricList = fillMetricsData(companyId, initiativeTypeId, rs, primaryMetricMap, "Team");
+			metricList = fillMetricsData(companyId, rs, primaryMetricMap, "Team");
 			org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Calculated metrics for organization : " + metricList.size());
 		} else if ((int) parsedFilterListResult.get("countAll") == 2) {
 			// if two of the filters are ALL then it is a dimension metric
@@ -76,7 +76,7 @@ public class MetricsHelper extends TheBorg {
 			}
 
 			ResultSet rs = cstmt.executeQuery();
-			metricList = fillMetricsData(companyId, initiativeTypeId, rs, primaryMetricMap, "Team");
+			metricList = fillMetricsData(companyId, rs, primaryMetricMap, "Team");
 			org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Calculated metrics for dimension : " + metricList.size());
 		} else if ((int) parsedFilterListResult.get("countAll") == 0) {
 			// if none of the filters is ALL then it is a cube metric
@@ -92,7 +92,7 @@ public class MetricsHelper extends TheBorg {
 			cstmt.setInt(2, (int) parsedFilterListResult.get("posId"));
 			cstmt.setInt(3, (int) parsedFilterListResult.get("zoneId"));
 			ResultSet rs = cstmt.executeQuery();
-			metricList = fillMetricsData(companyId, initiativeTypeId, rs, primaryMetricMap, "Team");
+			metricList = fillMetricsData(companyId, rs, primaryMetricMap, "Team");
 			org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Calculated metrics for team : " + metricList.size());
 		} else {
 			// else call metric.R
@@ -112,7 +112,7 @@ public class MetricsHelper extends TheBorg {
 	 * @return - List of metrics objects 
 	 * @throws SQLException If unable to fill the metrics object
 	 */
-	public List<Metrics> fillMetricsData(int companyId, int initiativeTypeId, ResultSet rs, Map<Integer, String> primaryMetricMap, String category)
+	public List<Metrics> fillMetricsData(int companyId, ResultSet rs, Map<Integer, String> primaryMetricMap, String category)
 			throws SQLException {
 		Map<Integer, Metrics> masterMetricsMap = getEmptyMetricScoreList(companyId, category);
 		List<Metrics> metricsList = new ArrayList<>();

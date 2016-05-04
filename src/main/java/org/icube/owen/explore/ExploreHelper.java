@@ -119,7 +119,7 @@ public class ExploreHelper extends TheBorg {
 				cstmt.setInt(1, e.getEmployeeId());
 				ResultSet rs = cstmt.executeQuery();
 				MetricsHelper mh = new MetricsHelper();
-				metricsList = mh.fillMetricsData(companyId, 0, rs, null, "Individual");
+				metricsList = mh.fillMetricsData(companyId, rs, null, "Individual");
 				result.put(e, metricsList);
 			}
 		} catch (SQLException e) {

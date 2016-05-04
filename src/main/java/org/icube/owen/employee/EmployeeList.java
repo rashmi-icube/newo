@@ -75,8 +75,6 @@ public class EmployeeList extends TheBorg {
 			RList result = employeeSmartListForTeam.asList();
 			REXPInteger empIdResult = (REXPInteger) result.get("emp_id");
 			int[] empIdArray = empIdResult.asIntegers();
-			REXPDouble scoreResult = (REXPDouble) result.get("Score");
-			int[] scoreArray = scoreResult.asIntegers();
 			REXPString gradeRseult = (REXPString) result.get("flag");
 			String[] gradeArray = gradeRseult.asStrings();
 			REXPInteger rank = (REXPInteger) result.get("Rank");
@@ -87,7 +85,6 @@ public class EmployeeList extends TheBorg {
 				Employee e = new Employee();
 				e = e.get(companyId, empIdArray[i]);
 				e.setGrade(gradeArray[i]);
-				e.setScore(scoreArray[i]);
 				empMap.put(rankArray[i], e);
 			}
 

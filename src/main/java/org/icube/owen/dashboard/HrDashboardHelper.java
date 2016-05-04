@@ -14,9 +14,9 @@ import org.icube.owen.TheBorg;
 import org.icube.owen.filter.Filter;
 import org.icube.owen.helper.DatabaseConnectionHelper;
 import org.icube.owen.metrics.Metrics;
+import org.icube.owen.metrics.MetricsHelper;
 
 public class HrDashboardHelper extends TheBorg {
-// TODO EMPTY METRICS
 	/**
 	 * Calculates the organizational metrics - for specific filter selection
 	 * @param companyId - Company ID
@@ -39,17 +39,8 @@ public class HrDashboardHelper extends TheBorg {
 			cstmt.setInt("dimvalid", filter.getFilterValues().keySet().iterator().next().intValue());
 			cstmt.setInt("dimid", filter.getFilterId());
 			ResultSet rs = cstmt.executeQuery();
-			while (rs.next()) {
-				Metrics m = new Metrics();
-				m.setId(rs.getInt("metric_id"));
-				m.setName(rs.getString("metric_name"));
-				m.setCategory("Team");
-				m.setScore(rs.getInt("current_score"));
-				m.setDirection(m.calculateMetricDirection(rs.getInt("current_score"), rs.getInt("previous_score")));
-				m.setAverage(rs.getInt("average_score"));
-				m.setDateOfCalculation(rs.getDate("calc_time"));
-				dimensionMetricsList.add(m);
-			}
+			MetricsHelper mh = new MetricsHelper();
+			dimensionMetricsList = mh.fillMetricsData(companyId, rs, null, "Team");
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).error("Exception while retrieving organization level metrics", e);
 		}
@@ -64,7 +55,6 @@ public class HrDashboardHelper extends TheBorg {
 	 */
 
 	public List<Metrics> getOrganizationalMetrics(int companyId) {
-		// TODO SEND A EMPTY METRICS LIST
 		List<Metrics> orgMetricsList = new ArrayList<>();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
@@ -72,17 +62,8 @@ public class HrDashboardHelper extends TheBorg {
 
 			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getOrganizationMetricValueAggregate()}");
 			ResultSet rs = cstmt.executeQuery();
-			while (rs.next()) {
-				Metrics m = new Metrics();
-				m.setId(rs.getInt("metric_id"));
-				m.setName(rs.getString("metric_name"));
-				m.setCategory("Team");
-				m.setScore(rs.getInt("current_score"));
-				m.setDirection(m.calculateMetricDirection(rs.getInt("current_score"), rs.getInt("previous_score")));
-				m.setAverage(rs.getInt("average_score"));
-				m.setDateOfCalculation(rs.getDate("calc_time"));
-				orgMetricsList.add(m);
-			}
+			MetricsHelper mh = new MetricsHelper();
+			orgMetricsList = mh.fillMetricsData(companyId, rs, null, "Team");
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).error("Exception while retrieving organization level metrics", e);
 		}

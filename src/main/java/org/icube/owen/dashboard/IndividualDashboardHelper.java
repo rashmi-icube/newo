@@ -64,7 +64,7 @@ public class IndividualDashboardHelper extends TheBorg {
 			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getIndividualMetricValueForIndividual(?)}");
 			cstmt.setInt(1, employeeId);
 			ResultSet rs = cstmt.executeQuery();
-			List<Metrics> initialMetricsList = mh.fillMetricsData(companyId, 0, rs, null, "Individual");
+			List<Metrics> initialMetricsList = mh.fillMetricsData(companyId, rs, null, "Individual");
 			// removing 2 metrics since only 3 default ones are shown in the panel i.e. Expertise, Mentorship, Influence
 			for (Metrics m : initialMetricsList) {
 				if (m.getId() == 1 || m.getId() == 2 || m.getId() == 4) {
