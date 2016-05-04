@@ -18,6 +18,7 @@ import javax.mail.internet.MimeMessage;
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.helper.DatabaseConnectionHelper;
 import org.icube.owen.helper.UtilHelper;
+import org.icube.owen.slack.SlackIntegration;
 
 public class EmailSender {
 
@@ -58,7 +59,6 @@ public class EmailSender {
 			org.apache.log4j.Logger.getLogger(EmailSender.class).error("Error in sending Email", e);
 			dch.releaseRcon();
 		}
-
 	}
 
 	/**
@@ -103,7 +103,7 @@ public class EmailSender {
 	 * Sends the email for active questions
 	 * @param addresses - List of email ID's
 	 */
-	public void sendEmailforQuestions(List<String> addresses) {
+	public void sendEmailforQuestions(int companyId, List<String> addresses) {
 		String host = "smtp.zoho.com";
 		String username = "owen@owenanalytics.com";
 		String password = "Abcd@654321";
@@ -133,6 +133,10 @@ public class EmailSender {
 				msg.setSubject("You have a new question");
 				msg.setText("You have new questions to answer. Please login to answer : " + loginUrl + "");
 				Transport.send(msg, username, password);
+
+				// send slack update
+				SlackIntegration sl = new SlackIntegration();
+				sl.sendMessage(companyId, "You have new questions to answer. Please login to answer : " + loginUrl + "");
 			} catch (MessagingException e) {
 				org.apache.log4j.Logger.getLogger(EmailSender.class).error("Error in sending Emails for current questions", e);
 				dch.releaseRcon();

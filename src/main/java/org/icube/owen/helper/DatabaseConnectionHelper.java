@@ -26,6 +26,7 @@ public class DatabaseConnectionHelper extends TheBorg {
 	public Map<Integer, Connection> companySqlConnectionPool;
 	public Map<Integer, Connection> companyNeoConnectionPool;
 	public Map<Integer, String> companyImagePath;
+	public Map<Integer, String> companySlackUrl;
 	private RConnection rCon;
 
 	private boolean rConInUse = false;
@@ -72,6 +73,7 @@ public class DatabaseConnectionHelper extends TheBorg {
 			companySqlConnectionPool = new HashMap<>();
 			companyImagePath = new HashMap<>();
 			companyNeoConnectionPool = new HashMap<>();
+			companySlackUrl = new HashMap<>();
 		} catch (RserveException | REXPMismatchException e) {
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("An error occurred while trying to connect to R", e);
 		}
@@ -154,6 +156,7 @@ public class DatabaseConnectionHelper extends TheBorg {
 					neoUrl = rs.getString("neo_db_url");
 					neoUserName = rs.getString("neo_user_name");
 					neoPassword = rs.getString("neo_password");
+					companySlackUrl.put(companyId, rs.getString("slack_url"));
 				}
 			}
 

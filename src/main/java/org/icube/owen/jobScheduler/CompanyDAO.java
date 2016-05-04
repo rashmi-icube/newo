@@ -22,7 +22,8 @@ public class CompanyDAO extends TimerTask {
 	private RConnection rCon;
 	private DatabaseConnectionHelper dch;
 	Map<Integer, List<Map<String, String>>> schedulerJobStatusMap = new HashMap<>();
-    boolean jobStatus = true;
+	boolean jobStatus = true;
+
 	@Override
 	public void run() {
 
@@ -30,10 +31,10 @@ public class CompanyDAO extends TimerTask {
 		EmailSender es = new EmailSender();
 		String subject;
 		try {
-			//check if all the jobs have run successfully or not
-			if(jobStatus == true){
+			// check if all the jobs have run successfully or not
+			if (jobStatus == true) {
 				subject = "Scheduler job executed successfully";
-			}else{
+			} else {
 				subject = "Scheduler job failed";
 			}
 			es.sendEmail(schedulerJobStatusMap, subject);
@@ -139,7 +140,7 @@ public class CompanyDAO extends TimerTask {
 			}
 
 		} catch (Exception e) {
-			//add to map of status
+			// add to map of status
 			org.apache.log4j.Logger.getLogger(CompanyDAO.class).error("Unable to execute Scheduler jobs ", e);
 		}
 
@@ -184,28 +185,29 @@ public class CompanyDAO extends TimerTask {
 	public void runNewQuestionJob(int companyId) throws SQLException {
 		ArrayList<String> addresses = new ArrayList<String>();
 		Map<String, String> jobStatusMap = new HashMap<>();
-		try{
-		Statement stmt = dch.companySqlConnectionPool.get(companyId).createStatement();
-		ResultSet res = stmt
-				.executeQuery("select distinct(l.login_id) as email_id from (select Distinct(survey_batch_id) as survey_batch_id from question where date(start_date)=CURDATE()) as b join batch_target as bt on b.survey_batch_id=bt.survey_batch_id left join login_table as l on l.emp_id=bt.emp_id");
+		try {
+			Statement stmt = dch.companySqlConnectionPool.get(companyId).createStatement();
+			ResultSet res = stmt
+					.executeQuery("select distinct(l.login_id) as email_id from (select Distinct(survey_batch_id) as survey_batch_id from question where date(start_date)=CURDATE()) as b join batch_target as bt on b.survey_batch_id=bt.survey_batch_id left join login_table as l on l.emp_id=bt.emp_id");
 
-		while (res.next()) {
-			addresses.add(res.getString(1));
-			System.out.println(res.getString(1));
-		}
-		//in case of new questions send email
-		if (addresses.size() > 0) {
-			EmailSender es = new EmailSender();
-			es.sendEmailforQuestions(addresses);
-			jobStatusMap.put("NewQuestionJob", "Total emails sent : " + addresses.size());
-		} else {
-			jobStatusMap.put("NewQuestionJob", "No new questions");
-		}
-		}catch(SQLException e){
-			org.apache.log4j.Logger.getLogger(CompanyDAO.class).error("Error in executing runNewQuestionJob function",e);
+			while (res.next()) {
+				addresses.add(res.getString(1));
+				System.out.println(res.getString(1));
+			}
+			// in case of new questions send email
+			if (addresses.size() > 0) {
+				EmailSender es = new EmailSender();
+				es.sendEmailforQuestions(companyId, addresses);
+				jobStatusMap.put("NewQuestionJob", "Total emails sent : " + addresses.size());
+			} else {
+				jobStatusMap.put("NewQuestionJob", "No new questions");
+			}
+		} catch (SQLException e) {
+			org.apache.log4j.Logger.getLogger(CompanyDAO.class).error("Error in executing runNewQuestionJob function", e);
 			jobStatus = false;
-		}	
+		}
 		schedulerJobStatusMap.get(companyId).add(jobStatusMap);
+
 	}
 
 }
