@@ -61,7 +61,7 @@ public class EmployeeHelper extends TheBorg {
 	 * @param employeeId - employeeId of the given employee
 	 * @return - List of work experience objects
 	 */
-
+	//TODO sort the list returned based on the start date
 	public List<WorkExperience> getWorkExperienceDetails(int companyId, int employeeId) {
 
 		List<WorkExperience> workExList = new ArrayList<>();
@@ -112,6 +112,7 @@ public class EmployeeHelper extends TheBorg {
 	 * @param employeeId - ID of the employee to be retrieved
 	 * @return - List of EducationDetails objects
 	 */
+	//TODO sort the list returned based on the start date
 	public List<EducationDetails> getEducationDetails(int companyId, int employeeId) {
 
 		List<EducationDetails> educationDetailsList = new ArrayList<>();

@@ -16,7 +16,7 @@ import org.icube.owen.helper.DatabaseConnectionHelper;
 import org.icube.owen.metrics.Metrics;
 
 public class HrDashboardHelper extends TheBorg {
-
+// TODO EMPTY METRICS
 	/**
 	 * Calculates the organizational metrics - for specific filter selection
 	 * @param companyId - Company ID
@@ -64,6 +64,7 @@ public class HrDashboardHelper extends TheBorg {
 	 */
 
 	public List<Metrics> getOrganizationalMetrics(int companyId) {
+		// TODO SEND A EMPTY METRICS LIST
 		List<Metrics> orgMetricsList = new ArrayList<>();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);

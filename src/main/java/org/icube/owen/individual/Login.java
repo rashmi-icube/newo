@@ -16,7 +16,7 @@ import org.icube.owen.helper.DatabaseConnectionHelper;
 import org.icube.owen.helper.UtilHelper;
 
 public class Login extends TheBorg {
-//TODO HP : add a timestamp in the login table
+
 	/**
 	 * Validates user name and password for login page
 	 * @param emailId - email id of the user
