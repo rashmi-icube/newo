@@ -406,6 +406,7 @@ public class Initiative extends TheBorg {
 	 */
 
 	public boolean delete(int companyId, int initiativeId) {
+		org.apache.log4j.Logger.getLogger(Initiative.class).debug("Starting to delete the initiative ID " + initiativeId);
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
 		boolean status = false;
@@ -488,6 +489,7 @@ public class Initiative extends TheBorg {
 	 */
 
 	public boolean complete(int companyId, int initiativeId) {
+		org.apache.log4j.Logger.getLogger(Initiative.class).debug("Starting to change status of initiatve with ID " + initiativeId + " to Completed");
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
 		boolean status = false;
