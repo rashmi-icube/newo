@@ -7,6 +7,8 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -61,7 +63,6 @@ public class EmployeeHelper extends TheBorg {
 	 * @param employeeId - employeeId of the given employee
 	 * @return - List of work experience objects
 	 */
-	//TODO sort the list returned based on the start date
 	public List<WorkExperience> getWorkExperienceDetails(int companyId, int employeeId) {
 
 		List<WorkExperience> workExList = new ArrayList<>();
@@ -97,6 +98,15 @@ public class EmployeeHelper extends TheBorg {
 					workEx.setDuration("");
 				}
 				workExList.add(workEx);
+
+				if (!workExList.isEmpty()) {
+					Collections.sort(workExList, new Comparator<WorkExperience>() {
+						@Override
+						public int compare(WorkExperience we1, WorkExperience we2) {
+							return we2.getStartDate().compareTo(we1.getStartDate());
+						}
+					});
+				}
 			}
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).error("Exception while getting the employee basic details", e);
@@ -112,7 +122,7 @@ public class EmployeeHelper extends TheBorg {
 	 * @param employeeId - ID of the employee to be retrieved
 	 * @return - List of EducationDetails objects
 	 */
-	//TODO sort the list returned based on the start date
+	// TODO sort the list returned based on the start date
 	public List<EducationDetails> getEducationDetails(int companyId, int employeeId) {
 
 		List<EducationDetails> educationDetailsList = new ArrayList<>();
@@ -137,6 +147,15 @@ public class EmployeeHelper extends TheBorg {
 			}
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).error("Exception while getting the employee basic details", e);
+		}
+
+		if (!educationDetailsList.isEmpty()) {
+			Collections.sort(educationDetailsList, new Comparator<EducationDetails>() {
+				@Override
+				public int compare(EducationDetails ed1, EducationDetails ed2) {
+					return ed2.getStartDate().compareTo(ed1.getStartDate());
+				}
+			});
 		}
 
 		return educationDetailsList;
