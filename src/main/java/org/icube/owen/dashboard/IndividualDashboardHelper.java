@@ -320,6 +320,7 @@ public class IndividualDashboardHelper extends TheBorg {
 			REXP employeeSmartList = rCon.parseAndEval("try(eval(SmartListResponse(company_id, emp_id, rel_id)))");
 			if (employeeSmartList.inherits("try-error")) {
 				org.apache.log4j.Logger.getLogger(Question.class).error("Error: " + employeeSmartList.asString());
+				dch.releaseRcon();
 				throw new Exception("Error: " + employeeSmartList.asString());
 			} else {
 				org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug(

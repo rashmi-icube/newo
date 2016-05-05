@@ -65,6 +65,7 @@ public class DatabaseConnectionHelper extends TheBorg {
 			if (loadRScript.inherits("try-error")) {
 				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error(
 						"An error occurred while trying to loading the R script : " + loadRScript.asString());
+				releaseRcon();
 				throw new REXPMismatchException(loadRScript, "Error: " + loadRScript.asString());
 			} else {
 				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Successfully loaded metric.r script");

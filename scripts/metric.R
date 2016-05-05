@@ -476,9 +476,17 @@ SmartListResponse=function(CompanyId,emp_id,rel_id){
   }
   
   if (!is.null(FirstConn)){
+    
     FirstConn=FirstConn[with(FirstConn, order(emp_id)), ]
     FirstConn=FirstConn[with(FirstConn, order(-weight)), ]
-    FirstConn$Rank=1:nrow(FirstConn)
+    
+    if(nrow(FirstConn)>0){
+      FirstConn$Rank=1:nrow(FirstConn)
+    }else{
+      SeconFirstConndConn=data.frame(emp_id=as.integer(),weight=as.double(),Rank=as.integer())
+    }
+    
+    
     
     #FirstConn$Rank=rank(-FirstConn$weight,ties.method = "random")
     
@@ -505,7 +513,11 @@ SmartListResponse=function(CompanyId,emp_id,rel_id){
       
       SecondConn=SecondConn[with(SecondConn, order(emp_id)), ]
       SecondConn=SecondConn[with(SecondConn, order(-weight)), ]
-      SecondConn$Rank=1:nrow(SecondConn)
+      if(nrow(SecondConn)>0){
+        SecondConn$Rank=1:nrow(SecondConn)
+      }else{
+        SecondConn=data.frame(emp_id=as.integer(),weight=as.double(),Rank=as.integer())
+      }
       #SecondConn$Rank=rank(-SecondConn$weight,ties.method = "random")
     } else{
       SecondConn=data.frame(emp_id=as.integer(),weight=as.double(),Rank=as.integer())
