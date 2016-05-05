@@ -205,6 +205,7 @@ public class InitiativeList extends TheBorg {
 			i.setInitiativeEndDate(parserSDF.parse(res.getString("EndDate")));
 			i.setInitiativeCreationDate(parserSDF.parse(res.getString("CreationDate")));
 
+			i.setCreatedByEmpId(res.getInt("CreatedByEmpId"));
 			i.setInitiativeComment(res.getString("Comments"));
 			i.setInitiativeTypeId(res.getInt("Type"));
 			i.setOwnerOfList(ih.getOwnerOfList(companyId, res));

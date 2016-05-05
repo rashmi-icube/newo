@@ -32,6 +32,7 @@ public class Initiative extends TheBorg {
 	private Date initiativeStartDate;
 	private Date initiativeEndDate;
 	private Date initiativeCreationDate;
+	private int createdByEmpId;
 	private String initiativeComment = "";
 	private List<Filter> filterList;
 	private List<Employee> ownerOfList;
@@ -55,8 +56,8 @@ public class Initiative extends TheBorg {
 	 */
 
 	public void setInitiativeProperties(String initiativeName, int initiativeTypeId, String initiativeCategory, Date initiativeStartDate,
-			Date initiativeEndDate, Date initiativeCreationDate, String initiativeComment, List<Filter> filterList, List<Employee> ownerOfList,
-			List<Employee> partOfEmployeeList) {
+			Date initiativeEndDate, Date initiativeCreationDate, int createdByEmpId, String initiativeComment, List<Filter> filterList,
+			List<Employee> ownerOfList, List<Employee> partOfEmployeeList) {
 		org.apache.log4j.Logger.getLogger(Initiative.class).debug("Setting initiative properties");
 		this.initiativeName = initiativeName;
 		this.initiativeTypeId = initiativeTypeId;
@@ -64,6 +65,7 @@ public class Initiative extends TheBorg {
 		this.initiativeStartDate = initiativeStartDate;
 		this.initiativeEndDate = initiativeEndDate;
 		this.initiativeCreationDate = initiativeCreationDate;
+		this.createdByEmpId = createdByEmpId;
 		this.initiativeComment = initiativeComment;
 		this.filterList = filterList;
 		this.ownerOfList = ownerOfList;
@@ -89,8 +91,8 @@ public class Initiative extends TheBorg {
 					+ "CREATE (i:Init {Id:uid,Status:'" + checkInitiativeStatus(initiativeStartDate) + "',Name:'" + initiativeName + "',Type:"
 					+ initiativeTypeId + ", Category:'" + initiativeCategory + "',StartDate:'"
 					+ sdf.format(UtilHelper.getStartOfDay(initiativeStartDate)) + "',EndDate:'"
-					+ sdf.format(UtilHelper.getEndOfDay(initiativeEndDate)) + "',CreatedOn:'" + sdf.format(initiativeCreationDate) + "',Comment:'"
-					+ initiativeComment + "'}) return i.Id as Id";
+					+ sdf.format(UtilHelper.getEndOfDay(initiativeEndDate)) + "',CreatedOn:'" + sdf.format(initiativeCreationDate)
+					+ "', CreatedByEmpId:" + createdByEmpId + ",Comment:'" + initiativeComment + "'}) return i.Id as Id";
 
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Create initiative query : " + createInitQuery);
 			Statement stmt = dch.companyNeoConnectionPool.get(companyId).createStatement();
@@ -144,7 +146,7 @@ public class Initiative extends TheBorg {
 							+ "  return count(a) as TeamSize";
 					org.apache.log4j.Logger.getLogger(Initiative.class).debug("Query for finding team size for metric of an initiative : " + query);
 					res = stmt.executeQuery(query);
-					
+
 					// the team size is used to determine in the procedure whether the metric gauge should be shown or not; calculation done in sql
 					// based on the threshold team size
 					while (res.next()) {
@@ -355,7 +357,7 @@ public class Initiative extends TheBorg {
 			String query = "match (i:Init{Id:"
 					+ initiativeId
 					+ "})<-[r:part_of]-(a) with i,a optional match (o:Employee)-[:owner_of]->(i) return i.Name as Name,"
-					+ "i.StartDate as StartDate, i.EndDate as EndDate,i.CreatedOn as CreationDate, i.Id as Id,case i.Category when 'Individual' then collect(distinct(a.emp_id)) "
+					+ "i.StartDate as StartDate, i.EndDate as EndDate,i.CreatedOn as CreationDate,i.CreatedByEmpId as CreatedByEmpId, i.Id as Id,case i.Category when 'Individual' then collect(distinct(a.emp_id)) "
 					+ "else collect(distinct(a.Id))  end as PartOfID,collect(distinct(a.Name))as PartOfName, labels(a) as Filters, "
 					+ "collect(distinct (o.emp_id)) as OwnersOf,i.Comment as Comments,i.Type as Type,i.Category as Category,i.Status as Status";
 			org.apache.log4j.Logger.getLogger(Initiative.class).error("Query : " + query);
@@ -617,4 +619,13 @@ public class Initiative extends TheBorg {
 	public void setInitiativeCreationDate(Date initiativeCreationDate) {
 		this.initiativeCreationDate = initiativeCreationDate;
 	}
+
+	public int getCreatedByEmpId() {
+		return createdByEmpId;
+	}
+
+	public void setCreatedByEmpId(int createdByEmpId) {
+		this.createdByEmpId = createdByEmpId;
+	}
+
 }
