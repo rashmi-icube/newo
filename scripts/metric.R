@@ -1589,7 +1589,7 @@ JobDimensionNwMetric=function(CompanyId){
   return(TRUE)
 }
 
-JobIndividaulMetric=function(CompanyId){
+JobIndividualMetric=function(CompanyId){
   
   mydb = dbConnect(MySQL(), user=mysqlusername, password=mysqlpasswod, dbname=mysqldbname, host=mysqlhost, port=mysqlport)
   

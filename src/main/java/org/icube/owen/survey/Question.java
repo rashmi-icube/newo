@@ -245,6 +245,9 @@ public class Question extends TheBorg {
 				q.setSurveyBatchId(rs.getInt("survey_batch_id"));
 				q.setQuestionType(QuestionType.get(rs.getInt("que_type")));
 				q.setResponsePercentage(0);
+				org.apache.log4j.Logger.getLogger(Question.class).debug(
+						"Question for employee : " + q.getQuestionId() + " - " + q.getQuestionText() + " - " + q.getRelationshipTypeId());
+
 				questionList.add(q);
 			}
 		} catch (SQLException e) {

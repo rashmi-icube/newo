@@ -42,7 +42,8 @@ public class Response extends TheBorg {
 			ResultSet rs = cstmt.executeQuery();
 			if (rs.next()) {
 				responseSaved = true;
-				org.apache.log4j.Logger.getLogger(Response.class).debug("Successfully saved the response for : " + q.getQuestionText());
+				org.apache.log4j.Logger.getLogger(Response.class).debug(
+						"Successfully saved the response for : " + q.getQuestionText() + " with the relationship ID " + q.getRelationshipTypeId());
 			}
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(Response.class).error("Exception while saving the response for question : " + q.getQuestionText(), e);
@@ -87,7 +88,8 @@ public class Response extends TheBorg {
 				}
 			}
 			if (employeeRating.size() == count) {
-				org.apache.log4j.Logger.getLogger(Response.class).debug("Successfully saved the response for : " + q.getQuestionText());
+				org.apache.log4j.Logger.getLogger(Response.class).debug(
+						"Successfully saved the response for : " + q.getQuestionText() + " with the relationship ID " + q.getRelationshipTypeId());
 			}
 
 		} catch (Exception e) {
