@@ -112,7 +112,12 @@ public class MetricsHelper extends TheBorg {
 	 * @return - List of metrics objects 
 	 * @throws SQLException If unable to fill the metrics object
 	 */
+<<<<<<< HEAD
 	public List<Metrics> fillMetricsData(int companyId, ResultSet rs, Map<Integer, String> primaryMetricMap, String category) throws SQLException {
+=======
+	public List<Metrics> fillMetricsData(int companyId, ResultSet rs, Map<Integer, String> primaryMetricMap, String category)
+			throws SQLException {
+>>>>>>> 2a5c18a5e3c05951216544a090cf99b941190a59
 		Map<Integer, Metrics> masterMetricsMap = getEmptyMetricScoreList(companyId, category, primaryMetricMap);
 		List<Metrics> metricsList = new ArrayList<>();
 		while (rs.next()) {
