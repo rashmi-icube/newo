@@ -15,7 +15,6 @@ import org.icube.owen.helper.DatabaseConnectionHelper;
 import org.icube.owen.helper.UtilHelper;
 import org.icube.owen.metrics.MetricsList;
 import org.rosuda.REngine.REXP;
-import org.rosuda.REngine.REXPDouble;
 import org.rosuda.REngine.REXPInteger;
 import org.rosuda.REngine.REXPString;
 import org.rosuda.REngine.RList;
@@ -142,8 +141,6 @@ public class EmployeeList extends TheBorg {
 			RList result = employeeSmartList.asList();
 			REXPInteger empIdResult = (REXPInteger) result.get("emp_id");
 			int[] empIdArray = empIdResult.asIntegers();
-			REXPDouble scoreResult = (REXPDouble) result.get("Score");
-			int[] scoreArray = scoreResult.asIntegers();
 			REXPString gradeRseult = (REXPString) result.get("flag");
 			String[] gradeArray = gradeRseult.asStrings();
 			REXPInteger rank = (REXPInteger) result.get("Rank");
@@ -154,7 +151,6 @@ public class EmployeeList extends TheBorg {
 				Employee e = new Employee();
 				e = e.get(companyId, empIdArray[i]);
 				e.setGrade(gradeArray[i]);
-				e.setScore(scoreArray[i]);
 				empMap.put(rankArray[i], e);
 			}
 
@@ -229,10 +225,6 @@ public class EmployeeList extends TheBorg {
 		e.setZone(res.getString("Zone"));
 		if (UtilHelper.hasColumn(res, "score") && res.getDouble("score") >= 0) {
 			e.setScore(res.getDouble("score"));
-			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug(
-					"Employee  : " + e.getEmployeeId() + "-" + e.getFirstName() + "-" + e.getScore());
-		} else {
-			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("Employee  : " + e.getEmployeeId() + "-" + e.getFirstName());
 		}
 		e.setCompanyId(companyId);
 		return e;
@@ -292,22 +284,37 @@ public class EmployeeList extends TheBorg {
 		dch.getCompanyConnection(companyId);
 		List<Employee> empList = new ArrayList<>();
 
-		try {
-			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("get method started");
-			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getEmployeeDetails(?)}");
-			cstmt.setString(1, employeeIdList.toString().substring(1, employeeIdList.toString().length() - 1).replaceAll(" ", ""));
-			ResultSet res = cstmt.executeQuery();
-			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("query : " + cstmt);
-			while (res.next()) {
-				Employee e = setEmployeeDetails(companyId, res);
-				org.apache.log4j.Logger.getLogger(EmployeeList.class).debug(
-						"Employee  : " + e.getEmployeeId() + "-" + e.getFirstName() + "-" + e.getLastName());
-				empList.add(e);
+		// sub listing the employee ID list for every 100 employees due to db constraints
+		int subListSize = 100;
+		int empSubListCount = ((employeeIdList.size() % subListSize) > 0) ? (employeeIdList.size() / subListSize) + 1 : employeeIdList.size()
+				/ subListSize;
+		int listIndex = 0;
+		List<Integer> empSubList = new ArrayList<>();
+		for (int i = 0; i < empSubListCount; i++) {
+			if ((listIndex + subListSize) > employeeIdList.size()) {
+				empSubList = employeeIdList.subList(listIndex, employeeIdList.size());
+			} else {
+				empSubList = employeeIdList.subList(listIndex, listIndex + subListSize);
 			}
-		} catch (SQLException e1) {
-			org.apache.log4j.Logger.getLogger(EmployeeList.class).error(
-					"Exception while retrieving employee object with employeeIds : " + employeeIdList, e1);
 
+			try {
+				org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("get method started");
+				CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getEmployeeDetails(?)}");
+				cstmt.setString(1, empSubList.toString().substring(1, empSubList.toString().length() - 1).replaceAll(" ", ""));
+				ResultSet res = cstmt.executeQuery();
+				org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("query : " + cstmt);
+				while (res.next()) {
+					Employee e = setEmployeeDetails(companyId, res);
+					org.apache.log4j.Logger.getLogger(EmployeeList.class).debug(
+							"Employee  : " + e.getEmployeeId() + "-" + e.getFirstName() + "-" + e.getLastName());
+					empList.add(e);
+				}
+				listIndex = listIndex + subListSize;
+			} catch (SQLException e1) {
+				org.apache.log4j.Logger.getLogger(EmployeeList.class).error(
+						"Exception while retrieving employee object with employeeIds : " + employeeIdList, e1);
+
+			}
 		}
 		return empList;
 	}
