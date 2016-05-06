@@ -67,7 +67,7 @@ public class InitiativeList extends TheBorg {
 			if (viewByCriteria.equalsIgnoreCase("Type")) {
 				initiativeListQuery = "match (i:Init {Type:" + (Integer) viewByValue + ", Category:'" + category
 						+ "'})<-[r:part_of]-(a) WITH i,a optional match (o:Employee)-[:owner_of]->(i) return i.Id as Id, "
-						+ "i.Name as Name,i.StartDate as StartDate, i.EndDate as EndDate, i.CreatedOn as CreationDate, "
+						+ "i.Name as Name,i.StartDate as StartDate, i.EndDate as EndDate, i.CreatedByEmpId as CreatedByEmpId, i.CreatedOn as CreationDate, "
 						+ "case i.Category when 'Individual' then collect(distinct(a.emp_id)) else collect(distinct(a.Id)) "
 						+ "end as PartOfID,collect(distinct(a.Name))as PartOfName, labels(a) as Filters, "
 						+ "collect(distinct (o.emp_id)) as OwnersOf,i.Comment as Comments,i.Type as Type,i.Category as Category,i.Status as Status";
@@ -77,7 +77,7 @@ public class InitiativeList extends TheBorg {
 			} else if (viewByCriteria.equalsIgnoreCase("Status")) {
 				initiativeListQuery = "match (i:Init {Status:'" + (String) viewByValue + "', Category:'" + category
 						+ "'})<-[r:part_of]-(a) WITH i,a optional match (o:Employee)-[:owner_of]->(i) return i.Id as Id, "
-						+ "i.Name as Name,i.StartDate as StartDate, i.EndDate as EndDate, i.CreatedOn as CreationDate, "
+						+ "i.Name as Name,i.StartDate as StartDate, i.EndDate as EndDate, i.CreatedByEmpId as CreatedByEmpId, i.CreatedOn as CreationDate, "
 						+ "case i.Category when 'Individual' then collect(distinct(a.emp_id)) else collect(distinct(a.Id)) "
 						+ "end as PartOfID,collect(distinct(a.Name))as PartOfName, labels(a) as Filters, "
 						+ "collect(distinct (o.emp_id)) as OwnersOf,i.Comment as Comments,i.Type as Type,i.Category as Category,i.Status as Status";
@@ -147,7 +147,7 @@ public class InitiativeList extends TheBorg {
 			String initiativeListQuery = "match (i:Init {Category:'" + category
 					+ "'})<-[r:part_of]-(a) where i.Status in ['Active','Pending'] WITH i,a optional "
 					+ "match (o:Employee)-[:owner_of]->(i) return i.Id as Id, i.Name as Name,i.StartDate as StartDate, "
-					+ "i.EndDate as EndDate, i.CreatedOn as CreationDate, case i.Category when 'Individual' then collect(distinct(a.emp_id)) "
+					+ "i.EndDate as EndDate,i.CreatedByEmpId as CreatedByEmpId, i.CreatedOn as CreationDate, case i.Category when 'Individual' then collect(distinct(a.emp_id)) "
 					+ "else collect(distinct(a.Id))  end as PartOfID,collect(distinct(a.Name))as PartOfName, labels(a) as Filters, "
 					+ "collect(distinct (o.emp_id)) as OwnersOf,i.Comment as Comments,i.Type as Type,i.Category as Category,i.Status as Status";
 			org.apache.log4j.Logger.getLogger(InitiativeList.class).debug(

@@ -203,7 +203,7 @@ public class IndividualDashboardHelper extends TheBorg {
 			cstmt.setInt(1, employeeId);
 			ResultSet rs = cstmt.executeQuery();
 			String initiativeListQuery = "MATCH (i:Init {Status:'Active'})<-[:owner_of]-(e:Employee {emp_id:" + employeeId
-					+ "}) return i.Name as Name ,i.CreatedOn as CreatedOn";
+					+ "}) return i.Name as Name ,i.CreatedByEmpId as CreatedByEmpId, i.CreatedOn as CreatedOn";
 			Statement stmt = dch.companyNeoConnectionPool.get(companyId).createStatement();
 			ResultSet res = stmt.executeQuery(initiativeListQuery);
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Executed query for retrieving initiative list");
