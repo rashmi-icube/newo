@@ -20,7 +20,6 @@ import org.icube.owen.filter.Filter;
 import org.icube.owen.helper.DatabaseConnectionHelper;
 import org.icube.owen.helper.UtilHelper;
 import org.icube.owen.metrics.Metrics;
-import org.icube.owen.metrics.MetricsHelper;
 import org.icube.owen.metrics.MetricsList;
 
 public class Initiative extends TheBorg {

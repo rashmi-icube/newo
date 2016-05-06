@@ -8,13 +8,14 @@ import java.util.List;
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.initiative.Initiative;
 import org.icube.owen.initiative.InitiativeList;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class InitiativeListTest {
 	InitiativeList il = (InitiativeList) ObjectFactory.getInstance("org.icube.owen.initiative.InitiativeList");
-	int companyId = 1;
+	int companyId = 2;
 
-	@Test
+	@Ignore
 	public void testGetInitiativeList() {
 		List<Initiative> iList = new ArrayList<>();
 		iList = il.getInitiativeList(companyId, "Team");

@@ -187,14 +187,14 @@ public class InitiativeHelper extends TheBorg {
 				int empId = i.getPartOfEmployeeList().get(0).getEmployeeId();
 				cs.setInt(1, empId);
 				ResultSet rs = cs.executeQuery();
-				mh.fillMetricsData(companyId, rs, mh.getPrimaryMetricMap(companyId, i.getInitiativeTypeId()), "Individual");
+				metricsList = mh.fillMetricsData(companyId, rs, mh.getPrimaryMetricMap(companyId, i.getInitiativeTypeId()), "Individual");
 			} else if (i.getInitiativeCategory().equalsIgnoreCase("Team")) {
 
 				CallableStatement cs = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getTeamInitiativeMetricValueAggregate(?)}");
 				int initId = i.getInitiativeId();
 				cs.setInt(1, initId);
 				ResultSet rs = cs.executeQuery();
-				mh.fillMetricsData(companyId, rs, mh.getPrimaryMetricMap(companyId, i.getInitiativeTypeId()), "Team");
+				metricsList = mh.fillMetricsData(companyId, rs, mh.getPrimaryMetricMap(companyId, i.getInitiativeTypeId()), "Team");
 			}
 
 		} catch (SQLException e) {
