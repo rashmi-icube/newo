@@ -335,7 +335,7 @@ public class MetricsHelper extends TheBorg {
 			m.setDateOfCalculation(Date.from(Instant.now()));
 			m.setDirection("Neutral");
 			m.setAverage(0);
-			if (primaryMetricMap.containsKey(metric_id)) {
+			if (primaryMetricMap != null && primaryMetricMap.containsKey(metric_id)) {
 				m.setPrimary(true);
 			} else {
 				m.setPrimary(false);
