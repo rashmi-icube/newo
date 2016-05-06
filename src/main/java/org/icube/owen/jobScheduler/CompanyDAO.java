@@ -74,7 +74,6 @@ public class CompanyDAO extends TimerTask {
 				org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("Calling the actual function in R Script JobInitStatus");
 				REXP status = rCon.parseAndEval("try(eval(JobInitStatus(CompanyId)))");
 				if (status.inherits("try-error")) {
-					dch.releaseRcon();
 					// add to map of status
 					jobStatusMap.put("JobInitStatus", "failed :" + status.asString());
 					jobStatus = false;
@@ -92,6 +91,8 @@ public class CompanyDAO extends TimerTask {
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(CompanyDAO.class).error("Failed to get the db connection details", e);
 
+		} finally {
+			dch.releaseRcon();
 		}
 	}
 
@@ -142,6 +143,8 @@ public class CompanyDAO extends TimerTask {
 		} catch (Exception e) {
 			// add to map of status
 			org.apache.log4j.Logger.getLogger(CompanyDAO.class).error("Unable to execute Scheduler jobs ", e);
+		} finally {
+			dch.releaseRcon();
 		}
 
 	}

@@ -280,7 +280,6 @@ public class Question extends TheBorg {
 			REXP employeeSmartList = rCon.parseAndEval("try(eval(SmartListResponse(company_id, emp_id, rel_id)))");
 			if (employeeSmartList.inherits("try-error")) {
 				org.apache.log4j.Logger.getLogger(Question.class).error("Error: " + employeeSmartList.asString());
-				dch.releaseRcon();
 				throw new Exception("Error: " + employeeSmartList.asString());
 			} else {
 				org.apache.log4j.Logger.getLogger(Question.class).debug(
@@ -300,9 +299,10 @@ public class Question extends TheBorg {
 			}
 			Map<Integer, Employee> sorted_map = new TreeMap<Integer, Employee>(employeeRankMap);
 			employeeList = new ArrayList<Employee>(sorted_map.values());
-			dch.releaseRcon();
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(Question.class).error("Error while trying to retrieve the smart list for employee from question", e);
+		} finally {
+			dch.releaseRcon();
 		}
 		return employeeList;
 	}

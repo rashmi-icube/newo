@@ -65,7 +65,6 @@ public class EmployeeList extends TheBorg {
 			REXP employeeSmartListForTeam = rCon.parseAndEval("try(eval(TeamSmartList(company_id, Function, Position, Zone, init_type_id)))");
 			if (employeeSmartListForTeam.inherits("try-error")) {
 				org.apache.log4j.Logger.getLogger(EmployeeList.class).error("Error: " + employeeSmartListForTeam.asString());
-				dch.releaseRcon();
 				throw new Exception("Error: " + employeeSmartListForTeam.asString());
 			} else {
 				org.apache.log4j.Logger.getLogger(EmployeeList.class).debug(
@@ -94,9 +93,7 @@ public class EmployeeList extends TheBorg {
 
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).error("Error while trying to retrieve the smart list for team ", e);
-		}
-
-		finally {
+		} finally {
 			dch.releaseRcon();
 		}
 
@@ -131,7 +128,6 @@ public class EmployeeList extends TheBorg {
 			REXP employeeSmartList = rCon.parseAndEval("try(eval(IndividualSmartList(company_id, emp_id, init_type_id)))");
 			if (employeeSmartList.inherits("try-error")) {
 				org.apache.log4j.Logger.getLogger(EmployeeList.class).error("Error: " + employeeSmartList.asString());
-				dch.releaseRcon();
 				throw new Exception("Error: " + employeeSmartList.asString());
 			} else {
 				org.apache.log4j.Logger.getLogger(EmployeeList.class).debug(
@@ -160,7 +156,6 @@ public class EmployeeList extends TheBorg {
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).error("Error while trying to retrieve the smart list for employee ", e);
 		}
-
 		finally {
 			dch.releaseRcon();
 		}

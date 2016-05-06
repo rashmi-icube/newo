@@ -112,9 +112,8 @@ public class MetricsHelper extends TheBorg {
 	 * @return - List of metrics objects 
 	 * @throws SQLException If unable to fill the metrics object
 	 */
-	public List<Metrics> fillMetricsData(int companyId, ResultSet rs, Map<Integer, String> primaryMetricMap, String category)
-			throws SQLException {
-		Map<Integer, Metrics> masterMetricsMap = getEmptyMetricScoreList(companyId, category);
+	public List<Metrics> fillMetricsData(int companyId, ResultSet rs, Map<Integer, String> primaryMetricMap, String category) throws SQLException {
+		Map<Integer, Metrics> masterMetricsMap = getEmptyMetricScoreList(companyId, category, primaryMetricMap);
 		List<Metrics> metricsList = new ArrayList<>();
 		while (rs.next()) {
 			Metrics m = new Metrics();
@@ -193,7 +192,6 @@ public class MetricsHelper extends TheBorg {
 			REXP teamMetricScore = rCon.parseAndEval("try(eval(TeamMetric(company_id, funcList, posList, zoneList)))");
 			if (teamMetricScore.inherits("try-error")) {
 				org.apache.log4j.Logger.getLogger(MetricsHelper.class).error("Error: " + teamMetricScore.asString());
-				dch.releaseRcon();
 				throw new Exception("Error: " + teamMetricScore.asString());
 			} else {
 				org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Metrics calculation completed for team " + teamMetricScore.asList());
@@ -299,7 +297,8 @@ public class MetricsHelper extends TheBorg {
 			m.setName(metricListForCategory.get(id));
 			m.setScore(currentScoreMap.isEmpty() ? 0 : currentScoreMap.get(id));
 			if (category == "Individual") {
-				String direction = (currentScoreMap.isEmpty() || previousScoreMap.isEmpty())? "Neutral" : m.calculateMetricDirection(currentScoreMap.get(id), previousScoreMap.get(id));
+				String direction = (currentScoreMap.isEmpty() || previousScoreMap.isEmpty()) ? "Neutral" : m.calculateMetricDirection(currentScoreMap
+						.get(id), previousScoreMap.get(id));
 				m.setDirection(direction);
 			} else if (category == "Team") {
 				// when metrics come from R the direction will always be neutral
@@ -322,7 +321,7 @@ public class MetricsHelper extends TheBorg {
 	 * @param category - Should be set to Individual
 	 * @return A map of metric ID and Metrics object
 	 */
-	public Map<Integer, Metrics> getEmptyMetricScoreList(int companyId, String category) {
+	public Map<Integer, Metrics> getEmptyMetricScoreList(int companyId, String category, Map<Integer, String> primaryMetricMap) {
 		Map<Integer, Metrics> metricsMasterMap = new HashMap<>();
 		MetricsHelper mh = new MetricsHelper();
 		Map<Integer, String> metricListMap = mh.getMetricListForCategory(companyId, category);
@@ -335,7 +334,11 @@ public class MetricsHelper extends TheBorg {
 			m.setDateOfCalculation(Date.from(Instant.now()));
 			m.setDirection("Neutral");
 			m.setAverage(0);
-			m.setPrimary(false);
+			if (primaryMetricMap != null && primaryMetricMap.containsKey(metric_id)) {
+				m.setPrimary(true);
+			} else {
+				m.setPrimary(false);
+			}
 			metricsMasterMap.put(metric_id, m);
 		}
 
