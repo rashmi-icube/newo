@@ -114,7 +114,7 @@ public class MetricsHelper extends TheBorg {
 	 */
 	public List<Metrics> fillMetricsData(int companyId, ResultSet rs, Map<Integer, String> primaryMetricMap, String category)
 			throws SQLException {
-		Map<Integer, Metrics> masterMetricsMap = getEmptyMetricScoreList(companyId, category);
+		Map<Integer, Metrics> masterMetricsMap = getEmptyMetricScoreList(companyId, category, primaryMetricMap);
 		List<Metrics> metricsList = new ArrayList<>();
 		while (rs.next()) {
 			Metrics m = new Metrics();
@@ -322,7 +322,7 @@ public class MetricsHelper extends TheBorg {
 	 * @param category - Should be set to Individual
 	 * @return A map of metric ID and Metrics object
 	 */
-	public Map<Integer, Metrics> getEmptyMetricScoreList(int companyId, String category) {
+	public Map<Integer, Metrics> getEmptyMetricScoreList(int companyId, String category, Map<Integer, String> primaryMetricMap) {
 		Map<Integer, Metrics> metricsMasterMap = new HashMap<>();
 		MetricsHelper mh = new MetricsHelper();
 		Map<Integer, String> metricListMap = mh.getMetricListForCategory(companyId, category);
@@ -335,7 +335,11 @@ public class MetricsHelper extends TheBorg {
 			m.setDateOfCalculation(Date.from(Instant.now()));
 			m.setDirection("Neutral");
 			m.setAverage(0);
-			m.setPrimary(false);
+			if (primaryMetricMap.containsKey(metric_id)) {
+				m.setPrimary(true);
+			} else {
+				m.setPrimary(false);
+			}
 			metricsMasterMap.put(metric_id, m);
 		}
 

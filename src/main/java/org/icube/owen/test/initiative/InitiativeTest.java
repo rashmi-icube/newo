@@ -71,7 +71,7 @@ public class InitiativeTest {
 	@Test
 	public void testGet() {
 		Initiative i = new Initiative();
-		i = initiative.get(companyId, 8);
+		i = initiative.get(companyId, 6);
 		assertNotNull(i.getInitiativeName());
 		assertNotNull(i.getInitiativeStartDate());
 		assertNotNull(i.getInitiativeMetrics());
