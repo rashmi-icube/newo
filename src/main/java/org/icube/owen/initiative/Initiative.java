@@ -20,6 +20,7 @@ import org.icube.owen.filter.Filter;
 import org.icube.owen.helper.DatabaseConnectionHelper;
 import org.icube.owen.helper.UtilHelper;
 import org.icube.owen.metrics.Metrics;
+import org.icube.owen.metrics.MetricsHelper;
 import org.icube.owen.metrics.MetricsList;
 
 public class Initiative extends TheBorg {
@@ -602,6 +603,13 @@ public class Initiative extends TheBorg {
 	 * @return the initiativeMetrics
 	 */
 	public List<Metrics> getInitiativeMetrics() {
+		for (int i = 0; i < initiativeMetrics.size(); i++) {
+			Metrics m = initiativeMetrics.get(i);
+			org.apache.log4j.Logger.getLogger(Initiative.class).debug(
+					m.getId() + " - " + m.getName() + " - " + m.getCategory() + " - " + m.getAverage() + " - " + m.getDirection() + " - "
+							+ m.getScore());
+		}
+
 		return initiativeMetrics;
 	}
 
