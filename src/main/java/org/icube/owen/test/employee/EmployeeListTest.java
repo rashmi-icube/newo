@@ -12,6 +12,7 @@ import org.icube.owen.employee.Employee;
 import org.icube.owen.employee.EmployeeList;
 import org.icube.owen.filter.Filter;
 import org.icube.owen.test.TestHelper;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class EmployeeListTest {
@@ -19,7 +20,7 @@ public class EmployeeListTest {
 	Employee e = (Employee) ObjectFactory.getInstance("org.icube.owen.employee.Employee");
 	int companyId = 2;
 
-	@Test
+	@Ignore
 	public void testGetEmployeeMasterList() {
 		List<Employee> empList = new ArrayList<Employee>();
 		empList = el.getEmployeeMasterList(companyId);
@@ -32,7 +33,7 @@ public class EmployeeListTest {
 
 	}
 
-	@Test
+	@Ignore
 	public void testGetEmployeeSmartListForTeam() {
 		List<Employee> empList = new ArrayList<Employee>();
 		List<Filter> filterList = new ArrayList<Filter>();
@@ -72,7 +73,7 @@ public class EmployeeListTest {
 
 	}
 
-	@Test
+	@Ignore
 	public void testGetEmployeeSmartListForIndividual() {
 		List<Employee> empList = new ArrayList<Employee>();
 		List<Employee> partOfEmployeeList = new ArrayList<>();
@@ -81,11 +82,19 @@ public class EmployeeListTest {
 		assertNotNull(empList);
 	}
 
-	@Test
+	@Ignore
 	public void testGetEmployeeListByFilters() {
 		List<Filter> filterList = TestHelper.getAllForTwoFilters(companyId);
 		List<Employee> result = el.getEmployeeListByFilters(companyId, filterList);
 		assertNotNull(result);
 	}
-
+	
+	@Test
+	public void testGet(){
+		List<Integer> empIdList = new ArrayList<>();
+		for(int i = 1; i<=287; i++){
+			empIdList.add(i);
+		}
+		assertNotNull(el.get(1, empIdList));
+	}
 }

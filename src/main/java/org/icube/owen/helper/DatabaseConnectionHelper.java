@@ -91,7 +91,7 @@ public class DatabaseConnectionHelper extends TheBorg {
 		today.set(Calendar.MINUTE, 01);
 		today.set(Calendar.SECOND, 0);
 
-		System.out.println(today.getTime());
+		// System.out.println(today.getTime());
 		CompanyDAO cdao = new CompanyDAO();
 		timer.scheduleAtFixedRate(cdao, today.getTime(), TimeUnit.MILLISECONDS.convert(1, TimeUnit.DAYS));
 		// timer.scheduleAtFixedRate(cdao, today.getTime(), 300000);
