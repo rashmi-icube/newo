@@ -33,7 +33,7 @@ public class IndividualDashboardHelperTest {
 
 	@Test
 	public void testGetActivityFeedList() {
-		Map<Date, List<ActivityFeed>> result = idh.getActivityFeedList(companyId, 3, 1);
+		Map<Date, List<ActivityFeed>> result = idh.getActivityFeedList(companyId, 5, 1);
 		for (Date d : result.keySet()) {
 			List<ActivityFeed> afl = result.get(d);
 			for (ActivityFeed af : afl) {
@@ -46,7 +46,7 @@ public class IndividualDashboardHelperTest {
 		}
 	}
 
-	@Test
+		@Test
 	public void testGetIndividualMetrics() {
 		List<Metrics> metricsList = idh.getIndividualMetrics(companyId, 1);
 		for (Metrics m : metricsList) {
@@ -67,7 +67,7 @@ public class IndividualDashboardHelperTest {
 	@Test
 	public void testIndividualInitiativeList() {
 		List<Initiative> initiativeList = new ArrayList<>();
-		initiativeList = idh.getIndividualInitiativeList(companyId, 208);
+		initiativeList = idh.getIndividualInitiativeList(companyId, 5);
 		for (Initiative i : initiativeList) {
 			assertNotNull(i.get(companyId, i.getInitiativeId()));
 		}
@@ -108,7 +108,7 @@ public class IndividualDashboardHelperTest {
 
 	@Test
 	public void testGetNotificationsCount() {
-		int count = idh.getNotificationsCount(companyId, 1);
+		int count = idh.getNotificationsCount(companyId, 5);
 		assertTrue(count > 0);
 	}
 }

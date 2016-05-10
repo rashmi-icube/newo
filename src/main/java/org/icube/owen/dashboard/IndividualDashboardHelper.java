@@ -536,9 +536,10 @@ public class IndividualDashboardHelper extends TheBorg {
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
 				notificationCount += rs.getInt("appreciation_count");
-				lastNotificationDate = rs.getDate("last_notified");
+				lastNotificationDate = rs.getTimestamp("last_notified");
 			}
-
+			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug(
+					"Appreciation count for employee ID " + employeeId + " is " + notificationCount + " with last notified at " + lastNotificationDate);
 			SimpleDateFormat sdf = new SimpleDateFormat(UtilHelper.dateTimeFormat);
 			String notificationCountQuery = "MATCH (e:Employee {emp_id:" + employeeId + "})-[:owner_of]->(i:Init) where i.CreatedOn>'"
 					+ sdf.format(lastNotificationDate) + "' return count(i) as initiative_count";
@@ -548,12 +549,16 @@ public class IndividualDashboardHelper extends TheBorg {
 			ResultSet res = stmt.executeQuery(notificationCountQuery);
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Executed query for retrieving initiative list");
 			while (res.next()) {
+
+				org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug(
+						"Initiative count for employee ID " + employeeId + " is " + res.getInt("initiative_count") + " with last notified at " + lastNotificationDate);
 				notificationCount += res.getInt("initiative_count");
 			}
 			stmt.close();
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while updating notification timestamp", e);
 		}
+		org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("The total activity feed count for emp id:" + employeeId + " is: " + notificationCount);
 		return notificationCount;
 	}
 }
