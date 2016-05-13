@@ -458,7 +458,7 @@ public class IndividualDashboardHelper extends TheBorg {
 			int updatePassword = stmt.executeUpdate("update login_table set password = " + '"' + randStr.toString() + '"' + " where login_id = "
 					+ '"' + emailId + '"' + "");
 			if (updatePassword == 0) {
-				org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Current password is incorrect");
+				org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Error in generating a new password. Please enter your company Email address.");
 				throw new Exception("Error in resetting the password");
 			} else {
 				passwordChanged = true;

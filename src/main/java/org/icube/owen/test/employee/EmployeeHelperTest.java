@@ -23,9 +23,9 @@ public class EmployeeHelperTest {
 	EmployeeHelper eh = (EmployeeHelper) ObjectFactory.getInstance("org.icube.owen.employee.EmployeeHelper");
 	DateFormat dateFormat = new SimpleDateFormat(UtilHelper.dateFormat, Locale.ENGLISH);
 
-	@Test
+	/*@Test
 	public void testGetBasicEmployeeDetails() {
-		BasicEmployeeDetails bed = eh.getBasicEmployeeDetails(1, 1);
+		BasicEmployeeDetails bed = eh.getBasicEmployeeDetails(2, 7);
 		assertNotNull(bed.getCompanyEmployeeId());
 		assertNotNull(bed.getDesignation());
 		assertNotNull(bed.getDob());
@@ -36,11 +36,11 @@ public class EmployeeHelperTest {
 		assertNotNull(bed.getFunction());
 		assertNotNull(bed.getPhone());
 		assertNotNull(bed.getSalutation());
-	}
+	}*/
 
 	@Test
 	public void testGetWorkExperienceDetails() {
-		List<WorkExperience> wel = eh.getWorkExperienceDetails(1, 1);
+		List<WorkExperience> wel = eh.getWorkExperienceDetails(2, 7);
 		for (WorkExperience we : wel) {
 			assertNotNull(we.getCompanyName());
 			assertNotNull(we.getDesignation());

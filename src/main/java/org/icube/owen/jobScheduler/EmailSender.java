@@ -1,5 +1,6 @@
 package org.icube.owen.jobScheduler;
 
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -131,7 +132,16 @@ public class EmailSender {
 				msg.setFrom(new InternetAddress(from));
 				msg.setRecipients(Message.RecipientType.BCC, getEmailsArray(addr));
 				msg.setSubject("You have a new question");
-				msg.setText("You have new questions to answer. Please login to answer : " + loginUrl + "");
+
+				InetAddress ipAddr = null;
+				try {
+					ipAddr = InetAddress.getLocalHost();
+				} catch (Exception e) {
+					org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("Unable to get the ip");
+				}
+				System.out.println(ipAddr.getHostAddress());
+
+				msg.setText("You have new questions to answer. Please login to answer : " + loginUrl + "" + "/n This message was sent from " + ipAddr);
 				Transport.send(msg, username, password);
 
 				// send slack update
@@ -219,6 +229,8 @@ public class EmailSender {
 		sb.append("<p> 4. Choose your <b>new password </b></p>");
 
 		sb.append("<p> 5. Save your changes by clicking <b>Save </b></p>");
+		
+		sb.append("<p> A password change request was sent for your account. Kindly use the newly generated password to login </p>");
 
 		sb.append("</body>");
 		sb.append("</html>");

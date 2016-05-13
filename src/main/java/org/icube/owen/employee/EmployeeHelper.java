@@ -90,7 +90,7 @@ public class EmployeeHelper extends TheBorg {
 					LocalDate today = LocalDate.now();
 					Calendar cal = Calendar.getInstance();
 					cal.setTime(startDate);
-					LocalDate startingDate = LocalDate.of(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH));
+					LocalDate startingDate = LocalDate.of(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH));
 					Period p = Period.between(startingDate, today);
 					duration = p.getYears() + "years " + p.getMonths() + "months";
 					workEx.setDuration(duration);
@@ -107,6 +107,11 @@ public class EmployeeHelper extends TheBorg {
 						}
 					});
 				}
+			}
+			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).error(
+					"Work ex details for emp ID : " + employeeId + " work ex size :" + workExList.size());
+			for (WorkExperience we : workExList) {
+				org.apache.log4j.Logger.getLogger(EmployeeHelper.class).debug(we.getCompanyName());
 			}
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).error("Exception while getting the employee basic details", e);
