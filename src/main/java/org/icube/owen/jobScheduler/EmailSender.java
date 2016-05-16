@@ -106,7 +106,7 @@ public class EmailSender {
 	 */
 	public void sendEmailforQuestions(int companyId, List<String> addresses) {
 		String host = "smtp.zoho.com";
-		String username = "owen@owenanalytics.com";
+		String username = "OWEN";
 		String password = "Abcd@654321";
 		String from = "owen@owenanalytics.com";
 		Properties props = new Properties();
@@ -141,7 +141,7 @@ public class EmailSender {
 				}
 				System.out.println(ipAddr.getHostAddress());
 
-				msg.setText("You have new questions to answer. Please login to answer : " + loginUrl + "" + "/n This message was sent from " + ipAddr);
+				msg.setText("You have new questions to answer. Please login to answer : " + loginUrl + "" + "\n" + " This message was sent from " + ipAddr);
 				Transport.send(msg, username, password);
 
 				// send slack update
