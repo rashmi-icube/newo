@@ -1,5 +1,6 @@
 package org.icube.owen.jobScheduler;
 
+import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -106,7 +107,7 @@ public class EmailSender {
 	 */
 	public void sendEmailforQuestions(int companyId, List<String> addresses) {
 		String host = "smtp.zoho.com";
-		String username = "OWEN";
+		String username = "owen@owenanalytics.com";
 		String password = "Abcd@654321";
 		String from = "owen@owenanalytics.com";
 		Properties props = new Properties();
@@ -129,7 +130,7 @@ public class EmailSender {
 			}
 			MimeMessage msg = new MimeMessage(session);
 			try {
-				msg.setFrom(new InternetAddress(from));
+				msg.setFrom(new InternetAddress(from, "OWEN"));
 				msg.setRecipients(Message.RecipientType.BCC, getEmailsArray(addr));
 				msg.setSubject("You have a new question");
 
@@ -141,13 +142,14 @@ public class EmailSender {
 				}
 				System.out.println(ipAddr.getHostAddress());
 
-				msg.setText("You have new questions to answer. Please login to answer : " + loginUrl + "" + "\n" + " This message was sent from " + ipAddr);
+				msg.setText("You have new questions to answer. Please login to answer : " + loginUrl + "" + "\n" + " This message was sent from "
+						+ ipAddr);
 				Transport.send(msg, username, password);
 
 				// send slack update
 				SlackIntegration sl = new SlackIntegration();
 				sl.sendMessage(companyId, "You have new questions to answer. Please login to answer : " + loginUrl + "");
-			} catch (MessagingException e) {
+			} catch (MessagingException | UnsupportedEncodingException e) {
 				org.apache.log4j.Logger.getLogger(EmailSender.class).error("Error in sending Emails for current questions", e);
 				dch.releaseRcon();
 			}
@@ -229,7 +231,7 @@ public class EmailSender {
 		sb.append("<p> 4. Choose your <b>new password </b></p>");
 
 		sb.append("<p> 5. Save your changes by clicking <b>Save </b></p>");
-		
+
 		sb.append("<p> A password change request was sent for your account. Kindly use the newly generated password to login </p>");
 
 		sb.append("</body>");

@@ -11,7 +11,7 @@ import org.junit.Test;
 
 public class QuestionListTest {
 	QuestionList ql = (QuestionList) ObjectFactory.getInstance("org.icube.owen.survey.QuestionList");
-	int companyId = 1;
+	int companyId = 2;
 
 	@Test
 	public void testGetQuestionList() {
@@ -39,12 +39,14 @@ public class QuestionListTest {
 		List<Question> questionList = ql.getQuestionListByStatus(companyId, 1, "Upcoming");
 		assertTrue(!questionList.isEmpty());
 		for (Question q : questionList) {
+			System.out.println(q.getEndDate());
 			assertTrue(q.getQuestionId() > 0);
 			assertTrue(!q.getQuestionText().isEmpty());
 		}
 		List<Question> questionList1 = ql.getQuestionListByStatus(companyId, 1, "Completed");
 		assertTrue(!questionList1.isEmpty());
 		for (Question q : questionList1) {
+			System.out.println(q.getEndDate());
 			assertTrue(q.getQuestionId() > 0);
 			assertTrue(!q.getQuestionText().isEmpty());
 		}

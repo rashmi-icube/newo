@@ -4,6 +4,7 @@ import java.sql.CallableStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.icube.owen.ObjectFactory;
@@ -98,6 +99,9 @@ public class QuestionList extends TheBorg {
 		}
 		org.apache.log4j.Logger.getLogger(QuestionList.class).debug(
 				"Retrieved " + questionListByStatus.size() + " questions for " + filter + " status.");
+		if(filter.equalsIgnoreCase("Completed")){
+			 Collections.reverse(questionListByStatus);
+		}
 		return questionListByStatus;
 	}
 
