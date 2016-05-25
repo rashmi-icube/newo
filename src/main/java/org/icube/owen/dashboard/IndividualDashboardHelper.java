@@ -177,7 +177,8 @@ public class IndividualDashboardHelper extends TheBorg {
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while getting the initiative list", e);
 		}
-
+		
+		initiativeList.sort((o1, o2) -> o1.getInitiativeEndDate().compareTo(o2.getInitiativeEndDate()));
 		return initiativeList;
 
 	}

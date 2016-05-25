@@ -69,7 +69,7 @@ public class IndividualDashboardHelperTest {
 		List<Initiative> initiativeList = new ArrayList<>();
 		initiativeList = idh.getIndividualInitiativeList(companyId, 5);
 		for (Initiative i : initiativeList) {
-			assertNotNull(i.get(companyId, i.getInitiativeId()));
+			System.out.println(i.getInitiativeEndDate()); 
 		}
 	}
 
