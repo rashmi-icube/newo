@@ -57,7 +57,7 @@ public class CompanyDAO extends TimerTask {
 			Statement stmt = null;
 			stmt = dch.masterCon.createStatement();
 			companyDetails = stmt
-					.executeQuery("Select comp_name, comp_id, comp_sql_dbname, sql_server, sql_user_id, sql_password from company_master");
+					.executeQuery("Select comp_name, comp_id, comp_sql_dbname, sql_server, sql_user_id, sql_password from company_master where comp_status='Active'");
 
 			// connect to r
 			RConnection rCon = dch.getRConn();
@@ -191,7 +191,7 @@ public class CompanyDAO extends TimerTask {
 		try {
 			Statement stmt = dch.companySqlConnectionPool.get(companyId).createStatement();
 			ResultSet res = stmt
-					.executeQuery("select distinct(l.login_id) as email_id from (select Distinct(survey_batch_id) as survey_batch_id from question where date(start_date)=CURDATE()) as b join batch_target as bt on b.survey_batch_id=bt.survey_batch_id left join login_table as l on l.emp_id=bt.emp_id");
+					.executeQuery("select distinct(l.login_id) as email_id from (select Distinct(survey_batch_id) as survey_batch_id from question where date(start_date)=CURDATE()) as b join batch_target as bt on b.survey_batch_id=bt.survey_batch_id left join login_table as l on l.emp_id=bt.emp_id where l.status='active'");
 
 			while (res.next()) {
 				addresses.add(res.getString(1));
