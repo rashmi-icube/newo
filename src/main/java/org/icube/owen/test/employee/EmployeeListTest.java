@@ -82,9 +82,9 @@ public class EmployeeListTest {
 		assertNotNull(empList);
 	}
 
-	@Ignore
+	@Test
 	public void testGetEmployeeListByFilters() {
-		List<Filter> filterList = TestHelper.getAllForTwoFilters(companyId);
+		List<Filter> filterList = TestHelper.getOneForEachFilter(companyId);
 		List<Employee> result = el.getEmployeeListByFilters(companyId, filterList);
 		assertNotNull(result);
 	}

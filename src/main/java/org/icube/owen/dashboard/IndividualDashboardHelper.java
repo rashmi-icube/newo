@@ -194,6 +194,7 @@ public class IndividualDashboardHelper extends TheBorg {
 	public Map<Date, List<ActivityFeed>> getActivityFeedList(int companyId, int employeeId, int pageNumber) {
 		org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug(
 				"Entering getActivityFeedList with employee ID : " + employeeId + " page number " + pageNumber);
+		org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("************Company id: " + companyId);
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
 		Map<Date, List<ActivityFeed>> result = new TreeMap<>(Collections.reverseOrder());
@@ -309,12 +310,13 @@ public class IndividualDashboardHelper extends TheBorg {
 		dch.getCompanyConnection(companyId);
 		Map<Integer, Employee> employeeRankMap = new LinkedHashMap<>();
 		List<Employee> employeeList = new ArrayList<>();
-		Map<Integer, Integer> MetricRelationshipTypeMap = getMetricRelationshipTypeMapping(1);
+		Map<Integer, Integer> MetricRelationshipTypeMap = getMetricRelationshipTypeMapping(companyId);
 		try {
 			RConnection rCon = dch.getRConn();
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("R Connection Available : " + rCon.isConnected());
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Filling up parameters for rscript function");
 			rCon.assign("company_id", new int[] { companyId });
+			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Company id : " + companyId);
 			rCon.assign("emp_id", new int[] { employeeId });
 			rCon.assign("rel_id", new int[] { MetricRelationshipTypeMap.get(metricId) });
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Calling the actual function in RScript SmartListResponse");
