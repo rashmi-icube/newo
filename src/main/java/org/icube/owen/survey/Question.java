@@ -110,7 +110,7 @@ public class Question extends TheBorg {
 		try {
 			dch.getCompanyConnection(companyId);
 
-			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getQuestion(?)}");
+			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getQuestion(?)}");
 			cstmt.setInt(1, questionId);
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
@@ -159,7 +159,7 @@ public class Question extends TheBorg {
 		Map<Date, Integer> responseMap = new HashMap<>();
 		try {
 			dch.getCompanyConnection(companyId);
-			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getResponseData(?)}");
+			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getResponseData(?)}");
 			cstmt.setInt(1, q.getQuestionId());
 			ResultSet rs = cstmt.executeQuery();
 			if (rs.next()) {
@@ -230,7 +230,7 @@ public class Question extends TheBorg {
 
 		try {
 			dch.getCompanyConnection(companyId);
-			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getEmpQuestionList(?,?)}");
+			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getEmpQuestionList(?,?)}");
 			cstmt.setInt(1, employeeId);
 			Date date = Date.from(Instant.now());
 			cstmt.setDate(2, UtilHelper.convertJavaDateToSqlDate(date));

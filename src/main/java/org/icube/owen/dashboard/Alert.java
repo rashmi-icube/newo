@@ -40,7 +40,7 @@ public class Alert extends TheBorg {
 		dch.getCompanyConnection(companyId);
 		Alert a = null;
 		try {
-			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getAlert(?)}");
+			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getAlert(?)}");
 			cstmt.setInt(1, alertId);
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
@@ -99,7 +99,7 @@ public class Alert extends TheBorg {
 		a.setAlertMetric(m);
 		a.setDeltaScore(rs.getDouble("delta_score"));
 		a.setTeamSize(rs.getInt("team_size"));
-		CallableStatement cstmt1 = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getListOfPeopleForAlert(?)}");
+		CallableStatement cstmt1 = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getListOfPeopleForAlert(?)}");
 		cstmt1.setInt(1, rs.getInt("alert_id"));
 		ResultSet rs1 = cstmt1.executeQuery();
 		List<Integer> empIdList = new ArrayList<>();
@@ -125,7 +125,7 @@ public class Alert extends TheBorg {
 		dch.getCompanyConnection(companyId);
 		try {
 			org.apache.log4j.Logger.getLogger(Alert.class).debug("Calling the deleteAlert procedure");
-			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call deleteAlert(?)}");
+			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call deleteAlert(?)}");
 			cstmt.setInt(1, alertId);
 			cstmt.executeQuery();
 			org.apache.log4j.Logger.getLogger(Alert.class).debug("Successfully deleted alert");

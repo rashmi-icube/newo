@@ -31,7 +31,7 @@ public class HrDashboardHelper extends TheBorg {
 		try {
 			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).debug(
 					"Entering getFilterMetrics using procedure getDimensionMetricValueAggregate");
-			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getDimensionMetricValueAggregate(?, ?)}");
+			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getDimensionMetricValueAggregate(?, ?)}");
 			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).debug(
 					"Filter Value ID : " + filter.getFilterValues().keySet().iterator().next().intValue());
 			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).debug("Filter ID : " + filter.getFilterId());
@@ -60,7 +60,7 @@ public class HrDashboardHelper extends TheBorg {
 		dch.getCompanyConnection(companyId);
 		try {
 
-			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getOrganizationMetricValueAggregate()}");
+			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getOrganizationMetricValueAggregate()}");
 			ResultSet rs = cstmt.executeQuery();
 			MetricsHelper mh = new MetricsHelper();
 			orgMetricsList = mh.fillMetricsData(companyId, rs, null, "Team");
@@ -85,7 +85,7 @@ public class HrDashboardHelper extends TheBorg {
 		try {
 			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).debug(
 					"Entering getTimeSeriesGraph using procedure getDimensionMetricTimeSeries");
-			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getDimensionMetricTimeSeries(?)}");
+			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getDimensionMetricTimeSeries(?)}");
 			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).debug(
 					"Filter Value ID : " + filter.getFilterValues().keySet().iterator().next().intValue());
 			cstmt.setInt(1, filter.getFilterValues().keySet().iterator().next().intValue());
@@ -136,7 +136,7 @@ public class HrDashboardHelper extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
 		try {
-			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getOrganizationMetricTimeSeries()}");
+			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getOrganizationMetricTimeSeries()}");
 			ResultSet rs = cstmt.executeQuery();
 			result = getTimeSeriesMap(rs);
 		} catch (SQLException e) {
@@ -157,7 +157,7 @@ public class HrDashboardHelper extends TheBorg {
 		dch.getCompanyConnection(companyId);
 		List<Alert> alertList = new ArrayList<>();
 		try {
-			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getAlertList()}");
+			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getAlertList()}");
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
 				Alert a = new Alert();

@@ -14,8 +14,6 @@ library(reshape2)
 source('config.R')
 
 TeamMetric=function(CompanyId,Function,Position,Zone){
-  # remove this
-  #CompanyId=1
   
   mydb = dbConnect(MySQL(), user=mysqlusername, password=mysqlpasswod, dbname=mysqldbname, host=mysqlhost, port=mysqlport)
   
@@ -63,11 +61,8 @@ TeamMetric=function(CompanyId,Function,Position,Zone){
   op=data.frame(metric_id=as.numeric(),score=as.numeric())
   
   # graph DB connection
-  
   com_neopath=CompanyConfig$neo_db_url[1]
-  #com_neopath=paste(com_neopath,"/db/data/",sep = "")
   com_neopath=paste("http://",com_neopath,"/db/data/",sep = "")
-  
   com_neousername=CompanyConfig$neo_user_name[1]
   com_neopassword=CompanyConfig$neo_password[1]
   
@@ -95,7 +90,7 @@ TeamMetric=function(CompanyId,Function,Position,Zone){
   res <- dbSendQuery(mydb,query)
   vertexlist=fetch(res,-1)
   
-  # To return -1 if team size is small
+    # To return -1 if team size is small
   if (nrow(vertexlist)<variable$value[variable$variable_name=="MinTeamSize"] ){
     currtime=format(Sys.time(), "%Y-%m-%d %H:%M:%S")
     op=data.frame(metric_id=c(6,7,8,9,10),score=c(-1,-1,-1,-1,-1),calc_time=currtime)
@@ -299,16 +294,13 @@ TeamMetric=function(CompanyId,Function,Position,Zone){
   # filte edge for current team and innovation relation from Master
   edgelist=edgelist1[edgelist1$from %in% vertexlist$a.emp_id &
                        edgelist1$to %in% vertexlist$a.emp_id & 
-                       edgelist1$relation=="innovation",c("from","to")]
+                       edgelist1$relation=="innovation",c("from","to","weight")]
   
   if (nrow(edgelist)>0) {
-    
     # create graph
     g <- graph.data.frame(edgelist, directed=TRUE, vertices=vertexlist)
-    
     # calculate in strength
     instrength=strength(g,mode="in")
-    
     #average of instrength
     avginstrength=mean(instrength)
     
@@ -321,31 +313,16 @@ TeamMetric=function(CompanyId,Function,Position,Zone){
     
     # normalize by dividing with max of in strength overall
     avginstrength=avginstrength/maxinstrength
-    # query to get list of all node
-    querynode = "match (a:Employee) return a.emp_id"
     
-    # get list of all node
-    vertexlist1=cypher(graph, querynode)
-    
-    # filter for edge from master for all employee and innovation
-    edgelist=edgelist1[edgelist1$relation=="innovation",c("from","to")]
-    
-    # create graph for all employee and innovation relation
-    g1 <- graph.data.frame(edgelist, directed=TRUE, vertices=vertexlist1)
-    
-    #oberall betweenness for innovation
-    between=data.frame(betweenness(g1))
-    
-    # rename column
-    names(between)="Betweenness"
-    
-    #add column for emp_id
-    between$emp_id=row.names(between)
-    
-    between$Rank=rank(-between$Betweenness,ties.method= "random")
-    
-    #list of innovators in organization i.e top 20 percentile
-    innovators=between$emp_id[between$Rank<(nrow(between)*variable$value[variable$variable_name=="Metric9InnovatorPercentile"])]
+    query="SELECT max(calc_time) FROM individual_metric_value;"
+    res <- dbSendQuery(mydb,query)
+    calc_time=fetch(res,-1)
+    calc_time=calc_time[1,1]
+    query=paste("SELECT * FROM individual_metric_value as i1 where i1.metric_id=4 and i1.calc_time='",calc_time,"';",sep="")
+    res <- dbSendQuery(mydb,query)
+    Influence_score=fetch(res,-1)
+    Influence_score=Influence_score[order(Influence_score$metric_value,decreasing = TRUE),]
+    innovators=Influence_score$emp_id[1:round(nrow(Influence_score)*variable$value[variable$variable_name=="Metric9InnovatorPercentile"],0)]
     
     # percentage of find innovators in team
     innovatorsinteam=length(vertexlist$a.emp_id[vertexlist$a.emp_id %in% innovators])/nrow(vertexlist)
@@ -1626,10 +1603,14 @@ JobIndividualMetric=function(CompanyId){
   
   graph = startGraph(com_neopath, username=com_neousername, password=com_neopassword)
   
-  query=paste("select emp_id as `a.emp_id` from login_table where status='active';",sep = "")
+  query=paste("select login_table.emp_id as `a.emp_id`,employee.cube_id from login_table left join employee 
+on login_table.emp_id=employee.emp_id where status='active';",sep = "")
   res <- dbSendQuery(mydb,query)
   vertexlist1=fetch(res,-1)
   
+  query="SELECT * FROM variable;"
+  res <- dbSendQuery(mydb,query)
+  variable=fetch(res,-1)
 
   queryedge1 = "match (a:Employee)-[r]->(b:Employee) 
   return a.emp_id as from ,b.emp_id as to ,type(r) as relation,r.weight as weight"
@@ -1645,21 +1626,13 @@ JobIndividualMetric=function(CompanyId){
     
     edgelist=edgelist1[edgelist1$relation=="learning",c("from","to","weight")]
     if(nrow(edgelist)>0){
-      
       g <- graph.data.frame(edgelist, directed=TRUE, vertices=vertexlist1)
-      
       op=data.frame(strength(g,mode="in"))
-      
       names(op)="metric_value"
-      
       op$emp_id=row.names(op)
-      
       maxstrength=max(op$metric_value)
-      
       op$metric_value=round(op$metric_value/maxstrength*100)
-      
       op$metric_id=1
-      
       op1=op
     }else{
       op1=rbind(data.frame(metric_value=0,emp_id=vertexlist1$a.emp_id,metric_id=1))
@@ -1668,31 +1641,20 @@ JobIndividualMetric=function(CompanyId){
     
     edgelist=edgelist1[edgelist1$relation=="mentor",c("from","to","weight")]
     if (nrow(edgelist)>0) {
-      
       g <- graph.data.frame(edgelist, directed=TRUE, vertices=vertexlist1)
-      
       op=data.frame(strength(g,mode="in"))
-      
       names(op)="metric_value"
-      
       op$emp_id=row.names(op)
-      
       maxstrength=max(op$metric_value)
-      
       op$metric_value=round(op$metric_value/maxstrength*100)
-      
       op$metric_id=2
-      
       op1=rbind(op1,op)
-    }else{
+      }else{
       op1=rbind(op1,data.frame(metric_value=0,emp_id=vertexlist1$a.emp_id,metric_id=2))
-      
-    }
+      }
     
     # Retention
-    
     #all relation
-    
     query="select * from individual_nw_metric_value as t1
     where t1.nw_metric_id=2 and t1.rel_id=5"
     
@@ -1711,34 +1673,25 @@ JobIndividualMetric=function(CompanyId){
     previousdate=uniquedate[2]
     if (is.na(previousdate)) {
       op=data.frame(metric_value=0,emp_id=vertexlist1$a.emp_id)
-    }else{
+      }else{
       strengthall$date=as.Date(as.POSIXct(strengthall$calc_time))
-      
       currstrength=strengthall[strengthall$date==currdate,c("emp_id","nw_metric_value")]
-      
       prevstrength=strengthall[strengthall$date==previousdate,c("emp_id","nw_metric_value")]
+      # index for response rate
+      currstrength$nw_metric_value=currstrength$nw_metric_value*sum(prevstrength$nw_metric_value)/sum(currstrength$nw_metric_value)
       
       instrength=merge(currstrength,prevstrength,by="emp_id")
       names(instrength)[2:3]=c("current","previous")
-      
       instrength$perc=(instrength$current-instrength$previous)/instrength$previous  
-      
       instrength$perc=instrength$perc/2+0.5
-      
-      #instrength$perc=instrength$perc+1
       instrength$perc[is.na(instrength$perc)]=0.5
-      
       instrength$perc[instrength$perc>1]=1
-      
       instrength$metric_value=round(instrength$perc*100,0)
       
       op=instrength[,c("metric_value","emp_id")]
-      
-    }
-    
+      }
     
     op$metric_id=3
-    
     op1=rbind(op1,op)
     
     # Influence
@@ -1746,43 +1699,51 @@ JobIndividualMetric=function(CompanyId){
     edgelist=edgelist1[edgelist1$relation=="innovation",c("from","to")]
     
     if(nrow(edgelist)>0){
+      g <- graph.data.frame(edgelist, directed=TRUE, vertices=vertexlist1)
+      btw=data.frame(betweenness(g))
+      names(btw)="betweenness"
+      btw$emp_id=row.names(btw)
+      btw$betweenness=btw$betweenness/max(btw$betweenness)
+      
+      edgelist=edgelist1[edgelist1$relation=="innovation",c("from","to","weight")]
+      edgelist=merge(edgelist,vertexlist1,by.x = "from",by.y="a.emp_id")
+      names(edgelist)[3]="from_cube_id"
+      edgelist=merge(edgelist,vertexlist1,by.x = "to",by.y="a.emp_id")
+      names(edgelist)[4]="to_cube_id"
+      edgelist=edgelist[edgelist$from_cube_id!=edgelist$to_cube_id,c("from","to")]
       
       g <- graph.data.frame(edgelist, directed=TRUE, vertices=vertexlist1)
+      instr=data.frame(strength(g,mode="in"))
+      names(instr)="instrength"
+      instr$emp_id=row.names(instr)
+      instr$instrength=instr$instrength/max(instr$instrength)
       
-      op=data.frame(betweenness(g))
-      names(op)="betweenness"
-      op$emp_id=row.names(op)
+      op=merge(btw,instr)
+      op$metric_value=variable$value[variable$variable_name=="Metric4Wt1"]*op$betweenness+
+        variable$value[variable$variable_name=="Metric4Wt2"]*op$instrength
       
-      maxbetw=max(op$betweenness)
-      op$betweenness=op$betweenness/maxbetw
-      op$metric_value=round(op$betweenness*100,0)
-      
+      op$metric_value=round(op$metric_value*100,0)
       op=op[,c("metric_value","emp_id")]
-      
       op$metric_id=4
-      
       op$metric_value[is.na(op$metric_value)]=0
       
       op1=rbind(op1,op)
     }else{
       op1=rbind(op1,data.frame(metric_value=0,emp_id=vertexlist1$a.emp_id,metric_id=4))
-      
     }  
     #sentiment
     
     query="select * from me_response"
-    
     res <- dbSendQuery(mydb,query)
-    # individual retention
     me_repsonse <- fetch(res,-1)
     
-    query="SELECT * FROM variable;"
+    query="SELECT * FROM question where que_type=0;"
     res <- dbSendQuery(mydb,query)
-    variable=fetch(res,-1)
-    
-    questionlist=unique(me_repsonse$que_id)
-    questionlist=sort(questionlist,decreasing = TRUE)
-    
+    question_me=fetch(res,-1)
+    question_me$end_date=as.Date(question_me$end_date,"%Y-%m-%d")
+    today_date=Sys.Date()
+    question_me=question_me[question_me$end_date<today_date,]
+    questionlist=sort(question_me$que_id,decreasing = TRUE)
     questionlist=questionlist[1:variable$value[variable$variable_name=="Metric5Window"]]
     
     me_repsonse=me_repsonse[me_repsonse$que_id %in% questionlist,]
@@ -1790,14 +1751,10 @@ JobIndividualMetric=function(CompanyId){
     
     op=merge(data.frame(emp_id=vertexlist1[,c("a.emp_id")]),op,all.x=TRUE)
     op$x[is.na(op$x)]=0
-    
     op$metric_value=round(op$x/5*100,0)
-    
     op=op[,c("metric_value","emp_id")]
-    
     op$metric_id=5
-    
-    op1=rbind(op1,data.frame())
+    op1=rbind(op1,op)
   }else{
     op1=rbind(data.frame(metric_value=0,emp_id=vertexlist1$a.emp_id,metric_id=1))
     op1=rbind(op1,data.frame(metric_value=0,emp_id=vertexlist1$a.emp_id,metric_id=2))
@@ -1874,6 +1831,16 @@ JobTeamMetric=function(CompanyId){
   query="SELECT * FROM variable;"
   res <- dbSendQuery(mydb,query)
   variable=fetch(res,-1)
+  
+  query="SELECT max(calc_time) FROM individual_metric_value;"
+  res <- dbSendQuery(mydb,query)
+  calc_time=fetch(res,-1)
+  calc_time=calc_time[1,1]
+  query=paste("SELECT * FROM individual_metric_value as i1 where i1.metric_id=4 and i1.calc_time='",calc_time,"';",sep="")
+  res <- dbSendQuery(mydb,query)
+  Influence_score=fetch(res,-1)
+  Influence_score=Influence_score[order(Influence_score$metric_value,decreasing = TRUE),]
+  innovators=Influence_score$emp_id[1:round(nrow(Influence_score)*variable$value[variable$variable_name=="Metric9InnovatorPercentile"],0)]
   
   query="select * from cube_master"
   
@@ -1954,31 +1921,7 @@ JobTeamMetric=function(CompanyId){
 
   if(!is.null(edgelist1)){
     
-    # filter for edge from master for all employee and innovation
-    edgelist=edgelist1[edgelist1$relation=="innovation",c("from","to")]
-    if (nrow(edgelist)>0) {
-        
-      # create graph for all employee and innovation relation
-      g1 <- graph.data.frame(edgelist, directed=TRUE, vertices=employee$emp_id)
-      
-      #oberall betweenness for innovation
-      between=data.frame(betweenness(g1))
-      
-      # rename column
-      names(between)="Betweenness"
-      
-      #add column for emp_id
-      between$emp_id=row.names(between)
-      
-      between$Rank=rank(-between$Betweenness,ties.method= "random")
-      
-      #list of innovators in organization i.e betweenness above threshold
-      innovators=between$emp_id[between$Rank<(nrow(between)*variable$value[variable$variable_name=="Metric9InnovatorPercentile"])]
-    }else{
-      innovators=c()
-    }  
     # function to find influence on (me) by (by)
-    
     influence=function(me,by,edge){
       # subset edge from me
       sub=edge[edge$from==me,]  
@@ -1992,7 +1935,6 @@ JobTeamMetric=function(CompanyId){
       }
       return(influenceper)
     }
-    
     
     op=data.frame(cube_id=as.numeric(),metric_id=as.numeric(),score=as.numeric(),display_flag=as.integer(),stringsAsFactors = FALSE)
     
@@ -2064,9 +2006,7 @@ JobTeamMetric=function(CompanyId){
         op=rbind(op,data.frame(cube_id=as.numeric(cube_id),metric_id=as.numeric(6),score=0,display_flag))
       } 
       
-      
       # social Cohesion
-      
       edgelist=edgelist1[edgelist1$from %in% emp_id_cube &
                            edgelist1$to %in% emp_id_cube & 
                            edgelist1$relation=="social",c("from","to","weight")]
@@ -2093,11 +2033,9 @@ JobTeamMetric=function(CompanyId){
         op=rbind(op,data.frame(cube_id=as.numeric(cube_id),metric_id=as.numeric(7),score=as.numeric(socialcohesionscore),display_flag))
       }else{
         op=rbind(op,data.frame(cube_id=as.numeric(cube_id),metric_id=as.numeric(7),score=0,display_flag))
-        
       }
       
       #Retention
-      
       # individual retention
       retention <-retention_ind[retention_ind$emp_id %in% emp_id_cube,]
       
@@ -2111,7 +2049,6 @@ JobTeamMetric=function(CompanyId){
                            edgelist1$to %in% emp_id_cube & 
                            edgelist1$relation=="mentor",c("from","to","weight")]
       if (nrow(edgelist)>0) {
-        
         #initiate fraction to 0
         fraction=0
         if(nrow(PeopleAtRisk)>0){
@@ -2149,16 +2086,14 @@ JobTeamMetric=function(CompanyId){
         # retention end
       }else{
         op=rbind(op,data.frame(cube_id=as.numeric(cube_id),metric_id=as.numeric(8),score=0,display_flag))  
-        
       }  
       # innovation
       # filte edge for current team and innovation relation from Master
       edgelist=edgelist1[edgelist1$from %in% emp_id_cube &
                            edgelist1$to %in% emp_id_cube & 
-                           edgelist1$relation=="innovation",c("from","to")]
+                           edgelist1$relation=="innovation",c("from","to","weight")]
       
       if(nrow(edgelist)>0){
-        
         # create graph
         g <- graph.data.frame(edgelist, directed=TRUE, vertices=emp_id_cube)
         
@@ -2167,7 +2102,6 @@ JobTeamMetric=function(CompanyId){
         
         #average of instrength
         avginstrength=mean(instrength)
-        
         
         # normalize by dividing with max of in strength overall
         avginstrength=avginstrength/maxinstrength_innovation
@@ -2306,6 +2240,17 @@ JobDimensionMetric=function(CompanyId){
   res <- dbSendQuery(mydb,query)
   variable=fetch(res,-1)
   
+  query="SELECT max(calc_time) FROM individual_metric_value;"
+  res <- dbSendQuery(mydb,query)
+  calc_time=fetch(res,-1)
+  calc_time=calc_time[1,1]
+  query=paste("SELECT * FROM individual_metric_value as i1 where i1.metric_id=4 and i1.calc_time='",calc_time,"';",sep="")
+  res <- dbSendQuery(mydb,query)
+  Influence_score=fetch(res,-1)
+  Influence_score=Influence_score[order(Influence_score$metric_value,decreasing = TRUE),]
+  innovators=Influence_score$emp_id[1:round(nrow(Influence_score)*variable$value[variable$variable_name=="Metric9InnovatorPercentile"],0)]
+  
+  
   query="select * from dimension_master"
   
   res <- dbSendQuery(mydb,query)
@@ -2399,28 +2344,6 @@ JobDimensionMetric=function(CompanyId){
     maxinstrength_innovation <- fetch(res,-1)
     maxinstrength_innovation=maxinstrength_innovation[1,1]
     
-    # filter for edge from master for all employee and innovation
-    edgelist=edgelist1[edgelist1$relation=="innovation",c("from","to")]
-    if(nrow(edgelist)>0){
-      
-      # create graph for all employee and innovation relation
-      g1 <- graph.data.frame(edgelist, directed=TRUE, vertices=employee$emp_id)
-      
-      #oberall betweenness for innovation
-      between=data.frame(betweenness(g1))
-      
-      # rename column
-      names(between)="Betweenness"
-      
-      #add column for emp_id
-      between$emp_id=row.names(between)
-      
-      between$Rank=rank(-between$Betweenness,ties.method= "random")
-      
-      innovators=between$emp_id[between$Rank<(nrow(between)*variable$value[variable$variable_name=="Metric9InnovatorPercentile"])]
-    }else{
-      innovators=c()
-    }
     # function to find influence on (me) by (by)
     
     influence=function(me,by,edge){
@@ -2598,7 +2521,7 @@ JobDimensionMetric=function(CompanyId){
         # filte edge for current team and innovation relation from Master
       edgelist=edgelist1[edgelist1$from %in% emp_id_dim &
                              edgelist1$to %in% emp_id_dim & 
-                             edgelist1$relation=="innovation",c("from","to")]
+                             edgelist1$relation=="innovation",c("from","to","weight")]
       if(nrow(edgelist)>0){  
         # create graph
         g <- graph.data.frame(edgelist, directed=TRUE, vertices=emp_id_dim)
@@ -2806,6 +2729,17 @@ JobInitiativeMetric=function(CompanyId){
     res <- dbSendQuery(mydb,query)
     variable=fetch(res,-1)
     
+    query="SELECT max(calc_time) FROM individual_metric_value;"
+    res <- dbSendQuery(mydb,query)
+    calc_time=fetch(res,-1)
+    calc_time=calc_time[1,1]
+    query=paste("SELECT * FROM individual_metric_value as i1 where i1.metric_id=4 and i1.calc_time='",calc_time,"';",sep="")
+    res <- dbSendQuery(mydb,query)
+    Influence_score=fetch(res,-1)
+    Influence_score=Influence_score[order(Influence_score$metric_value,decreasing = TRUE),]
+    innovators=Influence_score$emp_id[1:round(nrow(Influence_score)*variable$value[variable$variable_name=="Metric9InnovatorPercentile"],0)]
+    
+    
     # sql query to get max instrength for relation learning
     query=paste("SELECT max(t1.nw_metric_value) as Score FROM individual_nw_metric_value as t1
                 where t1.nw_metric_id=2 and t1.rel_id=4 and t1.calc_time=
@@ -2846,29 +2780,6 @@ JobInitiativeMetric=function(CompanyId){
     maxinstrength_innovation <- fetch(res,-1)
     maxinstrength_innovation=maxinstrength_innovation[1,1]
     
-    # filter for edge from master for all employee and innovation
-    edgelist=edgelist1[edgelist1$relation=="innovation",c("from","to")]
-    
-    if(nrow(edgelist)>0){
-      # create graph for all employee and innovation relation
-      g1 <- graph.data.frame(edgelist, directed=TRUE, vertices=employee$emp_id)
-      
-      #oberall betweenness for innovation
-      between=data.frame(betweenness(g1))
-      
-      # rename column
-      names(between)="Betweenness"
-      
-      #add column for emp_id
-      between$emp_id=row.names(between)
-      
-      between$Rank=rank(-between$Betweenness,ties.method= "random")
-      
-      #list of innovators in organization i.e betweenness above threshold
-      innovators=between$emp_id[between$Rank<(nrow(between)*variable$value[variable$variable_name=="Metric9InnovatorPercentile"])]
-    }else{
-      innovators=c()
-    }  
     # function to find influence on (me) by (by)
     
     influence=function(me,by,edge){
@@ -3048,7 +2959,7 @@ JobInitiativeMetric=function(CompanyId){
       # filte edge for current team and innovation relation from Master
       edgelist=edgelist1[edgelist1$from %in% emp_id_init &
                            edgelist1$to %in% emp_id_init & 
-                           edgelist1$relation=="innovation",c("from","to")]
+                           edgelist1$relation=="innovation",c("from","to","weight")]
       if(nrow(edgelist)>0){
         # create graph
         g <- graph.data.frame(edgelist, directed=TRUE, vertices=emp_id_init)

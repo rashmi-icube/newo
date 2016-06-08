@@ -175,7 +175,7 @@ public class EmployeeList extends TheBorg {
 		List<Employee> employeeList = new ArrayList<>();
 		try {
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("getEmployeeMasterList method started");
-			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getEmployeeList()}");
+			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getEmployeeList()}");
 			ResultSet res = cstmt.executeQuery();
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("query : " + cstmt);
 			while (res.next()) {
@@ -249,7 +249,7 @@ public class EmployeeList extends TheBorg {
 				}
 			}
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("Function : " + funcId + " Zone : " + zoneId + " Position : " + posId);
-			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getEmpFromDimension(?,?,?)}");
+			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getEmpFromDimension(?,?,?)}");
 			cstmt.setInt(1, funcId);
 			cstmt.setInt(2, posId);
 			cstmt.setInt(3, zoneId);
@@ -294,7 +294,7 @@ public class EmployeeList extends TheBorg {
 
 			try {
 				org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("get method started");
-				CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getEmployeeDetails(?)}");
+				CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getEmployeeDetails(?)}");
 				cstmt.setString(1, empSubList.toString().substring(1, empSubList.toString().length() - 1).replaceAll(" ", ""));
 				ResultSet res = cstmt.executeQuery();
 				org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("query : " + cstmt);

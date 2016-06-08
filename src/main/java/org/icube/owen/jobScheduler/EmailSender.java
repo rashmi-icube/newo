@@ -20,7 +20,6 @@ import javax.mail.internet.MimeMessage;
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.helper.DatabaseConnectionHelper;
 import org.icube.owen.helper.UtilHelper;
-import org.icube.owen.slack.SlackIntegration;
 
 public class EmailSender {
 
@@ -146,9 +145,13 @@ public class EmailSender {
 						+ ipAddr);
 				Transport.send(msg, username, password);
 
-				// send slack update
-				SlackIntegration sl = new SlackIntegration();
-				sl.sendMessage(companyId, "You have new questions to answer. Please login to answer : " + loginUrl + "");
+				/*// send slack update
+				
+				if(dch.companyConfigMap.get(companyId).isSendSlack()){
+					SlackIntegration sl = new SlackIntegration();
+					sl.sendMessage(companyId, "You have new questions to answer. Please login to answer : " + loginUrl + "");
+				}*/
+				
 			} catch (MessagingException | UnsupportedEncodingException e) {
 				org.apache.log4j.Logger.getLogger(EmailSender.class).error("Error in sending Emails for current questions", e);
 				dch.releaseRcon();

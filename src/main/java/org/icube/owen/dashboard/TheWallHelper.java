@@ -45,7 +45,7 @@ public class TheWallHelper extends TheBorg {
 		org.apache.log4j.Logger.getLogger(TheWallHelper.class).debug("Position : " + parsedFilterMap.get("posId"));
 		org.apache.log4j.Logger.getLogger(TheWallHelper.class).debug("Zone : " + parsedFilterMap.get("zoneId"));
 		try {
-			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getWallFeedIndividual(?,?,?,?,?,?,?,?)}");
+			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getWallFeedIndividual(?,?,?,?,?,?,?,?)}");
 			cstmt.setInt("fun", (int) parsedFilterMap.get("funcId"));
 			cstmt.setInt("pos", (int) parsedFilterMap.get("posId"));
 			cstmt.setInt("zon", (int) parsedFilterMap.get("zoneId"));
@@ -113,7 +113,7 @@ public class TheWallHelper extends TheBorg {
 		org.apache.log4j.Logger.getLogger(TheWallHelper.class).debug("Position : " + parsedFilterMap.get("posId"));
 		org.apache.log4j.Logger.getLogger(TheWallHelper.class).debug("Zone : " + parsedFilterMap.get("zoneId"));
 		try {
-			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getWallFeedTeam(?,?,?,?,?,?,?,?)}");
+			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getWallFeedTeam(?,?,?,?,?,?,?,?)}");
 			cstmt.setInt("fun", (int) parsedFilterMap.get("funcId"));
 			cstmt.setInt("pos", (int) parsedFilterMap.get("posId"));
 			cstmt.setInt("zon", (int) parsedFilterMap.get("zoneId"));

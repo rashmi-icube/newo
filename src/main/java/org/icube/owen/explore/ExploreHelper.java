@@ -65,19 +65,19 @@ public class ExploreHelper extends TheBorg {
 			try {
 				if ((int) parsedFilterListResult.get("countAll") == 3) {
 					// if all selections are ALL then it is a organizational team metric
-					CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getOrganizationMetricTimeSeries()}");
+					CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getOrganizationMetricTimeSeries()}");
 					ResultSet rs = cstmt.executeQuery();
 					timeSeriesMap = getTimeSeriesMap(rs);
 
 				} else if ((int) parsedFilterListResult.get("countAll") == 2) {
 					// if two of the filters are ALL then it is a dimension metric
-					CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getDimensionMetricTimeSeries(?)}");
+					CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getDimensionMetricTimeSeries(?)}");
 					cstmt.setInt(1, (int) parsedFilterListResult.get("dimensionValueId"));
 					ResultSet rs = cstmt.executeQuery();
 					timeSeriesMap = getTimeSeriesMap(rs);
 				} else if ((int) parsedFilterListResult.get("countAll") == 0) {
 					// if none of the filters is ALL then it is a cube metric
-					CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getTeamMetricTimeSeries(?,?,?)}");
+					CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getTeamMetricTimeSeries(?,?,?)}");
 					cstmt.setInt(1, (int) parsedFilterListResult.get("funcId"));
 					cstmt.setInt(2, (int) parsedFilterListResult.get("posId"));
 					cstmt.setInt(3, (int) parsedFilterListResult.get("zoneId"));
@@ -115,7 +115,7 @@ public class ExploreHelper extends TheBorg {
 			dch.getCompanyConnection(companyId);
 			for (Employee e : employeeList) {
 				List<Metrics> metricsList = new ArrayList<>();
-				CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getIndividualMetricValue(?)}");
+				CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getIndividualMetricValue(?)}");
 				cstmt.setInt(1, e.getEmployeeId());
 				ResultSet rs = cstmt.executeQuery();
 				MetricsHelper mh = new MetricsHelper();
@@ -144,7 +144,7 @@ public class ExploreHelper extends TheBorg {
 			dch.getCompanyConnection(companyId);
 			for (Employee e : employeeList) {
 				Map<Integer, List<Map<Date, Integer>>> metricsList = new HashMap<>();
-				CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getIndividualMetricTimeSeries(?)}");
+				CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getIndividualMetricTimeSeries(?)}");
 				cstmt.setInt(1, e.getEmployeeId());
 				ResultSet rs = cstmt.executeQuery();
 				metricsList = getTimeSeriesMap(rs);
@@ -253,7 +253,7 @@ public class ExploreHelper extends TheBorg {
 		try {
 			List<Integer> empIdList = new ArrayList<>();
 			org.apache.log4j.Logger.getLogger(ExploreHelper.class).debug("getTeamNetworkDiagram query for all teams  : " + query);
-			Statement stmt = dch.companyNeoConnectionPool.get(companyId).createStatement();
+			Statement stmt = dch.companyConfigMap.get(companyId).getNeoConnection().createStatement();
 			ResultSet res = stmt.executeQuery(query);
 			while (res.next()) {
 				empIdList.add(res.getInt("emp_id"));
@@ -343,7 +343,7 @@ public class ExploreHelper extends TheBorg {
 		try {
 			List<Integer> empIdList = new ArrayList<>();
 			org.apache.log4j.Logger.getLogger(ExploreHelper.class).debug("getIndividualNetworkDiagram query  : " + query);
-			Statement stmt = dch.companyNeoConnectionPool.get(companyId).createStatement();
+			Statement stmt = dch.companyConfigMap.get(companyId).getNeoConnection().createStatement();
 			ResultSet res = stmt.executeQuery(query);
 			while (res.next()) {
 				empIdList.add(res.getInt("emp_id"));
@@ -393,7 +393,7 @@ public class ExploreHelper extends TheBorg {
 
 		org.apache.log4j.Logger.getLogger(ExploreHelper.class).debug("getEdges query for all teams  : " + query);
 		try {
-			Statement stmt = dch.companyNeoConnectionPool.get(companyId).createStatement();
+			Statement stmt = dch.companyConfigMap.get(companyId).getNeoConnection().createStatement();
 			ResultSet res = stmt.executeQuery(query);
 			while (res.next()) {
 				Edge e = new Edge();
@@ -423,7 +423,7 @@ public class ExploreHelper extends TheBorg {
 		Map<Integer, String> relationshipTypeMap = new HashMap<>();
 		try {
 			dch.getCompanyConnection(companyId);
-			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getRelationTypeList()}");
+			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getRelationTypeList()}");
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
 				relationshipTypeMap.put(rs.getInt("rel_id"), rs.getString("rel_name"));

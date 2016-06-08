@@ -90,7 +90,7 @@ public class InitiativeList extends TheBorg {
 				org.apache.log4j.Logger.getLogger(InitiativeList.class).error("Incorrect criteria has been given " + viewByCriteria);
 				throw new Exception("Incorrect criteria has been given " + viewByCriteria);
 			}
-			Statement stmt = dch.companyNeoConnectionPool.get(companyId).createStatement();
+			Statement stmt = dch.companyConfigMap.get(companyId).getNeoConnection().createStatement();
 			ResultSet res = stmt.executeQuery(initiativeListQuery);
 			org.apache.log4j.Logger.getLogger(InitiativeList.class).debug(
 					"Executed query for retrieving initiative list with " + viewByCriteria + " : " + viewByValue);
@@ -152,7 +152,7 @@ public class InitiativeList extends TheBorg {
 					+ "collect(distinct (o.emp_id)) as OwnersOf,i.Comment as Comments,i.Type as Type,i.Category as Category,i.Status as Status";
 			org.apache.log4j.Logger.getLogger(InitiativeList.class).debug(
 					"Query for retrieving all initiatives for category " + category + " : " + initiativeListQuery);
-			Statement stmt = dch.companyNeoConnectionPool.get(companyId).createStatement();
+			Statement stmt = dch.companyConfigMap.get(companyId).getNeoConnection().createStatement();
 			ResultSet res = stmt.executeQuery(initiativeListQuery);
 			org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Executed query for retrieving initiative list");
 			while (res.next()) {

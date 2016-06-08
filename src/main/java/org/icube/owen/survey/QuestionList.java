@@ -25,7 +25,7 @@ public class QuestionList extends TheBorg {
 
 		try {
 			dch.getCompanyConnection(companyId);
-			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getQuestionList()}");
+			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getQuestionList()}");
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
 				Question q = new Question();
@@ -58,7 +58,7 @@ public class QuestionList extends TheBorg {
 		List<Question> questionList = new ArrayList<Question>();
 		try {
 			dch.getCompanyConnection(companyId);
-			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getBatchQuestionList(?)}");
+			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getBatchQuestionList(?)}");
 			cstmt.setInt(1, batchId);
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {

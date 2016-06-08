@@ -61,7 +61,7 @@ public class IndividualDashboardHelper extends TheBorg {
 		MetricsHelper mh = new MetricsHelper();
 		List<Metrics> metricsList = new ArrayList<>();
 		try {
-			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getIndividualMetricValueForIndividual(?)}");
+			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getIndividualMetricValueForIndividual(?)}");
 			cstmt.setInt(1, employeeId);
 			ResultSet rs = cstmt.executeQuery();
 			List<Metrics> initialMetricsList = mh.fillMetricsData(companyId, rs, null, "Individual");
@@ -92,7 +92,7 @@ public class IndividualDashboardHelper extends TheBorg {
 		ExploreHelper eh = new ExploreHelper();
 		Map<Integer, List<Map<Date, Integer>>> metricsListMap = new HashMap<>();
 		try {
-			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getIndividualMetricTimeSeriesForIndividual(?)}");
+			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getIndividualMetricTimeSeriesForIndividual(?)}");
 			cstmt.setInt(1, employeeId);
 			ResultSet rs = cstmt.executeQuery();
 			metricsListMap = eh.getTimeSeriesMap(rs);
@@ -151,7 +151,7 @@ public class IndividualDashboardHelper extends TheBorg {
 					+ " where i=ini return i.Name as Name,i.StartDate as StartDate, i.EndDate as EndDate,i.CreatedByEmpId as CreatedByEmpId, i.CreatedOn as CreationDate,"
 					+ "i.Id as Id,case i.Category when 'Individual' then collect(distinct(a.emp_id)) else collect(distinct(a.Id))  end as PartOfID,collect(distinct(a.Name))as PartOfName, "
 					+ "labels(a) as Filters,collect(distinct (o.emp_id)) as OwnersOf,i.Comment as Comments,i.Type as Type,i.Category as Category,i.Status as Status;";
-			Statement stmt = dch.companyNeoConnectionPool.get(companyId).createStatement();
+			Statement stmt = dch.companyConfigMap.get(companyId).getNeoConnection().createStatement();
 			ResultSet res = stmt.executeQuery(initiativeListQuery);
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Executed query for retrieving initiative list");
 			while (res.next()) {
@@ -200,12 +200,12 @@ public class IndividualDashboardHelper extends TheBorg {
 
 		org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Get ActivityFeed list");
 		try {
-			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getAppreciationActivity(?)}");
+			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getAppreciationActivity(?)}");
 			cstmt.setInt(1, employeeId);
 			ResultSet rs = cstmt.executeQuery();
 			String initiativeListQuery = "MATCH (i:Init {Status:'Active'})<-[:owner_of]-(e:Employee {emp_id:" + employeeId
 					+ "}) return i.Name as Name ,i.CreatedByEmpId as CreatedByEmpId, i.CreatedOn as CreatedOn";
-			Statement stmt = dch.companyNeoConnectionPool.get(companyId).createStatement();
+			Statement stmt = dch.companyConfigMap.get(companyId).getNeoConnection().createStatement();
 			ResultSet res = stmt.executeQuery(initiativeListQuery);
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Executed query for retrieving initiative list");
 			SimpleDateFormat parserSDF = new SimpleDateFormat(UtilHelper.dateTimeFormat);
@@ -283,7 +283,7 @@ public class IndividualDashboardHelper extends TheBorg {
 		dch.getCompanyConnection(companyId);
 		Map<Integer, Integer> result = new HashMap<>();
 		try {
-			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getMetricRelationshipType()}");
+			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getMetricRelationshipType()}");
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
 				result.put(rs.getInt("metric_id"), rs.getInt("rel_id"));
@@ -365,7 +365,7 @@ public class IndividualDashboardHelper extends TheBorg {
 		Map<Integer, Integer> metricRelationshipTypeMap = getMetricRelationshipTypeMapping(companyId);
 		try {
 			for (Employee e : appreciationResponseMap.keySet()) {
-				CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call insertAppreciation(?,?,?,?,?)}");
+				CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call insertAppreciation(?,?,?,?,?)}");
 				cstmt.setInt(1, employeeId);
 				cstmt.setTimestamp(2, Timestamp.from(Instant.now()));
 				cstmt.setInt(3, e.getEmployeeId());
@@ -401,7 +401,7 @@ public class IndividualDashboardHelper extends TheBorg {
 		dch.getCompanyConnection(companyId);
 		boolean passwordChanged = false;
 		try {
-			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call updateEmployeePassword(?,?,?)}");
+			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call updateEmployeePassword(?,?,?)}");
 			cstmt.setInt(1, employeeId);
 			cstmt.setString(2, currentPassword);
 			cstmt.setString(3, newPassword);
@@ -453,7 +453,7 @@ public class IndividualDashboardHelper extends TheBorg {
 			while (rs.next()) {
 				companyId = rs.getInt("comp_id");
 				dch.getCompanyConnection(companyId);
-				companySqlCon = dch.companySqlConnectionPool.get(companyId);
+				companySqlCon = dch.companyConfigMap.get(companyId).getSqlConnection();
 			}
 			Statement stmt = companySqlCon.createStatement();
 			int updatePassword = stmt.executeUpdate("update login_table set password = " + '"' + randStr.toString() + '"' + " where login_id = "
@@ -506,7 +506,7 @@ public class IndividualDashboardHelper extends TheBorg {
 		dch.getCompanyConnection(companyId);
 		boolean timestampUpdated = false;
 		try {
-			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call updateNotificationTime(?,?)}");
+			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call updateNotificationTime(?,?)}");
 			cstmt.setInt("empid", employeeId);
 			cstmt.setTimestamp("noti_time", UtilHelper.convertJavaDateToSqlTimestamp(Date.from(Instant.now())));
 			ResultSet rs = cstmt.executeQuery();
@@ -532,7 +532,7 @@ public class IndividualDashboardHelper extends TheBorg {
 		int notificationCount = 0;
 		Date lastNotificationDate = null;
 		try {
-			CallableStatement cstmt = dch.companySqlConnectionPool.get(companyId).prepareCall("{call getAppreciationActivityLatestCount(?)}");
+			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getAppreciationActivityLatestCount(?)}");
 			cstmt.setInt("empid", employeeId);
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
@@ -546,7 +546,7 @@ public class IndividualDashboardHelper extends TheBorg {
 					+ sdf.format(lastNotificationDate) + "' return count(i) as initiative_count";
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug(
 					"Query to get notifications count from neo4j : " + notificationCountQuery);
-			Statement stmt = dch.companyNeoConnectionPool.get(companyId).createStatement();
+			Statement stmt = dch.companyConfigMap.get(companyId).getNeoConnection().createStatement();
 			ResultSet res = stmt.executeQuery(notificationCountQuery);
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Executed query for retrieving initiative list");
 			while (res.next()) {

@@ -14,6 +14,8 @@ import javax.mail.MessagingException;
 
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.helper.DatabaseConnectionHelper;
+import org.icube.owen.helper.UtilHelper;
+import org.icube.owen.slack.SlackIntegration;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.Rserve.RConnection;
 
@@ -22,6 +24,7 @@ public class CompanyDAO extends TimerTask {
 	private RConnection rCon;
 	private DatabaseConnectionHelper dch;
 	Map<Integer, List<Map<String, String>>> schedulerJobStatusMap = new HashMap<>();
+	private String loginUrl = UtilHelper.getConfigProperty("login_page_url");
 	boolean jobStatus = true;
 
 	@Override
@@ -107,7 +110,7 @@ public class CompanyDAO extends TimerTask {
 			int companyId = rs.getInt("comp_id");
 			String companyName = rs.getString("comp_name");
 			dch.getCompanyConnection(companyId);
-			Statement stmt = dch.companySqlConnectionPool.get(companyId).createStatement();
+			Statement stmt = dch.companyConfigMap.get(companyId).getSqlConnection().createStatement();
 			org.apache.log4j.Logger.getLogger(CompanyDAO.class)
 					.debug("Successfully connected to company db with companyId : " + rs.getInt("comp_id"));
 
@@ -189,7 +192,9 @@ public class CompanyDAO extends TimerTask {
 		ArrayList<String> addresses = new ArrayList<String>();
 		Map<String, String> jobStatusMap = new HashMap<>();
 		try {
-			Statement stmt = dch.companySqlConnectionPool.get(companyId).createStatement();
+			Statement stmt = dch.companyConfigMap.get(companyId).getSqlConnection().createStatement();
+			// check if new emails have to be sent for the specific company
+
 			ResultSet res = stmt
 					.executeQuery("select distinct(l.login_id) as email_id from (select Distinct(survey_batch_id) as survey_batch_id from question where date(start_date)=CURDATE()) as b join batch_target as bt on b.survey_batch_id=bt.survey_batch_id left join login_table as l on l.emp_id=bt.emp_id where l.status='active'");
 
@@ -199,12 +204,24 @@ public class CompanyDAO extends TimerTask {
 			}
 			// in case of new questions send email
 			if (addresses.size() > 0) {
-				EmailSender es = new EmailSender();
-				es.sendEmailforQuestions(companyId, addresses);
-				jobStatusMap.put("NewQuestionJob", "Total emails sent : " + addresses.size());
+				if (dch.companyConfigMap.get(companyId).isSendEmail()) {
+					EmailSender es = new EmailSender();
+					es.sendEmailforQuestions(companyId, addresses);
+					jobStatusMap.put("NewQuestionJob", "Total emails sent : " + addresses.size());
+				} else {
+					jobStatusMap.put("NewQuestionJob", "New question emails are disabled for the company");
+				}
+				if (dch.companyConfigMap.get(companyId).isSendSlack()) {
+					SlackIntegration sl = new SlackIntegration();
+					sl.sendMessage(companyId, "You have new questions to answer. Please login to answer : " + loginUrl + "");
+					jobStatusMap.put("NewQuestionJob", "Slack message sent for company");
+				} else {
+					jobStatusMap.put("NewQuestionJob", "New question slack is disabled for the company");
+				}
 			} else {
 				jobStatusMap.put("NewQuestionJob", "No new questions");
 			}
+
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(CompanyDAO.class).error("Error in executing runNewQuestionJob function", e);
 			jobStatus = false;
