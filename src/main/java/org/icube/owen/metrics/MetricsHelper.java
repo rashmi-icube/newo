@@ -192,6 +192,7 @@ public class MetricsHelper extends TheBorg {
 			REXP teamMetricScore = rCon.parseAndEval("try(eval(TeamMetric(company_id, funcList, posList, zoneList)))");
 			if (teamMetricScore.inherits("try-error")) {
 				org.apache.log4j.Logger.getLogger(MetricsHelper.class).error("Error: " + teamMetricScore.asString());
+				dch.releaseRcon();
 				throw new Exception("Error: " + teamMetricScore.asString());
 			} else {
 				org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Metrics calculation completed for team " + teamMetricScore.asList());
