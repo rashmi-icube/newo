@@ -14,7 +14,7 @@ public class LoginTest {
 	@Test
 	public void testLoginEmployee() {
 		try {
-			Employee e = l.login("emp51@i-cube.in", "abc123", "114.9.1.2", 1);
+			Employee e = l.login("owen@i-cube.in", "abc123", "114.9.1.2", 2);
 			assertNotNull(e.getEmployeeId());
 			assertNotNull(e.getCompanyEmployeeId());
 			assertNotNull(e.getCompanyEmployeeId());

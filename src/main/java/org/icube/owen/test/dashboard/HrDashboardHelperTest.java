@@ -19,7 +19,7 @@ import org.junit.Test;
 public class HrDashboardHelperTest {
 	HrDashboardHelper dh = (HrDashboardHelper) ObjectFactory.getInstance("org.icube.owen.dashboard.HrDashboardHelper");
 	FilterList fl = (FilterList) ObjectFactory.getInstance("org.icube.owen.filter.FilterList");
-	int companyId = 1;
+	int companyId = 2;
 	List<Filter> filterMasterList = fl.getFilterValues(companyId);
 	Filter functionFilter = fl.getFilterValues(companyId, "Function");
 

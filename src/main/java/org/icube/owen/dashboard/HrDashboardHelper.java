@@ -142,6 +142,7 @@ public class HrDashboardHelper extends TheBorg {
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).error("Exception while retrieving organization level metrics", e);
 		}
+		org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).debug("Result for organization time series graph : " + result.toString());
 		return result;
 
 	}

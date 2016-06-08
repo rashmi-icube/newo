@@ -20,6 +20,15 @@ import org.junit.Test;
 public class IndividualDashboardHelperTest {
 	IndividualDashboardHelper idh = (IndividualDashboardHelper) ObjectFactory.getInstance("org.icube.owen.dashboard.IndividualDashboardHelper");
 	int companyId = 2;
+	
+	
+	@Test
+	public void testGetSmartList() {
+		List<Employee> employeeList = idh.getSmartList(companyId, 1, 1);
+		assertNotNull(employeeList);
+
+	}
+	
 
 	@Test
 	public void testGenerateNewPassword() {
@@ -73,12 +82,7 @@ public class IndividualDashboardHelperTest {
 		}
 	}
 
-	@Test
-	public void testGetSmartList() {
-		List<Employee> employeeList = idh.getSmartList(companyId, 1, 1);
-		assertNotNull(employeeList);
-
-	}
+	
 
 	@Test
 	public void testSaveAppreciation() {
