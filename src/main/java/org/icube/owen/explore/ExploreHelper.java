@@ -65,19 +65,22 @@ public class ExploreHelper extends TheBorg {
 			try {
 				if ((int) parsedFilterListResult.get("countAll") == 3) {
 					// if all selections are ALL then it is a organizational team metric
-					CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getOrganizationMetricTimeSeries()}");
+					CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall(
+							"{call getOrganizationMetricTimeSeries()}");
 					ResultSet rs = cstmt.executeQuery();
 					timeSeriesMap = getTimeSeriesMap(rs);
 
 				} else if ((int) parsedFilterListResult.get("countAll") == 2) {
 					// if two of the filters are ALL then it is a dimension metric
-					CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getDimensionMetricTimeSeries(?)}");
+					CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall(
+							"{call getDimensionMetricTimeSeries(?)}");
 					cstmt.setInt(1, (int) parsedFilterListResult.get("dimensionValueId"));
 					ResultSet rs = cstmt.executeQuery();
 					timeSeriesMap = getTimeSeriesMap(rs);
 				} else if ((int) parsedFilterListResult.get("countAll") == 0) {
 					// if none of the filters is ALL then it is a cube metric
-					CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getTeamMetricTimeSeries(?,?,?)}");
+					CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall(
+							"{call getTeamMetricTimeSeries(?,?,?)}");
 					cstmt.setInt(1, (int) parsedFilterListResult.get("funcId"));
 					cstmt.setInt(2, (int) parsedFilterListResult.get("posId"));
 					cstmt.setInt(3, (int) parsedFilterListResult.get("zoneId"));
@@ -144,7 +147,8 @@ public class ExploreHelper extends TheBorg {
 			dch.getCompanyConnection(companyId);
 			for (Employee e : employeeList) {
 				Map<Integer, List<Map<Date, Integer>>> metricsList = new HashMap<>();
-				CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getIndividualMetricTimeSeries(?)}");
+				CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall(
+						"{call getIndividualMetricTimeSeries(?)}");
 				cstmt.setInt(1, e.getEmployeeId());
 				ResultSet rs = cstmt.executeQuery();
 				metricsList = getTimeSeriesMap(rs);
@@ -259,8 +263,10 @@ public class ExploreHelper extends TheBorg {
 				empIdList.add(res.getInt("emp_id"));
 				Node n = new Node();
 				n.setEmployeeId(res.getInt("emp_id"));
-				n.setFirstName(res.getString("firstName"));
-				n.setLastName(res.getString("lastName"));
+				if (dch.companyConfigMap.get(companyId).isDisplayNetworkName()) {
+					n.setFirstName(res.getString("firstName"));
+					n.setLastName(res.getString("lastName"));
+				}
 				n.setFunction(res.getString("funcName"));
 				n.setZone(res.getString("zoneName"));
 				n.setPosition(res.getString("posName"));
@@ -349,8 +355,10 @@ public class ExploreHelper extends TheBorg {
 				empIdList.add(res.getInt("emp_id"));
 				Node n = new Node();
 				n.setEmployeeId(res.getInt("emp_id"));
-				n.setFirstName(res.getString("firstName"));
-				n.setLastName(res.getString("lastName"));
+				if (dch.companyConfigMap.get(companyId).isDisplayNetworkName()) {
+					n.setFirstName(res.getString("firstName"));
+					n.setLastName(res.getString("lastName"));
+				}
 				n.setFunction(res.getString("funcName"));
 				n.setZone(res.getString("zoneName"));
 				n.setPosition(res.getString("posName"));
