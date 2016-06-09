@@ -189,12 +189,14 @@ public class InitiativeHelper extends TheBorg {
 				ResultSet rs = cs.executeQuery();
 				metricsList = mh.fillMetricsData(companyId, rs, mh.getPrimaryMetricMap(companyId, i.getInitiativeTypeId()), "Individual");
 			} else if (i.getInitiativeCategory().equalsIgnoreCase("Team")) {
-
+				org.apache.log4j.Logger.getLogger(InitiativeHelper.class).debug("setInitiativeMetrics for team  calling procedure getTeamInitiativeMetricValueAggregate for initiative ID: " + i.getInitiativeId());
 				CallableStatement cs = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getTeamInitiativeMetricValueAggregate(?)}");
 				int initId = i.getInitiativeId();
 				cs.setInt(1, initId);
 				ResultSet rs = cs.executeQuery();
+				org.apache.log4j.Logger.getLogger(InitiativeHelper.class).debug("fill metric map for initiative : " + i.getInitiativeId());
 				metricsList = mh.fillMetricsData(companyId, rs, mh.getPrimaryMetricMap(companyId, i.getInitiativeTypeId()), "Team");
+				org.apache.log4j.Logger.getLogger(InitiativeHelper.class).debug("finished fill metric map for initiative : " + i.getInitiativeId());
 			}
 
 		} catch (SQLException e) {
