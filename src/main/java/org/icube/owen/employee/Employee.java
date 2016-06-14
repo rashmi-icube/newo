@@ -31,6 +31,7 @@ public class Employee extends TheBorg {
 	private String function;
 	private String position;
 	private String zone;
+	private boolean isFirstTimeLogin = false;
 
 	public int getEmployeeId() {
 		return employeeId;
@@ -128,6 +129,14 @@ public class Employee extends TheBorg {
 		this.companyId = companyId;
 	}
 
+	public boolean isFirstTimeLogin() {
+		return isFirstTimeLogin;
+	}
+
+	public void setFirstTimeLogin(boolean isFirstTimeLogin) {
+		this.isFirstTimeLogin = isFirstTimeLogin;
+	}
+
 	/**
 	 * Returns an employee object based on the employee ID given
 	 * 
@@ -222,4 +231,5 @@ public class Employee extends TheBorg {
 		org.apache.log4j.Logger.getLogger(Employee.class).debug("Exiting the save employee image function" + imageSaved);
 		return imageSaved;
 	}
+
 }

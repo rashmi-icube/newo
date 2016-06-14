@@ -21,6 +21,7 @@ public class LoginTest {
 			assertNotNull(e.getFirstName());
 			assertNotNull(e.getLastName());
 			assertNotNull(e.getReportingManagerId());
+			assertNotNull(e.isFirstTimeLogin());
 		} catch (Exception e) {
 			assertEquals(e.getMessage(), "Invalid credentials!!!");
 		}

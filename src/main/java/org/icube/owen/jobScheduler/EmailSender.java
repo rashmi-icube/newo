@@ -151,7 +151,7 @@ public class EmailSender {
 					SlackIntegration sl = new SlackIntegration();
 					sl.sendMessage(companyId, "You have new questions to answer. Please login to answer : " + loginUrl + "");
 				}*/
-				
+
 			} catch (MessagingException | UnsupportedEncodingException e) {
 				org.apache.log4j.Logger.getLogger(EmailSender.class).error("Error in sending Emails for current questions", e);
 				dch.releaseRcon();
@@ -225,7 +225,7 @@ public class EmailSender {
 		sb.append("<h2> Use this temporary password to sign into your account </h2>");
 		sb.append("<h3>Password :" + newPassword + " </h3>");
 		sb.append("<h4> How to change your password while you are logged in: </h4>");
-		sb.append("<p> 1. From your logged in account, click on the <b>profile icon </b>the upper right hand corner of your screen and select <b>Settings</b>.</p>");
+		sb.append("<p> 1. From your logged in account, click on the <b>profile icon </b>the upper right hand corner of your screen and select <b>Settings</b>.</p> ");
 
 		sb.append("<p> 2. Click on the <b>Change Password</b> tab </p>");
 

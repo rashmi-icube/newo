@@ -59,6 +59,7 @@ public class Login extends TheBorg {
 				} else {
 					e = e.get(companyId, res.getInt("emp_id"));
 					e.setCompanyId(companyId);
+					e.setFirstTimeLogin(res.getBoolean("first_time_login"));
 					org.apache.log4j.Logger.getLogger(Login.class).debug("Successfully validated user with userID : " + emailId);
 				}
 			}
@@ -78,7 +79,6 @@ public class Login extends TheBorg {
 		Map<Integer, String> userRoleMap = new HashMap<>();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
-
 		try {
 			CallableStatement cstmt1 = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getRoleList()}");
 			ResultSet res = cstmt1.executeQuery();
@@ -88,7 +88,7 @@ public class Login extends TheBorg {
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(Login.class).error("Exception while retrieving the user role map", e);
 		}
-
 		return userRoleMap;
 	}
+
 }
