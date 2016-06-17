@@ -35,6 +35,7 @@ public class Login extends TheBorg {
 		int index = emailId.indexOf('@');
 		String companyDomain = emailId.substring(index + 1);
 		int companyId = 0;
+		String companyName = "";
 		try {
 			CallableStatement cstmt = dch.masterCon.prepareCall("{call getCompanyDb(?)}");
 			cstmt.setString(1, companyDomain);
@@ -43,6 +44,8 @@ public class Login extends TheBorg {
 				companyId = rs.getInt("comp_id");
 				dch.getCompanyConnection(companyId);
 				companySqlCon = dch.companyConfigMap.get(companyId).getSqlConnection();
+				companyName = rs.getString("comp_name");
+				org.apache.log4j.Logger.getLogger(Login.class).debug("Company Name : " + companyName);
 			}
 			org.apache.log4j.Logger.getLogger(Login.class).debug("Role ID for user : " + emailId + " is : " + roleId);
 			CallableStatement cstmt1 = companySqlCon.prepareCall("{call verifyLogin(?,?,?,?,?)}");
@@ -60,6 +63,7 @@ public class Login extends TheBorg {
 					e = e.get(companyId, res.getInt("emp_id"));
 					e.setCompanyId(companyId);
 					e.setFirstTimeLogin(res.getBoolean("first_time_login"));
+					e.setCompanyName(companyName);
 					org.apache.log4j.Logger.getLogger(Login.class).debug("Successfully validated user with userID : " + emailId);
 				}
 			}

@@ -27,6 +27,7 @@ public class Employee extends TheBorg {
 	private double score;
 	private boolean active;
 	private int companyId;
+	private String companyName;
 	private String grade; // can be high/medium/low
 	private String function;
 	private String position;
@@ -127,6 +128,14 @@ public class Employee extends TheBorg {
 
 	public void setCompanyId(int companyId) {
 		this.companyId = companyId;
+	}
+
+	public String getCompanyName() {
+		return companyName;
+	}
+
+	public void setCompanyName(String companyName) {
+		this.companyName = companyName;
 	}
 
 	public boolean isFirstTimeLogin() {
