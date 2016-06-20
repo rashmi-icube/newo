@@ -190,6 +190,8 @@ public class CompanyDAO extends TimerTask {
 	 */
 	public void runNewQuestionJob(int companyId) throws SQLException {
 		ArrayList<String> addresses = new ArrayList<String>();
+		Map<String, String> jobStatusMapForEmail = new HashMap<>();
+		Map<String, String> jobStatusMapForSlack = new HashMap<>();
 		Map<String, String> jobStatusMap = new HashMap<>();
 		try {
 			Statement stmt = dch.companyConfigMap.get(companyId).getSqlConnection().createStatement();
@@ -204,29 +206,34 @@ public class CompanyDAO extends TimerTask {
 			}
 			// in case of new questions send email
 			if (addresses.size() > 0) {
+
 				if (dch.companyConfigMap.get(companyId).isSendEmail()) {
 					EmailSender es = new EmailSender();
 					es.sendEmailforQuestions(companyId, addresses);
-					jobStatusMap.put("NewQuestionJob", "Total emails sent : " + addresses.size());
+					jobStatusMapForEmail.put("NewQuestionJobEmail", "Total emails sent : " + addresses.size());
 				} else {
-					jobStatusMap.put("NewQuestionJob", "New question emails are disabled for the company");
+					jobStatusMapForEmail.put("NewQuestionJobEmail", "New question emails are disabled for the company");
 				}
+				schedulerJobStatusMap.get(companyId).add(jobStatusMapForEmail);
+
 				if (dch.companyConfigMap.get(companyId).isSendSlack()) {
 					SlackIntegration sl = new SlackIntegration();
 					sl.sendMessage(companyId, "You have new questions to answer. Please login to answer : " + loginUrl + "");
-					jobStatusMap.put("NewQuestionJob", "Slack message sent for company");
+					jobStatusMapForSlack.put("NewQuestionJobSlack", "Slack message sent for company");
 				} else {
-					jobStatusMap.put("NewQuestionJob", "New question slack is disabled for the company");
+					jobStatusMapForSlack.put("NewQuestionJobSlack", "New question slack is disabled for the company");
 				}
+				schedulerJobStatusMap.get(companyId).add(jobStatusMapForSlack);
+
 			} else {
 				jobStatusMap.put("NewQuestionJob", "No new questions");
+				schedulerJobStatusMap.get(companyId).add(jobStatusMap);
 			}
 
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(CompanyDAO.class).error("Error in executing runNewQuestionJob function", e);
 			jobStatus = false;
 		}
-		schedulerJobStatusMap.get(companyId).add(jobStatusMap);
 
 	}
 
