@@ -61,7 +61,8 @@ public class IndividualDashboardHelper extends TheBorg {
 		MetricsHelper mh = new MetricsHelper();
 		List<Metrics> metricsList = new ArrayList<>();
 		try {
-			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getIndividualMetricValueForIndividual(?)}");
+			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall(
+					"{call getIndividualMetricValueForIndividual(?)}");
 			cstmt.setInt(1, employeeId);
 			ResultSet rs = cstmt.executeQuery();
 			List<Metrics> initialMetricsList = mh.fillMetricsData(companyId, rs, null, "Individual");
@@ -92,7 +93,8 @@ public class IndividualDashboardHelper extends TheBorg {
 		ExploreHelper eh = new ExploreHelper();
 		Map<Integer, List<Map<Date, Integer>>> metricsListMap = new HashMap<>();
 		try {
-			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getIndividualMetricTimeSeriesForIndividual(?)}");
+			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall(
+					"{call getIndividualMetricTimeSeriesForIndividual(?)}");
 			cstmt.setInt(1, employeeId);
 			ResultSet rs = cstmt.executeQuery();
 			metricsListMap = eh.getTimeSeriesMap(rs);
@@ -177,7 +179,7 @@ public class IndividualDashboardHelper extends TheBorg {
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while getting the initiative list", e);
 		}
-		
+
 		initiativeList.sort((o1, o2) -> o1.getInitiativeEndDate().compareTo(o2.getInitiativeEndDate()));
 		return initiativeList;
 
@@ -458,11 +460,13 @@ public class IndividualDashboardHelper extends TheBorg {
 				dch.getCompanyConnection(companyId);
 				companySqlCon = dch.companyConfigMap.get(companyId).getSqlConnection();
 			}
+
 			Statement stmt = companySqlCon.createStatement();
 			int updatePassword = stmt.executeUpdate("update login_table set password = " + '"' + randStr.toString() + '"' + " where login_id = "
 					+ '"' + emailId + '"' + "");
 			if (updatePassword == 0) {
-				org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Error in generating a new password. Please enter your company Email address.");
+				org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error(
+						"Error in generating a new password. Please enter your company Email address.");
 				throw new Exception("Error in resetting the password");
 			} else {
 				passwordChanged = true;
@@ -474,7 +478,12 @@ public class IndividualDashboardHelper extends TheBorg {
 
 		// send the new password to the employee
 		try {
-			es.sendNewPasswordEmail(address, randStr.toString());
+			Statement stm = companySqlCon.createStatement();
+			ResultSet res = stm.executeQuery("select employee.first_name,employee.last_name from employee left join login_table"
+					+ " on login_table.emp_id=employee.emp_id where login_table.login_id= " + '"' + emailId + '"'
+					+ " and login_table.status='active'");
+			res.next();
+			es.sendNewPasswordEmail(res.getString("first_name"), res.getString("last_name"), address, randStr.toString());
 		} catch (MessagingException e) {
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Error in sending email", e);
 		}
@@ -535,7 +544,8 @@ public class IndividualDashboardHelper extends TheBorg {
 		int notificationCount = 0;
 		Date lastNotificationDate = null;
 		try {
-			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getAppreciationActivityLatestCount(?)}");
+			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall(
+					"{call getAppreciationActivityLatestCount(?)}");
 			cstmt.setInt("empid", employeeId);
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
@@ -543,7 +553,8 @@ public class IndividualDashboardHelper extends TheBorg {
 				lastNotificationDate = rs.getTimestamp("last_notified");
 			}
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug(
-					"Appreciation count for employee ID " + employeeId + " is " + notificationCount + " with last notified at " + lastNotificationDate);
+					"Appreciation count for employee ID " + employeeId + " is " + notificationCount + " with last notified at "
+							+ lastNotificationDate);
 			SimpleDateFormat sdf = new SimpleDateFormat(UtilHelper.dateTimeFormat);
 			String notificationCountQuery = "MATCH (e:Employee {emp_id:" + employeeId + "})-[:owner_of]->(i:Init) where i.CreatedOn>'"
 					+ sdf.format(lastNotificationDate) + "' return count(i) as initiative_count";
@@ -555,14 +566,16 @@ public class IndividualDashboardHelper extends TheBorg {
 			while (res.next()) {
 
 				org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug(
-						"Initiative count for employee ID " + employeeId + " is " + res.getInt("initiative_count") + " with last notified at " + lastNotificationDate);
+						"Initiative count for employee ID " + employeeId + " is " + res.getInt("initiative_count") + " with last notified at "
+								+ lastNotificationDate);
 				notificationCount += res.getInt("initiative_count");
 			}
 			stmt.close();
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while updating notification timestamp", e);
 		}
-		org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("The total activity feed count for emp id:" + employeeId + " is: " + notificationCount);
+		org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug(
+				"The total activity feed count for emp id:" + employeeId + " is: " + notificationCount);
 		return notificationCount;
 	}
 }

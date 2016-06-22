@@ -1,7 +1,7 @@
 
 mysqlusername='root'
 
-mysqlpasswod=""
+mysqlpasswod="roots"
 
 mysqldbname='owen_master'
 
