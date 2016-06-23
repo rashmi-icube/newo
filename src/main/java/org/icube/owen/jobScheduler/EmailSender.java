@@ -211,7 +211,7 @@ public class EmailSender {
 		msg.setFrom(new InternetAddress(from));
 		msg.addRecipients(Message.RecipientType.TO, getEmailsArray(address));
 		msg.setSubject("New Password");
-		msg.setContent(getPasswordemailText(firstName, lastName, newPassword).toString(), "text/html");
+		msg.setContent(getPasswordemailText(address.get(0).toString(), firstName, lastName, newPassword).toString(), "text/html");
 		try {
 			Transport.send(msg, username, password);
 		} catch (MessagingException e) {
@@ -225,9 +225,10 @@ public class EmailSender {
 	 * @param newPassword - new random password
 	 * @param newPassword2 
 	 * @param lastName 
+	 * @param newPassword2 
 	 * @return String Builder object
 	 */
-	private StringBuilder getPasswordemailText(String firstName, String lastName, String newPassword) {
+	private StringBuilder getPasswordemailText(String username, String firstName, String lastName, String newPassword) {
 		StringBuilder sb = new StringBuilder();
 		String rScriptPath = UtilHelper.getConfigProperty("r_script_path");
 		try (BufferedReader in = new BufferedReader(new FileReader(rScriptPath + "\\ForgotPassword.html"))) {
@@ -240,7 +241,12 @@ public class EmailSender {
 				else if (str.contains("Use this temporary password to sign into your account.")) {
 					sb.append("<P style=\"MARGIN-BOTTOM: 14px; MIN-HEIGHT: 20px\">Hi <B style=\"color:#388E3C;\"> " + firstName + " " + lastName
 							+ "</B>,<br>Use this temporary password to sign into your account.</P>");
-				} else {
+				} 
+				
+				else if (str.contains("<DIV>You are receiving this email because email@address.com is registered with OWEN</DIV>")){
+					sb.append("<DIV>You are receiving this email because " + username + " is registered with OWEN</DIV>");
+				}
+				else {
 					sb.append(str);
 				}
 			}
