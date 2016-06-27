@@ -157,8 +157,7 @@ public class EmployeeList extends TheBorg {
 			}
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).error("Error while trying to retrieve the smart list for employee ", e);
-		}
-		finally {
+		} finally {
 			dch.releaseRcon();
 		}
 

@@ -28,7 +28,9 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
 import org.icube.owen.employee.Employee;
+import org.icube.owen.employee.EmployeeList;
 import org.icube.owen.explore.ExploreHelper;
+import org.icube.owen.helper.CompanyConfig;
 import org.icube.owen.helper.DatabaseConnectionHelper;
 import org.icube.owen.helper.UtilHelper;
 import org.icube.owen.individual.Login;
@@ -314,37 +316,43 @@ public class IndividualDashboardHelper extends TheBorg {
 		List<Employee> employeeList = new ArrayList<>();
 		Map<Integer, Integer> MetricRelationshipTypeMap = getMetricRelationshipTypeMapping(companyId);
 		try {
-			RConnection rCon = dch.getRConn();
-			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("R Connection Available : " + rCon.isConnected());
-			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Filling up parameters for rscript function");
-			rCon.assign("company_id", new int[] { companyId });
-			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Company id : " + companyId);
-			rCon.assign("emp_id", new int[] { employeeId });
-			rCon.assign("rel_id", new int[] { MetricRelationshipTypeMap.get(metricId) });
-			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Calling the actual function in RScript SmartListResponse");
-			REXP employeeSmartList = rCon.parseAndEval("try(eval(SmartListResponse(company_id, emp_id, rel_id)))");
-			if (employeeSmartList.inherits("try-error")) {
-				org.apache.log4j.Logger.getLogger(Question.class).error("Error: " + employeeSmartList.asString());
-				dch.releaseRcon();
-				throw new Exception("Error: " + employeeSmartList.asString());
+			CompanyConfig ccObj = dch.companyConfigMap.get(companyId);
+			if (ccObj.getSmartList().equals("all_employee")) {
+				EmployeeList el = new EmployeeList();
+				employeeList.addAll(el.getEmployeeMasterList(companyId));
 			} else {
-				org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug(
-						"Retrieval of the employee smart list completed " + employeeSmartList.asList());
-			}
+				RConnection rCon = dch.getRConn();
+				org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("R Connection Available : " + rCon.isConnected());
+				org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Filling up parameters for rscript function");
+				rCon.assign("company_id", new int[] { companyId });
+				org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Company id : " + companyId);
+				rCon.assign("emp_id", new int[] { employeeId });
+				rCon.assign("rel_id", new int[] { MetricRelationshipTypeMap.get(metricId) });
+				org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Calling the actual function in RScript SmartListResponse");
+				REXP employeeSmartList = rCon.parseAndEval("try(eval(SmartListResponse(company_id, emp_id, rel_id)))");
+				if (employeeSmartList.inherits("try-error")) {
+					org.apache.log4j.Logger.getLogger(Question.class).error("Error: " + employeeSmartList.asString());
+					dch.releaseRcon();
+					throw new Exception("Error: " + employeeSmartList.asString());
+				} else {
+					org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug(
+							"Retrieval of the employee smart list completed " + employeeSmartList.asList());
+				}
 
-			RList result = employeeSmartList.asList();
-			REXPInteger empIdResult = (REXPInteger) result.get("emp_id");
-			int[] empIdArray = empIdResult.asIntegers();
-			REXPInteger rankResult = (REXPInteger) result.get("Rank");
-			int[] rankArray = rankResult.asIntegers();
+				RList result = employeeSmartList.asList();
+				REXPInteger empIdResult = (REXPInteger) result.get("emp_id");
+				int[] empIdArray = empIdResult.asIntegers();
+				REXPInteger rankResult = (REXPInteger) result.get("Rank");
+				int[] rankArray = rankResult.asIntegers();
 
-			for (int i = 0; i < empIdArray.length; i++) {
-				Employee e = new Employee();
-				e = e.get(companyId, empIdArray[i]);
-				employeeRankMap.put(rankArray[i], e);
+				for (int i = 0; i < empIdArray.length; i++) {
+					Employee e = new Employee();
+					e = e.get(companyId, empIdArray[i]);
+					employeeRankMap.put(rankArray[i], e);
+				}
+				Map<Integer, Employee> sorted_map = new TreeMap<Integer, Employee>(employeeRankMap);
+				employeeList = new ArrayList<Employee>(sorted_map.values());
 			}
-			Map<Integer, Employee> sorted_map = new TreeMap<Integer, Employee>(employeeRankMap);
-			employeeList = new ArrayList<Employee>(sorted_map.values());
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error(
 					"Error while trying to retrieve the smart list for employee from question", e);
