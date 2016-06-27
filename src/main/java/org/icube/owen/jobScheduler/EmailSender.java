@@ -154,7 +154,7 @@ public class EmailSender {
 	private StringBuilder getNewQuesMailText() {
 		StringBuilder sb = new StringBuilder();
 		String rScriptPath = UtilHelper.getConfigProperty("r_script_path");
-		try (BufferedReader in = new BufferedReader(new FileReader(rScriptPath + "\\NewQuestionEmail.html"))) {
+		try (BufferedReader in = new BufferedReader(new FileReader(rScriptPath + "\\\\NewQuestionEmail.html"))) {
 			String str;
 			while ((str = in.readLine()) != null) {
 
@@ -231,8 +231,10 @@ public class EmailSender {
 	private StringBuilder getPasswordemailText(String username, String firstName, String lastName, String newPassword) {
 		StringBuilder sb = new StringBuilder();
 		String rScriptPath = UtilHelper.getConfigProperty("r_script_path");
-		try (BufferedReader in = new BufferedReader(new FileReader(rScriptPath + "\\ForgotPassword.html"))) {
+		org.apache.log4j.Logger.getLogger(EmailSender.class).debug("Reading from the path : " + rScriptPath);
+		try (BufferedReader in = new BufferedReader(new FileReader(rScriptPath + "\\\\ForgotPassword.html"))) {
 			String str;
+			org.apache.log4j.Logger.getLogger(EmailSender.class).debug("Reading the html file from the path : " + rScriptPath + "\\\\ForgotPassword.html");
 			while ((str = in.readLine()) != null) {
 				if (str.contains("<P style=\"MARGIN-BOTTOM: 1em;\"><B>Password: </B>password</P>")) {
 					sb.append("<P style=\"MARGIN-BOTTOM: 1em;\"><B>Password: </B> " + newPassword + "</P>");
