@@ -149,8 +149,8 @@ public class DatabaseConnectionHelper extends TheBorg {
 				ResultSet rs = cstmt.executeQuery();
 
 				while (rs.next()) {
-					
-					//fill the company config object
+
+					// fill the company config object
 					sqlUrl = "jdbc:mysql://" + rs.getString("sql_server") + ":3306/" + rs.getString("comp_sql_dbname");
 					sqlUserName = rs.getString("sql_user_id");
 					sqlPassword = rs.getString("sql_password");
@@ -162,8 +162,9 @@ public class DatabaseConnectionHelper extends TheBorg {
 					compCon.setSendEmail(rs.getBoolean("email_notification"));
 					compCon.setSendSlack(rs.getBoolean("slack_notification"));
 					compCon.setDisplayNetworkName(rs.getBoolean("ntw_name"));
+					compCon.setSmartList(rs.getString("smart_list"));
 
-					//retrieve the neo and sql connections only if the company is already present in the company config map
+					// retrieve the neo and sql connections only if the company is already present in the company config map
 					if (companyConfigMap.containsKey(companyId)) {
 						compCon.setSqlConnection(companyConfigMap.get(companyId).getSqlConnection());
 						compCon.setNeoConnection(companyConfigMap.get(companyId).getNeoConnection());
@@ -180,7 +181,7 @@ public class DatabaseConnectionHelper extends TheBorg {
 					Class.forName("com.mysql.jdbc.Driver");
 					Connection conn = DriverManager.getConnection(sqlUrl, sqlUserName, sqlPassword);
 					compCon.setSqlConnection(conn);
-					//retrieve the neo connection if the company is already in the company config map
+					// retrieve the neo connection if the company is already in the company config map
 					if (companyConfigMap.containsKey(companyId)) {
 						compCon.setNeoConnection(companyConfigMap.get(companyId).getNeoConnection());
 					}
@@ -207,7 +208,7 @@ public class DatabaseConnectionHelper extends TheBorg {
 					p.setProperty("password", neoPassword);
 					Connection compNeoConn = new Driver().connect(path, p);
 					compCon.setNeoConnection(compNeoConn);
-					//retrieve the sql connection if the company is already in the company config map
+					// retrieve the sql connection if the company is already in the company config map
 					if (companyConfigMap.containsKey(companyId)) {
 						compCon.setSqlConnection(companyConfigMap.get(companyId).getSqlConnection());
 					}

@@ -15,6 +15,8 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
 import org.icube.owen.employee.Employee;
+import org.icube.owen.employee.EmployeeList;
+import org.icube.owen.helper.CompanyConfig;
 import org.icube.owen.helper.DatabaseConnectionHelper;
 import org.icube.owen.helper.UtilHelper;
 import org.rosuda.REngine.REXP;
@@ -270,36 +272,43 @@ public class Question extends TheBorg {
 		List<Employee> employeeList = new ArrayList<>();
 
 		try {
-			RConnection rCon = dch.getRConn();
-			org.apache.log4j.Logger.getLogger(Question.class).debug("R Connection Available : " + rCon.isConnected());
-			org.apache.log4j.Logger.getLogger(Question.class).debug("Filling up parameters for rscript function");
-			rCon.assign("company_id", new int[] { companyId });
-			rCon.assign("emp_id", new int[] { employeeId });
-			rCon.assign("rel_id", new int[] { q.getRelationshipTypeId() });
-			org.apache.log4j.Logger.getLogger(Question.class).debug("Calling the actual function in RScript SmartListResponse");
-			REXP employeeSmartList = rCon.parseAndEval("try(eval(SmartListResponse(company_id, emp_id, rel_id)))");
-			if (employeeSmartList.inherits("try-error")) {
-				org.apache.log4j.Logger.getLogger(Question.class).error("Error: " + employeeSmartList.asString());
-				dch.releaseRcon();
-				throw new Exception("Error: " + employeeSmartList.asString());
+			CompanyConfig ccObj = dch.companyConfigMap.get(companyId);
+			if (ccObj.getSmartList().equals("all_employee")) {
+				EmployeeList el = new EmployeeList();
+				employeeList.addAll(el.getEmployeeMasterList(companyId));
 			} else {
-				org.apache.log4j.Logger.getLogger(Question.class).debug(
-						"Retrieval of the employee smart list completed " + employeeSmartList.asList());
+				RConnection rCon = dch.getRConn();
+				org.apache.log4j.Logger.getLogger(Question.class).debug("R Connection Available : " + rCon.isConnected());
+				org.apache.log4j.Logger.getLogger(Question.class).debug("Filling up parameters for rscript function");
+				rCon.assign("company_id", new int[] { companyId });
+				rCon.assign("emp_id", new int[] { employeeId });
+				rCon.assign("rel_id", new int[] { q.getRelationshipTypeId() });
+				org.apache.log4j.Logger.getLogger(Question.class).debug("Calling the actual function in RScript SmartListResponse");
+				REXP employeeSmartList = rCon.parseAndEval("try(eval(SmartListResponse(company_id, emp_id, rel_id)))");
+				if (employeeSmartList.inherits("try-error")) {
+					org.apache.log4j.Logger.getLogger(Question.class).error("Error: " + employeeSmartList.asString());
+					dch.releaseRcon();
+					throw new Exception("Error: " + employeeSmartList.asString());
+				} else {
+					org.apache.log4j.Logger.getLogger(Question.class).debug(
+							"Retrieval of the employee smart list completed " + employeeSmartList.asList());
+				}
+
+				RList result = employeeSmartList.asList();
+				REXPInteger empIdResult = (REXPInteger) result.get("emp_id");
+				int[] empIdArray = empIdResult.asIntegers();
+				REXPInteger rankResult = (REXPInteger) (result.get("Rank"));
+				int[] rankArray = rankResult.asIntegers();
+
+				for (int i = 0; i < empIdArray.length; i++) {
+					Employee e = new Employee();
+					e = e.get(companyId, empIdArray[i]);
+					employeeRankMap.put(rankArray[i], e);
+				}
+				Map<Integer, Employee> sorted_map = new TreeMap<Integer, Employee>(employeeRankMap);
+				employeeList = new ArrayList<Employee>(sorted_map.values());
 			}
 
-			RList result = employeeSmartList.asList();
-			REXPInteger empIdResult = (REXPInteger) result.get("emp_id");
-			int[] empIdArray = empIdResult.asIntegers();
-			REXPInteger rankResult = (REXPInteger) (result.get("Rank"));
-			int[] rankArray = rankResult.asIntegers();
-
-			for (int i = 0; i < empIdArray.length; i++) {
-				Employee e = new Employee();
-				e = e.get(companyId, empIdArray[i]);
-				employeeRankMap.put(rankArray[i], e);
-			}
-			Map<Integer, Employee> sorted_map = new TreeMap<Integer, Employee>(employeeRankMap);
-			employeeList = new ArrayList<Employee>(sorted_map.values());
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(Question.class).error("Error while trying to retrieve the smart list for employee from question", e);
 		} finally {
