@@ -33,7 +33,6 @@ import org.icube.owen.explore.ExploreHelper;
 import org.icube.owen.helper.CompanyConfig;
 import org.icube.owen.helper.DatabaseConnectionHelper;
 import org.icube.owen.helper.UtilHelper;
-import org.icube.owen.individual.Login;
 import org.icube.owen.initiative.Initiative;
 import org.icube.owen.initiative.InitiativeHelper;
 import org.icube.owen.initiative.InitiativeList;
@@ -440,8 +439,6 @@ public class IndividualDashboardHelper extends TheBorg {
 	 */
 	public boolean generateNewPassword(String emailId) throws Exception {
 		boolean passwordChanged = false;
-		EmailSender es = new EmailSender();
-		List<String> address = Arrays.asList(emailId);
 
 		// generate a random password
 		int RandomPasswordLength = 8;
@@ -481,22 +478,44 @@ public class IndividualDashboardHelper extends TheBorg {
 			}
 
 		} catch (SQLException e1) {
-			org.apache.log4j.Logger.getLogger(Login.class).error("Exception while retrieving the company database", e1);
+			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while retrieving the company database", e1);
 		}
+		org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Successfully updated the new password");
 
 		// send the new password to the employee
-		try {
-			Statement stm = companySqlCon.createStatement();
-			ResultSet res = stm.executeQuery("select employee.first_name,employee.last_name from employee left join login_table"
-					+ " on login_table.emp_id=employee.emp_id where login_table.login_id= " + '"' + emailId + '"'
-					+ " and login_table.status='active'");
-			res.next();
-			es.sendNewPasswordEmail(res.getString("first_name"), res.getString("last_name"), address, randStr.toString());
-		} catch (MessagingException e) {
-			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Error in sending email", e);
-		}
 
+		sendNewPasswordMail(companySqlCon, emailId, randStr.toString());
 		return passwordChanged;
+	}
+
+	/**
+	 * @param companySqlCon - Company SQL connection
+	 * @param emailId - email id for which the password needs to be updated
+	 * @param randStr - the new password
+	 */
+	private void sendNewPasswordMail(Connection companySqlCon, String emailId, String newPassword) {
+		Runnable task = new Runnable() {
+
+			@Override
+			public void run() {
+				try {
+					EmailSender es = new EmailSender();
+					List<String> address = Arrays.asList(emailId);
+					Statement stm = companySqlCon.createStatement();
+					ResultSet res = stm.executeQuery("select employee.first_name,employee.last_name from employee left join login_table"
+							+ " on login_table.emp_id=employee.emp_id where login_table.login_id= " + '"' + emailId + '"'
+							+ " and login_table.status='active'");
+					res.next();
+					es.sendNewPasswordEmail(res.getString("first_name"), res.getString("last_name"), address, newPassword.toString());
+					org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Sent email for new password");
+				} catch (MessagingException | SQLException e) {
+					org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Error in sending email", e);
+				}
+			}
+
+		};
+		new Thread(task, "ServiceThread").start();
+
 	}
 
 	/**

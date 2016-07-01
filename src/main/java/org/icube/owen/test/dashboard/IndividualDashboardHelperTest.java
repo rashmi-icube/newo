@@ -19,7 +19,7 @@ import org.junit.Test;
 
 public class IndividualDashboardHelperTest {
 	IndividualDashboardHelper idh = (IndividualDashboardHelper) ObjectFactory.getInstance("org.icube.owen.dashboard.IndividualDashboardHelper");
-	int companyId = 2;
+	int companyId = 1;
 	
 	
 	@Test
