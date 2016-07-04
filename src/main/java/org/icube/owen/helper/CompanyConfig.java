@@ -1,33 +1,14 @@
 package org.icube.owen.helper;
 
-import java.sql.Connection;
-
 public class CompanyConfig {
 
-	private Connection sqlConnection;
-	private Connection neoConnection;
 	private String imagePath;
 	private String slackUrl;
 	private boolean sendSlack;
 	private boolean sendEmail;
 	private boolean displayNetworkName;
 	private String smartList;
-
-	public Connection getSqlConnection() {
-		return sqlConnection;
-	}
-
-	public void setSqlConnection(Connection sqlConnection) {
-		this.sqlConnection = sqlConnection;
-	}
-
-	public Connection getNeoConnection() {
-		return neoConnection;
-	}
-
-	public void setNeoConnection(Connection neoConnection) {
-		this.neoConnection = neoConnection;
-	}
+	private String status;
 
 	public String getImagePath() {
 		return imagePath;
@@ -75,5 +56,13 @@ public class CompanyConfig {
 
 	public void setSmartList(String smartList) {
 		this.smartList = smartList;
+	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
 	}
 }

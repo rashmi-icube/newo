@@ -43,7 +43,7 @@ public class Login extends TheBorg {
 			while (rs.next()) {
 				companyId = rs.getInt("comp_id");
 				dch.getCompanyConnection(companyId);
-				companySqlCon = dch.companyConfigMap.get(companyId).getSqlConnection();
+				companySqlCon = dch.companyConnectionMap.get(companyId).getSqlConnection();
 				companyName = rs.getString("comp_name");
 				org.apache.log4j.Logger.getLogger(Login.class).debug("Company Name : " + companyName);
 			}
@@ -84,7 +84,7 @@ public class Login extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
 		try {
-			CallableStatement cstmt1 = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getRoleList()}");
+			CallableStatement cstmt1 = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getRoleList()}");
 			ResultSet res = cstmt1.executeQuery();
 			while (res.next()) {
 				userRoleMap.put(res.getInt("role_id"), res.getString("role"));

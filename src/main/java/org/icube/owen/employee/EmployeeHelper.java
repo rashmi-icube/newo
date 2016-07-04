@@ -33,7 +33,7 @@ public class EmployeeHelper extends TheBorg {
 		dch.getCompanyConnection(companyId);
 
 		try {
-			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getEmployeeBasicDetails(?)}");
+			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getEmployeeBasicDetails(?)}");
 			cstmt.setInt(1, employeeId);
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
@@ -71,7 +71,7 @@ public class EmployeeHelper extends TheBorg {
 		dch.getCompanyConnection(companyId);
 
 		try {
-			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getEmployeeWorkExperience(?)}");
+			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getEmployeeWorkExperience(?)}");
 			cstmt.setInt(1, employeeId);
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
@@ -136,7 +136,7 @@ public class EmployeeHelper extends TheBorg {
 		dch.getCompanyConnection(companyId);
 
 		try {
-			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getEmployeeEducation(?)}");
+			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getEmployeeEducation(?)}");
 			cstmt.setInt(1, employeeId);
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
@@ -179,7 +179,7 @@ public class EmployeeHelper extends TheBorg {
 		dch.getCompanyConnection(companyId);
 
 		try {
-			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getEmployeeLanguage(?)}");
+			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getEmployeeLanguage(?)}");
 			cstmt.setInt(1, employeeId);
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
@@ -209,7 +209,7 @@ public class EmployeeHelper extends TheBorg {
 		dch.getCompanyConnection(companyId);
 		try {
 
-			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getLanguageList}");
+			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getLanguageList}");
 
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
@@ -235,7 +235,7 @@ public class EmployeeHelper extends TheBorg {
 		boolean status = false;
 		try {
 			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).debug("Removing work experience details with Id" + workExperienceId);
-			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call removeWorkExperience(?)}");
+			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call removeWorkExperience(?)}");
 			cstmt.setInt(1, workExperienceId);
 			ResultSet rs = cstmt.executeQuery();
 			rs.next();
@@ -264,7 +264,7 @@ public class EmployeeHelper extends TheBorg {
 		boolean status = false;
 		try {
 			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).debug("Removing Education details with Id" + educationId);
-			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call removeEducation(?)}");
+			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call removeEducation(?)}");
 			cstmt.setInt(1, educationId);
 			ResultSet rs = cstmt.executeQuery();
 			rs.next();
@@ -291,7 +291,7 @@ public class EmployeeHelper extends TheBorg {
 		boolean status = false;
 		try {
 			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).debug("Removing Language details with Id" + languageId);
-			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call removeLanguage(?)}");
+			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call removeLanguage(?)}");
 			cstmt.setInt(1, languageId);
 			ResultSet rs = cstmt.executeQuery();
 			rs.next();
@@ -318,7 +318,7 @@ public class EmployeeHelper extends TheBorg {
 		dch.getCompanyConnection(companyId);
 		try {
 			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).debug("Updating employee basic details" + bed.getEmployeeId());
-			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call updateEmployeeBasicDetails(?, ?)}");
+			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call updateEmployeeBasicDetails(?, ?)}");
 			cstmt.setInt("empid", bed.getEmployeeId());
 			cstmt.setString("phoneno", bed.getPhone());
 			ResultSet rs = cstmt.executeQuery();
@@ -348,7 +348,7 @@ public class EmployeeHelper extends TheBorg {
 		dch.getCompanyConnection(companyId);
 		try {
 			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).debug("Adding new work experience for employee" + wek.getEmployeeId());
-			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call insertWorkExperience(?, ?, ?, ?, ?, ?)}");
+			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call insertWorkExperience(?, ?, ?, ?, ?, ?)}");
 			cstmt.setInt("emp_id_ip", wek.getEmployeeId());
 			cstmt.setString("organization_name_ip", wek.getCompanyName());
 			cstmt.setString("position_ip", wek.getDesignation());
@@ -382,7 +382,7 @@ public class EmployeeHelper extends TheBorg {
 		dch.getCompanyConnection(companyId);
 		try {
 			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).debug("Adding new education for employee" + ed.getEmployeeId());
-			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call insertEducation(?, ?, ?, ?, ?, ?)}");
+			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call insertEducation(?, ?, ?, ?, ?, ?)}");
 			cstmt.setInt("emp_id_ip", ed.getEmployeeId());
 			cstmt.setString("institute_name_ip", ed.getInstitution());
 			cstmt.setString("certification_ip", ed.getCertification());
@@ -416,7 +416,7 @@ public class EmployeeHelper extends TheBorg {
 		dch.getCompanyConnection(companyId);
 		try {
 			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).debug("Adding new language for employee" + ld.getEmployeeId());
-			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call insertLanguage(?, ?)}");
+			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call insertLanguage(?, ?)}");
 			cstmt.setInt("emp_id_ip", ld.getEmployeeId());
 			cstmt.setInt("language_id_ip", ld.getLanguageId());
 			ResultSet rs = cstmt.executeQuery();

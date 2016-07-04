@@ -160,7 +160,7 @@ public class Employee extends TheBorg {
 		Employee e = new Employee();
 		try {
 			org.apache.log4j.Logger.getLogger(Employee.class).debug("get method started");
-			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getEmployeeDetails(?)}");
+			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getEmployeeDetails(?)}");
 			cstmt.setInt(1, employeeId);
 			ResultSet res = cstmt.executeQuery();
 			org.apache.log4j.Logger.getLogger(Employee.class).debug("query : " + cstmt);

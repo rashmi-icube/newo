@@ -28,7 +28,7 @@ public class Response extends TheBorg {
 		boolean responseSaved = false;
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		try {
-			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call insertMeResponse(?,?,?,?,?,?)}");
+			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call insertMeResponse(?,?,?,?,?,?)}");
 			cstmt.setInt("empid", employeeId);
 			cstmt.setInt("queid", q.getQuestionId());
 			cstmt.setTimestamp("responsetime", UtilHelper.convertJavaDateToSqlTimestamp(Date.from(Instant.now())));
@@ -74,7 +74,7 @@ public class Response extends TheBorg {
 						"Saving the response in the db for questionId " + q.getQuestionId() + "target employee " + e.getEmployeeId()
 								+ " with the response " + employeeRating.get(e));
 
-				CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call insertWeResponse(?,?,?,?,?,?)}");
+				CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call insertWeResponse(?,?,?,?,?,?)}");
 				cstmt.setInt(1, employeeId);
 				cstmt.setInt(2, q.getQuestionId());
 				cstmt.setTimestamp(3, UtilHelper.convertJavaDateToSqlTimestamp(Date.from(Instant.now())));

@@ -31,7 +31,7 @@ public class BatchList extends TheBorg {
 		Map<Integer, String> getFrequencyLabelMap = new HashMap<>();
 		try {
 			dch.getCompanyConnection(companyId);
-			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getFrequencyList()}");
+			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getFrequencyList()}");
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
 				getFrequencyLabelMap.put(rs.getInt(1), rs.getString(2));
@@ -57,7 +57,7 @@ public class BatchList extends TheBorg {
 		try {
 			dch.getCompanyConnection(companyId);
 			// TODO hardcoded with only one batch 1 since the UI doesn't have the functionality to display multiple batches
-			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getBatch(?)}");
+			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getBatch(?)}");
 			cstmt.setInt(1, 1);
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
@@ -66,7 +66,7 @@ public class BatchList extends TheBorg {
 				b.setStartDate(rs.getDate("start_date"));
 				b.setEndDate(rs.getDate("end_date"));
 				b.setBatchId(rs.getInt("survey_batch_id"));
-				CallableStatement cstmt1 = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getBatchQuestionList(?)}");
+				CallableStatement cstmt1 = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getBatchQuestionList(?)}");
 				cstmt1.setInt(1, rs.getInt("survey_batch_id"));
 				ResultSet rs1 = cstmt1.executeQuery();
 				List<Question> questionList = new ArrayList<Question>();
@@ -129,7 +129,7 @@ public class BatchList extends TheBorg {
 				boolean isCurrent = q.getQuestionStatus(q.getStartDate(), q.getEndDate()).equalsIgnoreCase("current");
 				previousEndDate = updateQuestion(q, changedFrequency, isCurrent, previousEndDate);
 				try {
-					CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call updateQuestionDate(?, ?, ?)}");
+					CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call updateQuestionDate(?, ?, ?)}");
 					cstmt.setInt(1, questionId);
 					cstmt.setDate(2, UtilHelper.convertJavaDateToSqlDate(q.getStartDate()));
 					cstmt.setDate(3, UtilHelper.convertJavaDateToSqlDate(q.getEndDate()));
@@ -145,7 +145,7 @@ public class BatchList extends TheBorg {
 		}
 		// update the batch once all questions have been successfully updated
 		try {
-			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call updateBatch(?, ?, ?, ?)}");
+			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call updateBatch(?, ?, ?, ?)}");
 			cstmt.setInt(1, batch.getBatchId());
 			cstmt.setInt(2, changedFrequency.getValue());
 			cstmt.setDate(3, UtilHelper.convertJavaDateToSqlDate(UtilHelper.getStartOfDay(batch.getStartDate())));

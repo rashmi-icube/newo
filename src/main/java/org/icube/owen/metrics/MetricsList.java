@@ -80,7 +80,7 @@ public class MetricsList extends TheBorg {
 
 			try {
 				org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Calling getIndividualInitiativeMetricValueAggregate");
-				CallableStatement cs = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getIndividualInitiativeMetricValueAggregate(?)}");
+				CallableStatement cs = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getIndividualInitiativeMetricValueAggregate(?)}");
 				int empId = empIdList.get(0);
 				cs.setInt(1, empId);
 				ResultSet rs = cs.executeQuery();

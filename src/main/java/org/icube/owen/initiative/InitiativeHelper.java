@@ -101,7 +101,7 @@ public class InitiativeHelper extends TheBorg {
 			String query = "match (i:Init) where i.Status='Active' or i.Status='Completed' with  distinct(i.Status) as stat match (z:Init) "
 					+ "with distinct(z.Category) as cat,stat match (j:Init {Category:cat}) with distinct(j.Type) as TYP,stat,cat optional "
 					+ "match (a:Init) where a.Status=stat and a.Type=TYP return cat as category,TYP as initiativeType,stat as status ,count(a) as totalInitiatives";
-			Statement stmt = dch.companyConfigMap.get(companyId).getNeoConnection().createStatement();
+			Statement stmt = dch.companyConnectionMap.get(companyId).getNeoConnection().createStatement();
 			ResultSet res = stmt.executeQuery(query);
 			while (res.next()) {
 				String key = res.getString("initiativeType") + "_" + res.getString("status");
@@ -182,7 +182,7 @@ public class InitiativeHelper extends TheBorg {
 		try {
 			dch.getCompanyConnection(companyId);
 			if (i.getInitiativeCategory().equalsIgnoreCase("Individual")) {
-				CallableStatement cs = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall(
+				CallableStatement cs = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
 						"{call getIndividualInitiativeMetricValueAggregate(?)}");
 				int empId = i.getPartOfEmployeeList().get(0).getEmployeeId();
 				cs.setInt(1, empId);
@@ -190,7 +190,7 @@ public class InitiativeHelper extends TheBorg {
 				metricsList = mh.fillMetricsData(companyId, rs, mh.getPrimaryMetricMap(companyId, i.getInitiativeTypeId()), "Individual");
 			} else if (i.getInitiativeCategory().equalsIgnoreCase("Team")) {
 				org.apache.log4j.Logger.getLogger(InitiativeHelper.class).debug("setInitiativeMetrics for team  calling procedure getTeamInitiativeMetricValueAggregate for initiative ID: " + i.getInitiativeId());
-				CallableStatement cs = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getTeamInitiativeMetricValueAggregate(?)}");
+				CallableStatement cs = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getTeamInitiativeMetricValueAggregate(?)}");
 				int initId = i.getInitiativeId();
 				cs.setInt(1, initId);
 				ResultSet rs = cs.executeQuery();
