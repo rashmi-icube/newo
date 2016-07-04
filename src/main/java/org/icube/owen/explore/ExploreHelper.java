@@ -263,12 +263,12 @@ public class ExploreHelper extends TheBorg {
 				empIdList.add(res.getInt("emp_id"));
 				Node n = new Node();
 				n.setEmployeeId(res.getInt("emp_id"));
-				CallableStatement cstmt = dch.masterCon.prepareCall("{call getCompanyConfig(?)}");
+				/*CallableStatement cstmt = dch.masterCon.prepareCall("{call getCompanyConfig(?)}");
 				cstmt.setInt(1, companyId);
 				ResultSet rs = cstmt.executeQuery();
 				while(rs.next()){
 					dch.setCompanyConfigDetails(companyId, dch.companyConfigMap.get(companyId), rs);
-				}
+				}*/
                 
 				if (dch.companyConfigMap.get(companyId).isDisplayNetworkName()) {
 					n.setFirstName(res.getString("firstName"));
@@ -362,12 +362,12 @@ public class ExploreHelper extends TheBorg {
 				empIdList.add(res.getInt("emp_id"));
 				Node n = new Node();
 				n.setEmployeeId(res.getInt("emp_id"));
-				CallableStatement cstmt = dch.masterCon.prepareCall("{call getCompanyConfig(?)}");
+				/*CallableStatement cstmt = dch.masterCon.prepareCall("{call getCompanyConfig(?)}");
 				cstmt.setInt(1, companyId);
 				ResultSet rs = cstmt.executeQuery();
 				while(rs.next()){
 					dch.setCompanyConfigDetails(companyId, dch.companyConfigMap.get(companyId), rs);
-				}
+				}*/
                 
 				if (dch.companyConfigMap.get(companyId).isDisplayNetworkName()) {
 					n.setFirstName(res.getString("firstName"));

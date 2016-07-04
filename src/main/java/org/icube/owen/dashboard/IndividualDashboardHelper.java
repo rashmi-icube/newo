@@ -315,13 +315,13 @@ public class IndividualDashboardHelper extends TheBorg {
 		List<Employee> employeeList = new ArrayList<>();
 		Map<Integer, Integer> MetricRelationshipTypeMap = getMetricRelationshipTypeMapping(companyId);
 		try {
-			CallableStatement cstmt = dch.masterCon.prepareCall("{call getCompanyConfig(?)}");
+			/*CallableStatement cstmt = dch.masterCon.prepareCall("{call getCompanyConfig(?)}");
 			cstmt.setInt(1, companyId);
 			ResultSet rs = cstmt.executeQuery();
 			while(rs.next()){
 				dch.setCompanyConfigDetails(companyId, dch.companyConfigMap.get(companyId), rs);
 			}
-            
+            */
 			CompanyConfig ccObj = dch.companyConfigMap.get(companyId);
 			if (ccObj.getSmartList().equals("all_employee")) {
 				EmployeeList el = new EmployeeList();

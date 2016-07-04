@@ -1,6 +1,5 @@
 package org.icube.owen.jobScheduler;
 
-import java.sql.CallableStatement;
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -208,13 +207,13 @@ public class CompanyDAO extends TimerTask {
 			// in case of new questions send email
 			if (addresses.size() > 0) {
 				
-				CallableStatement cstmt = dch.masterCon.prepareCall("{call getCompanyConfig(?)}");
+				/*CallableStatement cstmt = dch.masterCon.prepareCall("{call getCompanyConfig(?)}");
 				cstmt.setInt(1, companyId);
 				ResultSet rs = cstmt.executeQuery();
 				while(rs.next()){
 					dch.setCompanyConfigDetails(companyId, dch.companyConfigMap.get(companyId), rs);
 				}
-                
+                */
 				if (dch.companyConfigMap.get(companyId).isSendEmail()) {
 					EmailSender es = new EmailSender();
 					es.sendEmailforQuestions(companyId, addresses);
