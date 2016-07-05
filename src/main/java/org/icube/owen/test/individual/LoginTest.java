@@ -6,6 +6,7 @@ import static org.junit.Assert.assertNotNull;
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.employee.Employee;
 import org.icube.owen.individual.Login;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class LoginTest {
@@ -14,7 +15,7 @@ public class LoginTest {
 	@Test
 	public void testLoginEmployee() {
 		try {
-			Employee e = l.login("owen@i-cube.in", "abc123", "114.9.1.2", 2);
+			Employee e = l.login("hpatel@i-cube.in", "abc123", "114.9.1.2", 2);
 			assertNotNull(e.getEmployeeId());
 			assertNotNull(e.getCompanyEmployeeId());
 			assertNotNull(e.getCompanyEmployeeId());
@@ -26,7 +27,7 @@ public class LoginTest {
 			assertEquals(e.getMessage(), "Invalid credentials!!!");
 		}
 	}
-	@Test
+	@Ignore
 	public void testLoginHr() {
 		try {
 			Employee e = l.login("emp3@i-cube.in", "abc123", "114.9.1.2", 2);
