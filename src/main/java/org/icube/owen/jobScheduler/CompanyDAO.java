@@ -1,5 +1,6 @@
 package org.icube.owen.jobScheduler;
 
+import java.sql.CallableStatement;
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -13,6 +14,7 @@ import java.util.TimerTask;
 import javax.mail.MessagingException;
 
 import org.icube.owen.ObjectFactory;
+import org.icube.owen.helper.CompanyConfig;
 import org.icube.owen.helper.DatabaseConnectionHelper;
 import org.icube.owen.helper.UtilHelper;
 import org.icube.owen.slack.SlackIntegration;
@@ -66,30 +68,34 @@ public class CompanyDAO extends TimerTask {
 			RConnection rCon = dch.getRConn();
 			org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("R Connection Available : " + rCon.isConnected());
 			while (companyDetails.next()) {
-				Map<String, String> jobStatusMap = new HashMap<>();
-				List<Map<String, String>> jobStatusMapList = new ArrayList<>();
-				// run JobInitStatus
-				org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("JobInitStatus method started");
-				org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug(
-						"Parameters for R function :  CompanyId : " + companyDetails.getInt("comp_id"));
+				dch.getCompanyConnection(companyDetails.getInt("comp_id"));
+				CompanyConfig compConfig = dch.companyConfigMap.get(companyDetails.getInt("comp_id"));
+				if (compConfig.isRunJobs()) {
+					Map<String, String> jobStatusMap = new HashMap<>();
+					List<Map<String, String>> jobStatusMapList = new ArrayList<>();
+					// run JobInitStatus
+					org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("JobInitStatus method started");
+					org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug(
+							"Parameters for R function :  CompanyId : " + companyDetails.getInt("comp_id"));
 
-				rCon.assign("CompanyId", new int[] { companyDetails.getInt("comp_id") });
-				org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("Calling the actual function in R Script JobInitStatus");
-				REXP status = rCon.parseAndEval("try(eval(JobInitStatus(CompanyId)))");
-				if (status.inherits("try-error")) {
-					// add to map of status
-					jobStatusMap.put("JobInitStatus", "failed :" + status.asString());
-					jobStatus = false;
-				} else {
-					org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("Successfully executed the JobInitStatus method ");
-					// add to map of status
-					jobStatusMap.put("JobInitStatus", "Pass");
+					rCon.assign("CompanyId", new int[] { companyDetails.getInt("comp_id") });
+					org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("Calling the actual function in R Script JobInitStatus");
+					REXP status = rCon.parseAndEval("try(eval(JobInitStatus(CompanyId)))");
+					if (status.inherits("try-error")) {
+						// add to map of status
+						jobStatusMap.put("JobInitStatus", "failed :" + status.asString());
+						jobStatus = false;
+					} else {
+						org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("Successfully executed the JobInitStatus method ");
+						// add to map of status
+						jobStatusMap.put("JobInitStatus", "Pass");
+					}
+					jobStatusMapList.add(jobStatusMap);
+					schedulerJobStatusMap.put(companyDetails.getInt("comp_id"), jobStatusMapList);
+					dch.releaseRcon();
+					runCompanyMetricJobs(companyDetails);
+					runNewQuestionJob(companyDetails.getInt("comp_id"));
 				}
-				jobStatusMapList.add(jobStatusMap);
-				schedulerJobStatusMap.put(companyDetails.getInt("comp_id"), jobStatusMapList);
-				dch.releaseRcon();
-				runCompanyMetricJobs(companyDetails);
-				runNewQuestionJob(companyDetails.getInt("comp_id"));
 			}
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(CompanyDAO.class).error("Failed to get the db connection details", e);
@@ -110,7 +116,7 @@ public class CompanyDAO extends TimerTask {
 			int companyId = rs.getInt("comp_id");
 			String companyName = rs.getString("comp_name");
 			dch.getCompanyConnection(companyId);
-			Statement stmt = dch.companyConfigMap.get(companyId).getSqlConnection().createStatement();
+			Statement stmt = dch.companyConnectionMap.get(companyId).getSqlConnection().createStatement();
 			org.apache.log4j.Logger.getLogger(CompanyDAO.class)
 					.debug("Successfully connected to company db with companyId : " + rs.getInt("comp_id"));
 
@@ -194,7 +200,7 @@ public class CompanyDAO extends TimerTask {
 		Map<String, String> jobStatusMapForSlack = new HashMap<>();
 		Map<String, String> jobStatusMap = new HashMap<>();
 		try {
-			Statement stmt = dch.companyConfigMap.get(companyId).getSqlConnection().createStatement();
+			Statement stmt = dch.companyConnectionMap.get(companyId).getSqlConnection().createStatement();
 			// check if new emails have to be sent for the specific company
 
 			ResultSet res = stmt
@@ -206,6 +212,15 @@ public class CompanyDAO extends TimerTask {
 			}
 			// in case of new questions send email
 			if (addresses.size() > 0) {
+
+				// refresh the company config details
+
+				CallableStatement cstmt = dch.masterCon.prepareCall("{call getCompanyConfig(?)}");
+				cstmt.setInt(1, companyId);
+				ResultSet rs = cstmt.executeQuery();
+				while (rs.next()) {
+					dch.setCompanyConfigDetails(companyId, dch.companyConfigMap.get(companyId), rs);
+				}
 
 				if (dch.companyConfigMap.get(companyId).isSendEmail()) {
 					EmailSender es = new EmailSender();

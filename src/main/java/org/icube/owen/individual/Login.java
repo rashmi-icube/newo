@@ -43,10 +43,19 @@ public class Login extends TheBorg {
 			while (rs.next()) {
 				companyId = rs.getInt("comp_id");
 				dch.getCompanyConnection(companyId);
-				companySqlCon = dch.companyConfigMap.get(companyId).getSqlConnection();
+				companySqlCon = dch.companyConnectionMap.get(companyId).getSqlConnection();
 				companyName = rs.getString("comp_name");
 				org.apache.log4j.Logger.getLogger(Login.class).debug("Company Name : " + companyName);
 			}
+			//refresh the company config details when the user logs in
+			
+			/*CallableStatement cstmt2 = dch.masterCon.prepareCall("{call getCompanyConfig(?)}");
+			cstmt2.setInt(1, companyId);
+			ResultSet rs1 = cstmt2.executeQuery();
+			while(rs1.next()){
+				dch.setCompanyConfigDetails(companyId, dch.companyConfigMap.get(companyId), rs1);
+				
+			}*/
 			org.apache.log4j.Logger.getLogger(Login.class).debug("Role ID for user : " + emailId + " is : " + roleId);
 			CallableStatement cstmt1 = companySqlCon.prepareCall("{call verifyLogin(?,?,?,?,?)}");
 			cstmt1.setString("loginid", emailId);
@@ -65,6 +74,7 @@ public class Login extends TheBorg {
 					e.setFirstTimeLogin(res.getBoolean("first_time_login"));
 					e.setCompanyName(companyName);
 					org.apache.log4j.Logger.getLogger(Login.class).debug("Successfully validated user with userID : " + emailId);
+	                
 				}
 			}
 
@@ -84,7 +94,7 @@ public class Login extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
 		try {
-			CallableStatement cstmt1 = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getRoleList()}");
+			CallableStatement cstmt1 = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getRoleList()}");
 			ResultSet res = cstmt1.executeQuery();
 			while (res.next()) {
 				userRoleMap.put(res.getInt("role_id"), res.getString("role"));

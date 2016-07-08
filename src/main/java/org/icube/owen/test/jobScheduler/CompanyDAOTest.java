@@ -10,9 +10,9 @@ public class CompanyDAOTest {
 	public void testCompanyDAO() {
 		// cdao.getCompanyDetails();
 		cdao.run();
-		/*cdao.run();
+		cdao.run();
 
-		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		/*DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		try {
 			dch.companySqlConnectionPool.get(1).close();
 		} catch (SQLException e) {

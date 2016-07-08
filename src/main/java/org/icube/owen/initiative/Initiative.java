@@ -95,7 +95,7 @@ public class Initiative extends TheBorg {
 					+ "', CreatedByEmpId:" + createdByEmpId + ",Comment:'" + initiativeComment + "'}) return i.Id as Id";
 
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Create initiative query : " + createInitQuery);
-			Statement stmt = dch.companyConfigMap.get(companyId).getNeoConnection().createStatement();
+			Statement stmt = dch.companyConnectionMap.get(companyId).getNeoConnection().createStatement();
 			ResultSet res = stmt.executeQuery(createInitQuery);
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Successfully created the initiative in neo4j");
 			while (res.next()) {
@@ -160,7 +160,7 @@ public class Initiative extends TheBorg {
 					for (Metrics m : metricsList) {
 						org.apache.log4j.Logger.getLogger(Initiative.class).debug(
 								"Storing the metric for initiative ID " + initiativeId + "; metric ID : " + m.getId());
-						CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall(
+						CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
 								"{call insertInitiativeMetricValue(?,?,?,?,?)}");
 						cstmt.setInt("initiativeid", initiativeId);
 						cstmt.setInt("metricid", m.getId());
@@ -248,7 +248,7 @@ public class Initiative extends TheBorg {
 						+ " Create p-[:part_of]->i";
 
 			}
-			Statement stmt = dch.companyConfigMap.get(companyId).getNeoConnection().createStatement();
+			Statement stmt = dch.companyConnectionMap.get(companyId).getNeoConnection().createStatement();
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Function query : " + funcQuery);
 			stmt.executeQuery(funcQuery);
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Position query : " + posQuery);
@@ -285,7 +285,7 @@ public class Initiative extends TheBorg {
 			String query = "Match (i:Init),(e:Employee) where i.Id = " + initiativeId + " and e.emp_id in " + empIdList.toString()
 					+ " Create e-[:part_of]->i";
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Creating part_of connections query : " + query);
-			Statement stmt = dch.companyConfigMap.get(companyId).getNeoConnection().createStatement();
+			Statement stmt = dch.companyConnectionMap.get(companyId).getNeoConnection().createStatement();
 			stmt.executeQuery(query);
 			stmt.close();
 			return true;
@@ -328,7 +328,7 @@ public class Initiative extends TheBorg {
 			String query = "Match (i:Init),(e:Employee) where i.Id = " + initiativeId + " and e.emp_id in " + empIdList.toString()
 					+ " Create e-[:owner_of]->i";
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Creating connections for initiative query : " + query);
-			Statement stmt = dch.companyConfigMap.get(companyId).getNeoConnection().createStatement();
+			Statement stmt = dch.companyConnectionMap.get(companyId).getNeoConnection().createStatement();
 			stmt.executeQuery(query);
 			stmt.close();
 		} catch (Exception e) {
@@ -361,7 +361,7 @@ public class Initiative extends TheBorg {
 					+ "else collect(distinct(a.Id))  end as PartOfID,collect(distinct(a.Name))as PartOfName, labels(a) as Filters, "
 					+ "collect(distinct (o.emp_id)) as OwnersOf,i.Comment as Comments,i.Type as Type,i.Category as Category,i.Status as Status";
 			org.apache.log4j.Logger.getLogger(Initiative.class).error("Query : " + query);
-			Statement stmt = dch.companyConfigMap.get(companyId).getNeoConnection().createStatement();
+			Statement stmt = dch.companyConnectionMap.get(companyId).getNeoConnection().createStatement();
 			ResultSet res = stmt.executeQuery(query);
 			while (res.next()) {
 				il.setInitiativeValues(companyId, res, i);
@@ -388,7 +388,7 @@ public class Initiative extends TheBorg {
 		Map<Integer, String> initiativeTypeMap = new HashMap<>();
 		try {
 
-			CallableStatement cstmt = dch.companyConfigMap.get(companyId).getSqlConnection().prepareCall("{call getInitiativeTypeList(?)}");
+			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getInitiativeTypeList(?)}");
 			cstmt.setString(1, category);
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
@@ -416,7 +416,7 @@ public class Initiative extends TheBorg {
 		try {
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Starting to delete the initiative ID " + initiativeId);
 			String query = "match(a:Init {Id:" + initiativeId + "}) set a.Status = 'Deleted' return a.Status as currentStatus";
-			Statement stmt = dch.companyConfigMap.get(companyId).getNeoConnection().createStatement();
+			Statement stmt = dch.companyConnectionMap.get(companyId).getNeoConnection().createStatement();
 			stmt.executeQuery(query);
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Deleted initiative with ID " + initiativeId);
 			status = true;
@@ -446,7 +446,7 @@ public class Initiative extends TheBorg {
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Started update of The initiative with ID " + updatedInitiative.initiativeId);
 			List<Employee> updatedOwnerOfList = updatedInitiative.getOwnerOfList();
 			String ownersOfQuery = "match(i:Init {Id:" + updatedInitiativeId + "})<-[r:owner_of]-(e:Employee) delete r";
-			Statement stmt = dch.companyConfigMap.get(companyId).getNeoConnection().createStatement();
+			Statement stmt = dch.companyConnectionMap.get(companyId).getNeoConnection().createStatement();
 			stmt.executeQuery(ownersOfQuery);
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Ownersof list deleted from initiative " + updatedInitiative.initiativeId);
 			updatedInitiative.setOwner(companyId, updatedInitiativeId, updatedOwnerOfList);
@@ -497,7 +497,7 @@ public class Initiative extends TheBorg {
 		boolean status = false;
 		try {
 			String query = "match(a:Init {Id:" + initiativeId + "}) set a.Status = 'Completed'";
-			Statement stmt = dch.companyConfigMap.get(companyId).getNeoConnection().createStatement();
+			Statement stmt = dch.companyConnectionMap.get(companyId).getNeoConnection().createStatement();
 			stmt.executeQuery(query);
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Changed the status of initiative with ID " + initiativeId + " to Completed");
 			stmt.close();
