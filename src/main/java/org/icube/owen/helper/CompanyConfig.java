@@ -15,6 +15,7 @@ public class CompanyConfig {
 	private String neoUrl;
 	private String neoUserName;
 	private String neoPassword;
+	private boolean runJobs;
 	
 	public String getImagePath() {
 		return imagePath;
@@ -120,6 +121,14 @@ public class CompanyConfig {
 		this.neoPassword = neoPassword;
 	}
 	
+	public boolean isRunJobs() {
+		return runJobs;
+	}
+
+	public void setRunJobs(boolean runJobs) {
+		this.runJobs = runJobs;
+	}
+	
 	
 	@Override
 	public boolean equals(Object obj) {
@@ -135,15 +144,16 @@ public class CompanyConfig {
 	    	objectChangedStatus = true;
 	    }
 	    
-	    if(!(this.displayNetworkName = that.displayNetworkName)){
+	    if(!(this.displayNetworkName == that.displayNetworkName)){
+	    	System.out.println("display network value changed");
 	    	objectChangedStatus = true;
 	    }
 	    
-	    if(!(this.sendEmail = that.sendEmail)){
+	    if(!(this.sendEmail == that.sendEmail)){
 	    	objectChangedStatus = true;
 	    }
 	    
-	    if(!(this.sendSlack = that.sendSlack)){
+	    if(!(this.sendSlack == that.sendSlack)){
 	    	objectChangedStatus = true;
 	    }
 	    
@@ -178,6 +188,12 @@ public class CompanyConfig {
 	    if(!(this.sqlUrl.equals(that.sqlUrl))){
 	    	objectChangedStatus = true;
 	    }
+	    
+	    if(!(this.runJobs == that.runJobs)){
+	    	objectChangedStatus = true;
+	    }
 	    return objectChangedStatus;
 	}
+
+	
 }

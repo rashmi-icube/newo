@@ -23,10 +23,6 @@ import org.rosuda.REngine.Rserve.RserveException;
 public class DatabaseConnectionHelper extends TheBorg {
 
 	public Connection masterCon;
-	/*public Map<Integer, Connection> companySqlConnectionPool;
-	public Map<Integer, Connection> companyNeoConnectionPool;
-	public Map<Integer, String> companyImagePath;
-	public Map<Integer, String> companySlackUrl;*/
 	private RConnection rCon;
 	public Map<Integer, CompanyConfig> companyConfigMap;
 	public Map<Integer, CompanyConnection> companyConnectionMap;
@@ -138,7 +134,6 @@ public class DatabaseConnectionHelper extends TheBorg {
 		try {
 			CompanyConfig compConfig = new CompanyConfig();
 			CompanyConnection compConnection = new CompanyConnection();
-			// boolean compConChanged = false;
 			boolean compConnectionchanged = false;
 			String sqlUrl = "", sqlUserName = "", sqlPassword = "", neoUrl = "", neoUserName = "", neoPassword = "";
 			// check if the sql connection pool contains the connection for the given company and if it is valid else call the db procedure for
@@ -146,6 +141,7 @@ public class DatabaseConnectionHelper extends TheBorg {
 			if (!companyConnectionMap.containsKey(companyId)
 					|| (companyConnectionMap.containsKey(companyId) && !companyConnectionMap.get(companyId).getSqlConnection().isValid(0))
 					|| (companyConnectionMap.containsKey(companyId) && !companyConnectionMap.get(companyId).getNeoConnection().isValid(0))) {
+
 				// get company details
 
 				CallableStatement cstmt = masterCon.prepareCall("{call getCompanyConfig(?)}");
@@ -163,7 +159,7 @@ public class DatabaseConnectionHelper extends TheBorg {
 					neoUrl = rs.getString("neo_db_url");
 					neoUserName = rs.getString("neo_user_name");
 					neoPassword = rs.getString("neo_password");
-					
+
 					compConfig = setCompanyConfigDetails(companyId, compConfig, rs);
 					companyConfigMap.put(companyId, compConfig);
 
@@ -210,12 +206,9 @@ public class DatabaseConnectionHelper extends TheBorg {
 					compConnection.setSqlConnection(conn);
 					// retrieve the neo connection if the company is already in the company config map
 					if (companyConnectionMap.containsKey(companyId)) {
-						compConnection.setNeoConnection(companyConnectionMap.get(companyId).getNeoConnection());
+						compConnection = refreshConfigAndConnectionDetails(companyId, compConnection);
+						compConnectionchanged = true;
 					}
-					compConnectionchanged = true;
-					// companySqlConnectionPool.put(companyId, conn);
-					org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug(
-							"Successfully connected to company db with companyId : " + companyId);
 				}
 			} catch (SQLException | ClassNotFoundException e) {
 				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error(
@@ -237,7 +230,9 @@ public class DatabaseConnectionHelper extends TheBorg {
 					compConnection.setNeoConnection(compNeoConn);
 					// retrieve the sql connection if the company is already in the company config map
 					if (companyConnectionMap.containsKey(companyId)) {
-						compConnection.setSqlConnection(companyConnectionMap.get(companyId).getSqlConnection());
+						compConnection = refreshConfigAndConnectionDetails(companyId, compConnection);
+						compConnectionchanged = true;
+						// compConnection.setSqlConnection(companyConnectionMap.get(companyId).getSqlConnection());
 					}
 					compConnectionchanged = true;
 					// companyNeoConnectionPool.put(companyId, compNeoConn);
@@ -248,6 +243,22 @@ public class DatabaseConnectionHelper extends TheBorg {
 				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error(
 						"An error occurred while connecting to neo4j db for companyId : " + companyId, e);
 			}
+
+			// create a new config object and compare it with the existing config
+			// if changed, update the config (if config has changed) and connection (if connection has changed) object
+			try {
+				if (companyConnectionMap.containsKey(companyId) && companyConnectionMap.get(companyId).getNeoConnection().isValid(0)
+						|| companyConnectionMap.containsKey(companyId) && companyConnectionMap.get(companyId).getSqlConnection().isValid(0)) {
+					compConnection = refreshConfigAndConnectionDetails(companyId, compConnection);
+					compConnectionchanged = true;
+
+				}
+
+			} catch (SQLException e) {
+				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error(
+						"An error occurred while connecting to db for companyId : " + companyId, e);
+			}
+
 			// add the company config object to the company config map
 			if (compConnectionchanged)
 				companyConnectionMap.put(companyId, compConnection);
@@ -258,7 +269,58 @@ public class DatabaseConnectionHelper extends TheBorg {
 
 	}
 
-	private void setCompanyConnectionDetails(int companyId, CompanyConnection compConnection, CompanyConfig compConfigNew, ResultSet rs1) {
+	/**
+	 * @param companyId - company ID
+	 * @param compConnection - company connection object
+	 * @return - updated company connection object
+	 * @throws SQLException
+	 */
+	private CompanyConnection refreshConfigAndConnectionDetails(int companyId, CompanyConnection compConnection) {
+		CompanyConfig compConfig = new CompanyConfig();
+		CompanyConfig compConfigNew = new CompanyConfig();
+		CallableStatement cstmt1;
+		try {
+			cstmt1 = masterCon.prepareCall("{call getCompanyConfig(?)}");
+
+			cstmt1.setInt(1, companyId);
+			ResultSet rs1 = cstmt1.executeQuery();
+			while (rs1.next()) {
+				setCompanyConfigDetails(companyId, compConfigNew, rs1);
+			}
+
+			if (!(compConfigNew.equals(companyConfigMap.get(companyId)))) {
+
+				compConnection.setSqlConnection(companyConnectionMap.get(companyId).getSqlConnection());
+				compConnection.setNeoConnection(companyConnectionMap.get(companyId).getNeoConnection());
+
+			}
+
+			else {
+				rs1.beforeFirst();
+				while (rs1.next()) {
+					compConfig = setCompanyConfigDetails(companyId, compConfigNew, rs1);
+					companyConfigMap.put(companyId, compConfig);
+					compConnection = setCompanyConnectionDetails(companyId, compConnection, compConfig, rs1);
+					companyConnectionMap.put(companyId, compConnection);
+					compConnection.setSqlConnection(companyConnectionMap.get(companyId).getSqlConnection());
+					compConnection.setNeoConnection(companyConnectionMap.get(companyId).getNeoConnection());
+				}
+
+			}
+		} catch (SQLException e) {
+			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("Unable to refresh the company connection object", e);
+		}
+		return compConnection;
+	}
+
+	/**
+	 * @param companyId - company ID
+	 * @param compConnection - company connection object
+	 * @param compConfigNew - the new compa ny config object
+	 * @param rs1 - resultset
+	 * @return - updated company connection object
+	 */
+	private CompanyConnection setCompanyConnectionDetails(int companyId, CompanyConnection compConnection, CompanyConfig compConfigNew, ResultSet rs1) {
 		try {
 			Class.forName("com.mysql.jdbc.Driver");
 
@@ -277,6 +339,7 @@ public class DatabaseConnectionHelper extends TheBorg {
 		} catch (ClassNotFoundException | SQLException e) {
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("error in updating the company connection details", e);
 		}
+		return compConnection;
 
 	}
 
@@ -287,27 +350,27 @@ public class DatabaseConnectionHelper extends TheBorg {
 	 * @return updated company config objects
 	 * @throws SQLException
 	 */
-	public CompanyConfig setCompanyConfigDetails(int companyId, CompanyConfig compConfig, ResultSet rs) {
+	public CompanyConfig setCompanyConfigDetails(int companyId, CompanyConfig compConfigNew, ResultSet rs) {
 		try {
-			compConfig.setImagePath(rs.getString("images_path"));
-			compConfig.setSlackUrl(rs.getString("slack_url"));
-			compConfig.setSendEmail(rs.getBoolean("email_notification"));
-			compConfig.setSendSlack(rs.getBoolean("slack_notification"));
-			compConfig.setDisplayNetworkName(rs.getBoolean("ntw_name"));
-			compConfig.setSmartList(rs.getString("smart_list"));
-			compConfig.setStatus(rs.getString("comp_status"));
-			compConfig.setNeoUrl(rs.getString("neo_db_url"));
-			compConfig.setNeoUserName(rs.getString("neo_user_name"));
-			compConfig.setNeoPassword(rs.getString("neo_password"));
-			compConfig.setSqlUrl("jdbc:mysql://" + rs.getString("sql_server") + ":3306/" + rs.getString("comp_sql_dbname"));
-			compConfig.setSqlUserName(rs.getString("sql_user_id"));
-			compConfig.setSqlPassword(rs.getString("sql_password"));
-			// companyConfigMap.put(companyId, compConfig);
+			compConfigNew.setImagePath(rs.getString("images_path"));
+			compConfigNew.setSlackUrl(rs.getString("slack_url"));
+			compConfigNew.setSendEmail(rs.getBoolean("email_notification"));
+			compConfigNew.setSendSlack(rs.getBoolean("slack_notification"));
+			compConfigNew.setDisplayNetworkName(rs.getBoolean("ntw_name"));
+			compConfigNew.setSmartList(rs.getString("smart_list"));
+			compConfigNew.setStatus(rs.getString("comp_status"));
+			compConfigNew.setNeoUrl(rs.getString("neo_db_url"));
+			compConfigNew.setNeoUserName(rs.getString("neo_user_name"));
+			compConfigNew.setNeoPassword(rs.getString("neo_password"));
+			compConfigNew.setSqlUrl("jdbc:mysql://" + rs.getString("sql_server") + ":3306/" + rs.getString("comp_sql_dbname"));
+			compConfigNew.setSqlUserName(rs.getString("sql_user_id"));
+			compConfigNew.setSqlPassword(rs.getString("sql_password"));
+			compConfigNew.setRunJobs(rs.getBoolean("jobs"));
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error(
 					"Unable to retrieve the company config details from the resultset", e);
 		}
-		return compConfig;
+		return compConfigNew;
 	}
 
 	public RConnection getRConn() {
