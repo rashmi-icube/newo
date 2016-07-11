@@ -9,14 +9,15 @@ import org.icube.owen.ObjectFactory;
 import org.icube.owen.employee.Employee;
 import org.icube.owen.survey.Question;
 import org.icube.owen.survey.Response;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class ResponseTest {
 
 	Response r = (Response) ObjectFactory.getInstance("org.icube.owen.survey.Response");
-	int companyId = 1;
+	int companyId = 2;
 
-	@Test
+	@Ignore
 	public void testSaveMeResponse() {
 		Question q = new Question();
 		assertTrue(r.saveMeResponse(1, 1, q.getQuestion(companyId, 1), 3, "test feedback"));
@@ -34,6 +35,6 @@ public class ResponseTest {
 		employeeRating.put(e.get(companyId, 4), 8);
 		employeeRating.put(e.get(companyId, 5), 9);
 
-		assertTrue(r.saveWeResponse(1, 1, q.getQuestion(companyId, 1), employeeRating));
+		assertTrue(r.saveWeResponse(2, 1, q.getQuestion(companyId, 1), employeeRating));
 	}
 }

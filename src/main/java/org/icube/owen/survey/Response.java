@@ -66,30 +66,43 @@ public class Response extends TheBorg {
 		boolean responseSaved = false;
 		int count = 0;
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+
 		try {
-			dch.getCompanyConnection(companyId);
+			CallableStatement cstmt1 = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call isWeQuestionAnswered(?,?)}");
+			cstmt1.setInt(1, employeeId);
+			cstmt1.setInt(2, q.getQuestionId());
+			ResultSet res = cstmt1.executeQuery();
+			res.next();
+			if (!res.getBoolean("op")) {
+				dch.getCompanyConnection(companyId);
 
-			for (Employee e : employeeRating.keySet()) {
-				org.apache.log4j.Logger.getLogger(Response.class).debug(
-						"Saving the response in the db for questionId " + q.getQuestionId() + "target employee " + e.getEmployeeId()
-								+ " with the response " + employeeRating.get(e));
+				for (Employee e : employeeRating.keySet()) {
+					org.apache.log4j.Logger.getLogger(Response.class).debug(
+							"Saving the response in the db for questionId " + q.getQuestionId() + "target employee " + e.getEmployeeId()
+									+ " with the response " + employeeRating.get(e));
 
-				CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call insertWeResponse(?,?,?,?,?,?)}");
-				cstmt.setInt(1, employeeId);
-				cstmt.setInt(2, q.getQuestionId());
-				cstmt.setTimestamp(3, UtilHelper.convertJavaDateToSqlTimestamp(Date.from(Instant.now())));
-				cstmt.setInt(4, e.getEmployeeId());
-				cstmt.setInt(5, q.getRelationshipTypeId());
-				cstmt.setInt(6, employeeRating.get(e));
-				ResultSet rs = cstmt.executeQuery();
-				if (rs.next()) {
-					responseSaved = true;
-					count++;
+					CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+							"{call insertWeResponse(?,?,?,?,?,?)}");
+					cstmt.setInt(1, employeeId);
+					cstmt.setInt(2, q.getQuestionId());
+					cstmt.setTimestamp(3, UtilHelper.convertJavaDateToSqlTimestamp(Date.from(Instant.now())));
+					cstmt.setInt(4, e.getEmployeeId());
+					cstmt.setInt(5, q.getRelationshipTypeId());
+					cstmt.setInt(6, employeeRating.get(e));
+					ResultSet rs = cstmt.executeQuery();
+					if (rs.next()) {
+						responseSaved = true;
+						count++;
+					}
 				}
-			}
-			if (employeeRating.size() == count) {
+				if (employeeRating.size() == count) {
+					org.apache.log4j.Logger.getLogger(Response.class)
+							.debug("Successfully saved the response for : " + q.getQuestionText() + " with the relationship ID "
+									+ q.getRelationshipTypeId());
+				}
+			} else {
 				org.apache.log4j.Logger.getLogger(Response.class).debug(
-						"Successfully saved the response for : " + q.getQuestionText() + " with the relationship ID " + q.getRelationshipTypeId());
+						"Response is already stored for question ID :" + q.getQuestionId() + " for employee ID : " + employeeId);
 			}
 
 		} catch (Exception e) {
