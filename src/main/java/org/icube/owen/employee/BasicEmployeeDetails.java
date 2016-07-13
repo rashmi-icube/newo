@@ -14,7 +14,7 @@ public class BasicEmployeeDetails {
 	private String emailId;
 	private String phone;
 	private Date dob;
-	private int companyEmployeeId;
+	private String companyEmployeeId;
 
 	public int getEmployeeId() {
 		return employeeId;
@@ -96,11 +96,11 @@ public class BasicEmployeeDetails {
 		this.dob = dob;
 	}
 
-	public int getCompanyEmployeeId() {
+	public String getCompanyEmployeeId() {
 		return companyEmployeeId;
 	}
 
-	public void setCompanyEmployeeId(int companyEmployeeId) {
+	public void setCompanyEmployeeId(String companyEmployeeId) {
 		this.companyEmployeeId = companyEmployeeId;
 	}
 }

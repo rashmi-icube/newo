@@ -38,7 +38,7 @@ public class EmployeeHelper extends TheBorg {
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
 				bed.setEmployeeId(employeeId);
-				bed.setCompanyEmployeeId(rs.getInt("emp_int_id"));
+				bed.setCompanyEmployeeId(rs.getString("emp_int_id"));
 				bed.setDob(rs.getDate("dob"));
 				bed.setEmailId(rs.getString("login_id"));
 				bed.setSalutation(rs.getString("salutation"));
