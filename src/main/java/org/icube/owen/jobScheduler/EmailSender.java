@@ -186,9 +186,8 @@ public class EmailSender {
 	}
 
 	/**
-	 * Sends the email for new password
-	 * @param lastName 
-	 * @param firstName 
+	 * @param firstName
+	 * @param lastName
 	 * @param address - email id of the employee
 	 * @param newPassword - the new generated password
 	 * @throws AddressException - if email id is not valid
@@ -221,6 +220,40 @@ public class EmailSender {
 	}
 
 	/**
+	 * @param firstName
+	 * @param lastName
+	 * @param address - email id of the employee
+	 * @param newPassword - the new generated password
+	 * @throws AddressException - if email id is not valid
+	 * @throws MessagingException - if unable to send email
+	 */
+	public void sendChangedPasswordEmail(String firstName, String lastName, List<String> address, String newPassword) throws AddressException,
+			MessagingException {
+		String host = "smtp.zoho.com";
+		String username = "support@owenanalytics.com";
+		String password = "Abcd@654321";
+		String from = "support@owenanalytics.com";
+		Properties props = new Properties();
+		props.put("mail.debug", "true");
+		props.put("mail.smtp.ssl.enable", "true");
+		props.put("mail.smtp.auth", "true");
+		props.put("mail.smtp.host", host);
+		props.put("mail.smtp.port", 465);
+		Session session = Session.getInstance(props);
+		MimeMessage msg = new MimeMessage(session);
+		msg.setFrom(new InternetAddress(from));
+		msg.addRecipients(Message.RecipientType.TO, getEmailsArray(address));
+		msg.setSubject("Password Changed Successfully");
+		msg.setContent(getPasswordChangeEmailText(address.get(0).toString(), firstName, lastName, newPassword).toString(), "text/html");
+		try {
+			Transport.send(msg, username, password);
+		} catch (MessagingException e) {
+			org.apache.log4j.Logger.getLogger(EmailSender.class).error("Error in sending Email", e);
+			dch.releaseRcon();
+		}
+	}
+
+	/**
 	 * Builds the email content for the forgot password
 	 * @param newPassword - new random password
 	 * @param newPassword2 
@@ -234,7 +267,8 @@ public class EmailSender {
 		org.apache.log4j.Logger.getLogger(EmailSender.class).debug("Reading from the path : " + rScriptPath);
 		try (BufferedReader in = new BufferedReader(new FileReader(rScriptPath + "\\\\ForgotPassword.html"))) {
 			String str;
-			org.apache.log4j.Logger.getLogger(EmailSender.class).debug("Reading the html file from the path : " + rScriptPath + "\\\\ForgotPassword.html");
+			org.apache.log4j.Logger.getLogger(EmailSender.class).debug(
+					"Reading the html file from the path : " + rScriptPath + "\\\\ForgotPassword.html");
 			while ((str = in.readLine()) != null) {
 				if (str.contains("<P style=\"MARGIN-BOTTOM: 1em;\"><B>Password: </B>password</P>")) {
 					sb.append("<P style=\"MARGIN-BOTTOM: 1em;\"><B>Password: </B> " + newPassword + "</P>");
@@ -243,17 +277,46 @@ public class EmailSender {
 				else if (str.contains("Use this temporary password to sign into your account.")) {
 					sb.append("<P style=\"MARGIN-BOTTOM: 14px; MIN-HEIGHT: 20px\">Hi <B style=\"color:#388E3C;\"> " + firstName + " " + lastName
 							+ "</B>,<br>Use this temporary password to sign into your account.</P>");
-				} 
-				
-				else if (str.contains("<DIV>You are receiving this email because email@address.com is registered with OWEN</DIV>")){
-					sb.append("<DIV>You are receiving this email because " + username + " is registered with OWEN</DIV>");
 				}
-				else {
+
+				else if (str.contains("<DIV>You are receiving this email because email@address.com is registered with OWEN</DIV>")) {
+					sb.append("<DIV>You are receiving this email because " + username + " is registered with OWEN</DIV>");
+				} else {
 					sb.append(str);
 				}
 			}
 		} catch (IOException e) {
 			org.apache.log4j.Logger.getLogger(EmailSender.class).error("Error in building Email for new password", e);
+		}
+		return sb;
+	}
+
+	private StringBuilder getPasswordChangeEmailText(String username, String firstName, String lastName, String newPassword) {
+		StringBuilder sb = new StringBuilder();
+		String rScriptPath = UtilHelper.getConfigProperty("r_script_path");
+		org.apache.log4j.Logger.getLogger(EmailSender.class).debug("Reading from the path : " + rScriptPath);
+		try (BufferedReader in = new BufferedReader(new FileReader(rScriptPath + "\\\\ChangedPassword.html"))) {
+			String str;
+			org.apache.log4j.Logger.getLogger(EmailSender.class).debug(
+					"Reading the html file from the path : " + rScriptPath + "\\\\ForgotPassword.html");
+			while ((str = in.readLine()) != null) {
+				if (str.contains("<P style=\"MARGIN-BOTTOM: 1em;\"><B>Password: </B>password</P>")) {
+					sb.append("<P style=\"MARGIN-BOTTOM: 1em;\"><B>Password: </B> " + newPassword + "</P>");
+				}
+
+				else if (str.contains("Use this password to sign into your account.")) {
+					sb.append("<P style=\"MARGIN-BOTTOM: 14px; MIN-HEIGHT: 20px\">Hi <B style=\"color:#388E3C;\"> " + firstName + " " + lastName
+							+ "</B>,<br>Use this password to sign into your account.</P>");
+				}
+
+				else if (str.contains("<DIV>You are receiving this email because email@address.com is registered with OWEN</DIV>")) {
+					sb.append("<DIV>You are receiving this email because " + username + " is registered with OWEN</DIV>");
+				} else {
+					sb.append(str);
+				}
+			}
+		} catch (IOException e) {
+			org.apache.log4j.Logger.getLogger(EmailSender.class).error("Error in building Email for changed password", e);
 		}
 		return sb;
 	}
