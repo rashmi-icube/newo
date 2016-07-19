@@ -10,7 +10,7 @@ public class Metrics extends TheBorg {
 	private String name;
 	private String category;
 	private int score;
-	private double average;
+	private int average;
 	private boolean primary;
 	private Date dateOfCalculation;
 	private String direction; // can have values Positive/Negative/Neutral depending upon change from previous value
@@ -47,11 +47,11 @@ public class Metrics extends TheBorg {
 		this.score = score;
 	}
 
-	public double getAverage() {
+	public int getAverage() {
 		return average;
 	}
 
-	public void setAverage(double average) {
+	public void setAverage(int average) {
 		this.average = average;
 	}
 
