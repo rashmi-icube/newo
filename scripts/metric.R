@@ -420,6 +420,25 @@ SmartListResponse=function(CompanyId,emp_id,rel_id){
   # sql DB connection
   mydb = dbConnect(MySQL(), user=comp_sql_user_id, password=comp_sql_password, dbname=comp_sql_dbname, host=comp_sql_server, port=mysqlport)
   
+  if(CompanyConfig$smart_list[1]=="all_employee"){
+    query="select employee.emp_id,employee.first_name from employee join login_table on employee.emp_id=login_table.emp_id where login_table.status='active';"
+    
+    res <- dbSendQuery(mydb,query)
+    
+    all_active_employee<- fetch(res,-1)  
+    all_active_employee=all_active_employee[order(all_active_employee$first_name),]
+    
+    all_active_employee$Rank=1:nrow(all_active_employee)
+    op=all_active_employee[,c("emp_id","Rank")]
+    op$emp_id=as.integer(op$emp_id)
+    op$Rank=as.integer(op$Rank)
+    dbDisconnect(mydb)
+    return(op)
+    
+  }
+  
+  
+  
   query=paste("select rel_name from relationship_master where rel_id=",rel_id,";",sep="")
   
   res <- dbSendQuery(mydb,query)
@@ -462,10 +481,6 @@ SmartListResponse=function(CompanyId,emp_id,rel_id){
     }else{
       SeconFirstConndConn=data.frame(emp_id=as.integer(),weight=as.double(),Rank=as.integer())
     }
-    
-    
-    
-    #FirstConn$Rank=rank(-FirstConn$weight,ties.method = "random")
     
     querynode = paste("match (a:Employee {emp_id:",emp_id,"})-[r:",relname,"]->(b:Employee)-[:",relname,"]->(c:Employee) 
                       return b.emp_id,c.emp_id,r.weight"
@@ -1033,7 +1048,8 @@ calculate_edge=function(CompanyId){
   
   response=rbind(we_response[,c("emp_id","que_id","response_time","target_emp_id","rel_id","weight")],
                  appreciation_response[,c("emp_id","que_id","response_time","target_emp_id","rel_id","weight")])
-  
+  response=unique(response)
+  response=response[response$weight]
   
   opcal=data.frame(emp_id=as.numeric(),target_emp_id=as.numeric(),
                    rel_id=as.numeric(),weight=as.numeric())
