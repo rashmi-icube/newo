@@ -41,6 +41,7 @@ public class CompanyDAO extends TimerTask {
 				subject = "Scheduler job executed successfully";
 			} else {
 				subject = "Scheduler job failed";
+				jobStatus = true;
 			}
 			es.sendEmail(schedulerJobStatusMap, subject);
 		} catch (MessagingException e) {

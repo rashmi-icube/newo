@@ -321,7 +321,7 @@ public class IndividualDashboardHelper extends TheBorg {
 			while(rs.next()){
 				dch.setCompanyConfigDetails(companyId, dch.companyConfigMap.get(companyId), rs);
 			}
-            */
+			*/
 			CompanyConfig ccObj = dch.companyConfigMap.get(companyId);
 			if (ccObj.getSmartList().equals("all_employee")) {
 				EmployeeList el = new EmployeeList();
@@ -384,7 +384,8 @@ public class IndividualDashboardHelper extends TheBorg {
 		Map<Integer, Integer> metricRelationshipTypeMap = getMetricRelationshipTypeMapping(companyId);
 		try {
 			for (Employee e : appreciationResponseMap.keySet()) {
-				CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call insertAppreciation(?,?,?,?,?)}");
+				CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+						"{call insertAppreciation(?,?,?,?,?)}");
 				cstmt.setInt(1, employeeId);
 				cstmt.setTimestamp(2, Timestamp.from(Instant.now()));
 				cstmt.setInt(3, e.getEmployeeId());
@@ -418,6 +419,7 @@ public class IndividualDashboardHelper extends TheBorg {
 	public boolean changePassword(int companyId, int employeeId, String currentPassword, String newPassword) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
+		String emailId = null;
 		boolean passwordChanged = false;
 		try {
 			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call updateEmployeePassword(?,?,?)}");
@@ -433,10 +435,17 @@ public class IndividualDashboardHelper extends TheBorg {
 				org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Current password is incorrect");
 				throw new Exception("Current password is incorrect");
 			}
+			Statement stmt = dch.companyConnectionMap.get(companyId).getSqlConnection().createStatement();
+			// check if new emails have to be sent for the specific company
+
+			ResultSet res = stmt.executeQuery("select login_id as email_id from login_table where status='active' and emp_id = " + employeeId);
+			res.next();
+			emailId = res.getString("email_id");
 
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while validating password ", e);
 		}
+		sendChangedPasswordMail(dch.companyConnectionMap.get(companyId).getSqlConnection(), emailId, newPassword);
 		return passwordChanged;
 	}
 
@@ -514,6 +523,36 @@ public class IndividualDashboardHelper extends TheBorg {
 							+ " and login_table.status='active'");
 					res.next();
 					es.sendNewPasswordEmail(res.getString("first_name"), res.getString("last_name"), address, newPassword.toString());
+					org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Sent email for new password");
+				} catch (MessagingException | SQLException e) {
+					org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Error in sending email", e);
+				}
+			}
+
+		};
+		new Thread(task, "ServiceThread").start();
+
+	}
+
+	/**
+	 * @param companySqlCon - Company SQL connection
+	 * @param emailId - email id for which the password has been changed
+	 * @param newPassword - the new password
+	 */
+	private void sendChangedPasswordMail(Connection companySqlCon, String emailId, String newPassword) {
+		Runnable task = new Runnable() {
+
+			@Override
+			public void run() {
+				try {
+					EmailSender es = new EmailSender();
+					List<String> address = Arrays.asList(emailId);
+					Statement stm = companySqlCon.createStatement();
+					ResultSet res = stm.executeQuery("select employee.first_name,employee.last_name from employee left join login_table"
+							+ " on login_table.emp_id=employee.emp_id where login_table.login_id= " + '"' + emailId + '"'
+							+ " and login_table.status='active'");
+					res.next();
+					es.sendChangedPasswordEmail(res.getString("first_name"), res.getString("last_name"), address, newPassword.toString());
 					org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Sent email for new password");
 				} catch (MessagingException | SQLException e) {
 					org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Error in sending email", e);
