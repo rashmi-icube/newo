@@ -28,7 +28,6 @@ public class EmailSender {
 	DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 
 	public static final int MAX_EMAILS_TO_BE_SENT = 50;
-	// private String loginUrl = UtilHelper.getConfigProperty("login_page_url");
 	List<String> toAddresses = Arrays.asList("hpatel@i-cube.in", "rashmi@i-cube.in", "ssrivastava@i-cube.in", "adoshi@i-cube.in");
 
 	/**
@@ -298,7 +297,7 @@ public class EmailSender {
 		try (BufferedReader in = new BufferedReader(new FileReader(rScriptPath + "\\\\ChangedPassword.html"))) {
 			String str;
 			org.apache.log4j.Logger.getLogger(EmailSender.class).debug(
-					"Reading the html file from the path : " + rScriptPath + "\\\\ForgotPassword.html");
+					"Reading the html file from the path : " + rScriptPath + "\\\\ChangedPassword.html");
 			while ((str = in.readLine()) != null) {
 				if (str.contains("<P style=\"MARGIN-BOTTOM: 1em;\"><B>Password: </B>password</P>")) {
 					sb.append("<P style=\"MARGIN-BOTTOM: 1em;\"><B>Password: </B> " + newPassword + "</P>");
@@ -320,4 +319,5 @@ public class EmailSender {
 		}
 		return sb;
 	}
+
 }
