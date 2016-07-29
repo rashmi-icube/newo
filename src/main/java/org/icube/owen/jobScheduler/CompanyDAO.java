@@ -16,7 +16,7 @@ import javax.mail.MessagingException;
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.helper.CompanyConfig;
 import org.icube.owen.helper.DatabaseConnectionHelper;
-import org.icube.owen.helper.UtilHelper;
+//import org.icube.owen.helper.UtilHelper;
 import org.icube.owen.slack.SlackIntegration;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.Rserve.RConnection;
@@ -26,7 +26,7 @@ public class CompanyDAO extends TimerTask {
 	private RConnection rCon;
 	private DatabaseConnectionHelper dch;
 	Map<Integer, List<Map<String, String>>> schedulerJobStatusMap = new HashMap<>();
-	private String loginUrl = UtilHelper.getConfigProperty("login_page_url");
+	//private String loginUrl = UtilHelper.getConfigProperty("login_page_url");
 	boolean jobStatus = true;
 
 	@Override
@@ -234,7 +234,7 @@ public class CompanyDAO extends TimerTask {
 
 				if (dch.companyConfigMap.get(companyId).isSendSlack()) {
 					SlackIntegration sl = new SlackIntegration();
-					sl.sendMessage(companyId, "You have new questions to answer. Please login to answer : " + loginUrl + "");
+					sl.sendMessage(companyId, "You have new questions to answer\nPlease login to answer\n<http://engage.owenanalytics.com|engage.owenanalytics.com>");
 					jobStatusMapForSlack.put("NewQuestionJobSlack", "Slack message sent for company");
 				} else {
 					jobStatusMapForSlack.put("NewQuestionJobSlack", "New question slack is disabled for the company");
