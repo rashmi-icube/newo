@@ -18,6 +18,8 @@ import org.icube.owen.helper.DatabaseConnectionHelper;
 import org.icube.owen.helper.UtilHelper;
 import org.icube.owen.metrics.Metrics;
 import org.icube.owen.metrics.MetricsHelper;
+import org.icube.owen.survey.MeResponse;
+import org.icube.owen.survey.Question;
 
 public class ExploreHelper extends TheBorg {
 
@@ -118,7 +120,8 @@ public class ExploreHelper extends TheBorg {
 			dch.getCompanyConnection(companyId);
 			for (Employee e : employeeList) {
 				List<Metrics> metricsList = new ArrayList<>();
-				CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getIndividualMetricValue(?)}");
+				CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection()
+						.prepareCall("{call getIndividualMetricValue(?)}");
 				cstmt.setInt(1, e.getEmployeeId());
 				ResultSet rs = cstmt.executeQuery();
 				MetricsHelper mh = new MetricsHelper();
@@ -164,7 +167,7 @@ public class ExploreHelper extends TheBorg {
 	/**
 	 * Retrieves the Time series map
 	 * @param rs - Resultset
-	 * @return A map of metric ID and list of calculation date and and respective score
+	 * @return A map of metric ID and list of calculation date and respective score
 	 * @throws SQLException - if the time series map is not retrieved
 	 */
 	public Map<Integer, List<Map<Date, Integer>>> getTimeSeriesMap(ResultSet rs) throws SQLException {
@@ -269,7 +272,7 @@ public class ExploreHelper extends TheBorg {
 				while(rs.next()){
 					dch.setCompanyConfigDetails(companyId, dch.companyConfigMap.get(companyId), rs);
 				}*/
-                
+
 				if (dch.companyConfigMap.get(companyId).isDisplayNetworkName()) {
 					n.setFirstName(res.getString("firstName"));
 					n.setLastName(res.getString("lastName"));
@@ -368,7 +371,7 @@ public class ExploreHelper extends TheBorg {
 				while(rs.next()){
 					dch.setCompanyConfigDetails(companyId, dch.companyConfigMap.get(companyId), rs);
 				}*/
-                
+
 				if (dch.companyConfigMap.get(companyId).isDisplayNetworkName()) {
 					n.setFirstName(res.getString("firstName"));
 					n.setLastName(res.getString("lastName"));
@@ -456,4 +459,37 @@ public class ExploreHelper extends TheBorg {
 
 		return relationshipTypeMap;
 	}
+
+	/**
+	 * Returns the list of completed ME questions along with the organization response details
+	 * @param companyId
+	 * @param relationshipTypeId
+	 * @return
+	 */
+	public Map<Integer, Map<Question, MeResponse>> getCompletedMeQuestionList(int companyId, int relationshipTypeId) {
+		Map<Integer, Map<Question, MeResponse>> result = new HashMap<>();
+		// TODO
+		// call sql procedure getCompletedMeQuestionList(relationshipTypeId, date)
+		// O/P : qId, qText, qStartDate, qEndDate, responseRate, stronglyagree, ...
+
+		return result;
+	}
+
+	public Map<Integer, String> getMeQuestionRelationshipTypeMap(int companyId) {
+		// TODO
+		Map<Integer, String> relationshipTypeMap = new HashMap<>();
+
+		// call getRelationshipTypeMap(companyId) + add 0 for other type
+		return relationshipTypeMap;
+	}
+
+	public Map<Integer, Map<Question, MeResponse>> getMeResponseDetailsForTeam(int companyId, int questionId, List<Filter> filterList) {
+		// TODO
+		Map<Integer, Map<Question, MeResponse>> result = new HashMap<>();
+
+		// call getMeResponseDetailsForTeam(qId, funcId, posId, zoneId)
+
+		return result;
+	}
+
 }
