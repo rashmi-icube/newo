@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
@@ -509,32 +510,26 @@ public class ExploreHelper extends TheBorg {
 	 * @return relationshipTypeMap
 	 */
 	public Map<Integer, String> getMeQuestionRelationshipTypeMap(int companyId) {
-		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		Map<Integer, String> relationshipTypeMap = new HashMap<>();
-		try {
-			dch.getCompanyConnection(companyId);
-			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getRelationTypeList()}");
-			ResultSet rs = cstmt.executeQuery();
-			while (rs.next()) {
-				relationshipTypeMap.put(rs.getInt("rel_id"), rs.getString("rel_name"));
-			}
-		} catch (SQLException e) {
-			org.apache.log4j.Logger.getLogger(ExploreHelper.class).error("Error while retrieving relationship type map", e);
-		}
+		Map<Integer, String> relationshipTypeMap = getRelationshipTypeMap(companyId);
 		relationshipTypeMap.put(0, "others");
-		return relationshipTypeMap;
+		TreeMap<Integer, String> reversedRelationshipTypeMap = new TreeMap<>();
+		for (int i : relationshipTypeMap.keySet()) {
+			reversedRelationshipTypeMap.put(i, relationshipTypeMap.get(i));
+		}
+		return reversedRelationshipTypeMap.descendingMap();
 	}
 
 	/**
-	 * Returns 
-	 * @param companyId
-	 * @param questionId
-	 * @param filterList
-	 * @return
+	 * Returns the Me Response details for teams
+	 * @param companyId - company ID
+	 * @param questionId - question ID for which the responses are required
+	 * @param filterList - list of Filter objects
+	 * @return map of question ID and map of team name and Me Response object
 	 */
 	public Map<Integer, Map<String, MeResponse>> getMeResponseDetailsForTeam(int companyId, int questionId, Map<String, List<Filter>> teamListMap) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Map<Integer, Map<String, MeResponse>> result = new HashMap<>();
+		Map<String, MeResponse> meResponseMap = new HashMap<>();
 		for (String teamName : teamListMap.keySet()) {
 			Map<String, Object> parsedFilterMap = new HashMap<>();
 			List<Filter> filterList = teamListMap.get(teamName);
@@ -551,7 +546,6 @@ public class ExploreHelper extends TheBorg {
 				ResultSet rs = cstmt.executeQuery();
 				while (rs.next()) {
 					MeResponse meResponse = new MeResponse();
-					Map<String, MeResponse> meResponseMap = new HashMap<>();
 					meResponse.setAgree(rs.getInt("agree"));
 					meResponse.setDisagree(rs.getInt("disagree"));
 					meResponse.setNeutral(rs.getInt("neutral"));
