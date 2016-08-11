@@ -14,11 +14,13 @@ import org.icube.owen.ObjectFactory;
 import org.icube.owen.employee.Employee;
 import org.icube.owen.explore.Edge;
 import org.icube.owen.explore.ExploreHelper;
+import org.icube.owen.explore.MeResponse;
+import org.icube.owen.explore.MeResponseAnalysis;
 import org.icube.owen.explore.Node;
 import org.icube.owen.filter.Filter;
 import org.icube.owen.filter.FilterList;
 import org.icube.owen.metrics.Metrics;
-import org.icube.owen.survey.MeResponse;
+import org.icube.owen.survey.Question;
 import org.icube.owen.test.TestHelper;
 import org.junit.Test;
 
@@ -26,8 +28,15 @@ public class ExploreHelperTest {
 
 	ExploreHelper eh = (ExploreHelper) ObjectFactory.getInstance("org.icube.owen.explore.ExploreHelper");
 	int companyId = 2;
+	
+	@Test
+	public void testGetMeResponseAnalysisForOrg(){
+		List<MeResponseAnalysis> mer = eh.getMeResponseAnalysisForOrg(companyId, 1);
+		assertNotNull(mer);
+		
+	}
 
-	/*@Test
+	@Test
 	public void testGetCompletedMeQuestionList() {
 		Map<Integer, Map<Question, MeResponse>> result = new HashMap<>();
 		result = eh.getCompletedMeQuestionList(companyId, 2);
@@ -39,7 +48,7 @@ public class ExploreHelperTest {
 		}
 
 	}
-	*/
+	
 	@Test
 	public void testGetMeQuestionRelationshipTypeMap() {
 		Map<Integer, String> relationshipTypeMap = eh.getMeQuestionRelationshipTypeMap(companyId);
@@ -66,7 +75,7 @@ public class ExploreHelperTest {
 			filterList2.add(filter);
 		}
 		teamListMap.put("team2", filterList2);
-		List<Filter> filterList3 = TestHelper.getOneForEachFilter(companyId);
+		List<Filter> filterList3 = TestHelper.getAllForTwoFilters(companyId);
 		Filter filter1 = filterList3.get(0);
 		if (filter1.getFilterName().equalsIgnoreCase("Position")) {
 			filter1.getFilterValues().clear();
@@ -87,6 +96,47 @@ public class ExploreHelperTest {
 
 		}
 
+	}
+	
+	@Test
+	public void testGetCompletedMeQuestionListForTeam(){
+		Map<String, List<Filter>> teamListMap = new HashMap<>();
+
+		List<Filter> filterList = TestHelper.getOneForEachFilter(companyId);
+
+		teamListMap.put("team1", filterList);
+
+		List<Filter> filterList2 = TestHelper.getOneForEachFilter(companyId);
+
+		Filter filter = filterList2.get(0);
+		if (filter.getFilterName().equalsIgnoreCase("Function")) {
+			filter.getFilterValues().clear();
+			filter.getFilterValues().put(1, "HR");
+			filterList2.add(filter);
+		}
+		teamListMap.put("team2", filterList2);
+		//List<Filter> filterList3 = TestHelper.getAllForTwoFilters(companyId);
+		List<Filter> filterList3 = TestHelper.getOneForEachFilter(companyId);
+		Filter filter1 = filterList3.get(1);
+		if (filter1.getFilterName().equalsIgnoreCase("Position")) {
+			filter1.getFilterValues().clear();
+			filter1.getFilterValues().put(5, "State");
+			filterList3.add(filter1);
+		}
+		teamListMap.put("team3", filterList3);
+		Map<Integer, Map<Question, MeResponse>> result = eh.getCompletedMeQuestionListForTeam(companyId, 1, teamListMap);
+		for (Map<Question, MeResponse> meResMap : result.values()) {
+			for (Question q : meResMap.keySet()) {
+				System.out.println("question----" + q.getQuestionId());
+				System.out.println("strongly disagree---" + meResMap.get(q).getStronglyDisagree());
+				System.out.println("disagree----" + meResMap.get(q).getDisagree());
+				System.out.println("neutral----" + meResMap.get(q).getNeutral());
+				System.out.println("agree----" + meResMap.get(q).getAgree());
+				System.out.println("strongly agree---" + meResMap.get(q).getStronglyAgree());
+			}
+
+		}
+		
 	}
 
 	@Test

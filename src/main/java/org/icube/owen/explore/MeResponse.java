@@ -1,4 +1,4 @@
-package org.icube.owen.survey;
+package org.icube.owen.explore;
 
 public class MeResponse {
 
@@ -7,6 +7,7 @@ public class MeResponse {
 	private int neutral;
 	private int disagree;
 	private int stronglyDisagree;
+	private double average;
 
 	public int getStronglyAgree() {
 		return stronglyAgree;
@@ -46,6 +47,14 @@ public class MeResponse {
 
 	public void setStronglyDisagree(int stronglyDisagree) {
 		this.stronglyDisagree = stronglyDisagree;
+	}
+
+	public double getAverage() {
+		return average;
+	}
+
+	public void setAverage(double average) {
+		this.average = average;
 	}
 
 }
