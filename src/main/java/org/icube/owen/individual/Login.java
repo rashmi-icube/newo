@@ -47,8 +47,8 @@ public class Login extends TheBorg {
 				companyName = rs.getString("comp_name");
 				org.apache.log4j.Logger.getLogger(Login.class).debug("Company Name : " + companyName);
 			}
-			//refresh the company config details when the user logs in
-			
+			// refresh the company config details when the user logs in
+
 			/*CallableStatement cstmt2 = dch.masterCon.prepareCall("{call getCompanyConfig(?)}");
 			cstmt2.setInt(1, companyId);
 			ResultSet rs1 = cstmt2.executeQuery();
@@ -74,7 +74,7 @@ public class Login extends TheBorg {
 					e.setFirstTimeLogin(res.getBoolean("first_time_login"));
 					e.setCompanyName(companyName);
 					org.apache.log4j.Logger.getLogger(Login.class).debug("Successfully validated user with userID : " + emailId);
-	                
+
 				}
 			}
 
@@ -103,6 +103,31 @@ public class Login extends TheBorg {
 			org.apache.log4j.Logger.getLogger(Login.class).error("Exception while retrieving the user role map", e);
 		}
 		return userRoleMap;
+	}
+
+	/**
+	 * Validates the employee ID for login page
+	 * @param companyId - Company ID
+	 * @param employeeId - Employee ID to be validated
+	 * @return true if employee is validated and false if employee is not validated
+	 */
+	public boolean loginIhcl(int companyId, int employeeId) {
+		boolean status = false;
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.getCompanyConnection(companyId);
+		try {
+			CallableStatement cstmt2 = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call verifyLoginForIhcl(?)}");
+			cstmt2.setInt("emp_id", employeeId);
+			ResultSet res1 = cstmt2.executeQuery();
+			res1.next();
+			if (res1.getBoolean("status")) {
+				status = true;
+			}
+
+		} catch (Exception e) {
+			org.apache.log4j.Logger.getLogger(Login.class).error("Exception while retrieving the company database", e);
+		}
+		return status;
 	}
 
 }
