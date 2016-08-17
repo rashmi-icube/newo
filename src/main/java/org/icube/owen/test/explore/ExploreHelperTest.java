@@ -14,13 +14,11 @@ import org.icube.owen.ObjectFactory;
 import org.icube.owen.employee.Employee;
 import org.icube.owen.explore.Edge;
 import org.icube.owen.explore.ExploreHelper;
-import org.icube.owen.explore.MeResponse;
 import org.icube.owen.explore.MeResponseAnalysis;
 import org.icube.owen.explore.Node;
 import org.icube.owen.filter.Filter;
 import org.icube.owen.filter.FilterList;
 import org.icube.owen.metrics.Metrics;
-import org.icube.owen.survey.Question;
 import org.icube.owen.test.TestHelper;
 import org.junit.Test;
 
@@ -28,27 +26,100 @@ public class ExploreHelperTest {
 
 	ExploreHelper eh = (ExploreHelper) ObjectFactory.getInstance("org.icube.owen.explore.ExploreHelper");
 	int companyId = 2;
-	
+
 	@Test
-	public void testGetMeResponseAnalysisForOrg(){
+	public void testGetMeResponseAnalysisForOrg() {
 		List<MeResponseAnalysis> mer = eh.getMeResponseAnalysisForOrg(companyId, 1);
 		assertNotNull(mer);
-		
+
 	}
 
 	@Test
-	public void testGetCompletedMeQuestionList() {
-		Map<Integer, Map<Question, MeResponse>> result = new HashMap<>();
-		result = eh.getCompletedMeQuestionList(companyId, 2);
-		for (int i : result.keySet()) {
-			for (Question q : result.get(i).keySet()) {
-				System.out.println(q.getQuestionId());
-				System.out.println(q.getQuestionText());
-			}
-		}
+	public void testGetMeResponseAnalysisForTeam() {
+		Map<String, List<Filter>> teamListMap = new HashMap<>();
 
+		// 1st team
+
+		List<Filter> filterList1 = new ArrayList<>();
+		Filter filter1 = new Filter();
+		filter1.setFilterId(1);
+		filter1.setFilterName("Function");
+		Map<Integer, String> filterValuesMap1 = new HashMap<>();
+		filterValuesMap1.put(2, "HR");
+		filter1.setFilterValues(filterValuesMap1);
+		filterList1.add(filter1);
+		Filter filter2 = new Filter();
+		Map<Integer, String> filterValuesMap2 = new HashMap<>();
+		filter2.setFilterId(2);
+		filter2.setFilterName("Position");
+		filterValuesMap2.put(6, "Zone");
+		filter2.setFilterValues(filterValuesMap2);
+		filterList1.add(filter2);
+		Filter filter3 = new Filter();
+		Map<Integer, String> filterValuesMap3 = new HashMap<>();
+		filter3.setFilterId(3);
+		filter3.setFilterName("Zone");
+		filterValuesMap3.put(12, "INTG5");
+		filter3.setFilterValues(filterValuesMap3);
+		filterList1.add(filter3);
+		teamListMap.put("team1", filterList1);
+
+		// 2nd team
+
+		List<Filter> filterList2 = new ArrayList<>();
+		Filter filter4 = new Filter();
+		filter4.setFilterId(1);
+		filter4.setFilterName("Function");
+		Map<Integer, String> filterValuesMap4 = new HashMap<>();
+		filterValuesMap4.put(2, "HR");
+		filter4.setFilterValues(filterValuesMap4);
+		filterList2.add(filter4);
+		Filter filter5 = new Filter();
+		Map<Integer, String> filterValuesMap5 = new HashMap<>();
+		filter5.setFilterId(2);
+		filter5.setFilterName("Position");
+		filterValuesMap5.put(5, "State");
+		filter5.setFilterValues(filterValuesMap5);
+		filterList2.add(filter5);
+		Filter filter6 = new Filter();
+		Map<Integer, String> filterValuesMap6 = new HashMap<>();
+		filter6.setFilterId(3);
+		filter6.setFilterName("Zone");
+		filterValuesMap6.put(12, "INTG5");
+		filter6.setFilterValues(filterValuesMap6);
+		filterList2.add(filter6);
+		teamListMap.put("team2", filterList2);
+
+		// 3rd team
+
+		List<Filter> filterList3 = new ArrayList<>();
+		Filter filter7 = new Filter();
+		filter7.setFilterId(1);
+		filter7.setFilterName("Function");
+		Map<Integer, String> filterValuesMap7 = new HashMap<>();
+		filterValuesMap7.put(2, "HR");
+		filter7.setFilterValues(filterValuesMap1);
+		filterList3.add(filter7);
+		Filter filter8 = new Filter();
+		Map<Integer, String> filterValuesMap8 = new HashMap<>();
+		filter8.setFilterId(2);
+		filter8.setFilterName("Position");
+		filterValuesMap8.put(4, "Region");
+		filter8.setFilterValues(filterValuesMap8);
+		filterList3.add(filter8);
+		Filter filter9 = new Filter();
+		Map<Integer, String> filterValuesMap9 = new HashMap<>();
+		filter9.setFilterId(3);
+		filter9.setFilterName("Zone");
+		filterValuesMap9.put(12, "INTG5");
+		filter9.setFilterValues(filterValuesMap9);
+		filterList3.add(filter9);
+		teamListMap.put("team3", filterList3);
+
+		List<MeResponseAnalysis> mer = eh.getMeResponseAnalysisForTeam(companyId, 1, teamListMap);
+		assertNotNull(mer);
 	}
-	
+
 	@Test
 	public void testGetMeQuestionRelationshipTypeMap() {
 		Map<Integer, String> relationshipTypeMap = eh.getMeQuestionRelationshipTypeMap(companyId);
@@ -56,87 +127,6 @@ public class ExploreHelperTest {
 			assertNotNull(relationshipTypeMap.get(i));
 			System.out.println(relationshipTypeMap.get(i));
 		}
-	}
-
-	@Test
-	public void testGetMeResponseDetailsForTeam() {
-		Map<String, List<Filter>> teamListMap = new HashMap<>();
-
-		List<Filter> filterList = TestHelper.getOneForEachFilter(companyId);
-
-		teamListMap.put("team1", filterList);
-
-		List<Filter> filterList2 = TestHelper.getOneForEachFilter(companyId);
-
-		Filter filter = filterList2.get(0);
-		if (filter.getFilterName().equalsIgnoreCase("Function")) {
-			filter.getFilterValues().clear();
-			filter.getFilterValues().put(1, "HR");
-			filterList2.add(filter);
-		}
-		teamListMap.put("team2", filterList2);
-		List<Filter> filterList3 = TestHelper.getAllForTwoFilters(companyId);
-		Filter filter1 = filterList3.get(0);
-		if (filter1.getFilterName().equalsIgnoreCase("Position")) {
-			filter1.getFilterValues().clear();
-			filter1.getFilterValues().put(5, "State");
-			filterList3.add(filter);
-		}
-		teamListMap.put("team3", filterList3);
-		Map<Integer, Map<String, MeResponse>> result = eh.getMeResponseDetailsForTeam(companyId, 6, teamListMap);
-		for (Map<String, MeResponse> meResMap : result.values()) {
-			for (String team : meResMap.keySet()) {
-				System.out.println("Team----" + team);
-				System.out.println("strongly disagree---" + meResMap.get(team).getStronglyDisagree());
-				System.out.println("disagree----" + meResMap.get(team).getDisagree());
-				System.out.println("neutral----" + meResMap.get(team).getNeutral());
-				System.out.println("agree----" + meResMap.get(team).getAgree());
-				System.out.println("strongly agree---" + meResMap.get(team).getStronglyAgree());
-			}
-
-		}
-
-	}
-	
-	@Test
-	public void testGetCompletedMeQuestionListForTeam(){
-		Map<String, List<Filter>> teamListMap = new HashMap<>();
-
-		List<Filter> filterList = TestHelper.getOneForEachFilter(companyId);
-
-		teamListMap.put("team1", filterList);
-
-		List<Filter> filterList2 = TestHelper.getOneForEachFilter(companyId);
-
-		Filter filter = filterList2.get(0);
-		if (filter.getFilterName().equalsIgnoreCase("Function")) {
-			filter.getFilterValues().clear();
-			filter.getFilterValues().put(1, "HR");
-			filterList2.add(filter);
-		}
-		teamListMap.put("team2", filterList2);
-		//List<Filter> filterList3 = TestHelper.getAllForTwoFilters(companyId);
-		List<Filter> filterList3 = TestHelper.getOneForEachFilter(companyId);
-		Filter filter1 = filterList3.get(1);
-		if (filter1.getFilterName().equalsIgnoreCase("Position")) {
-			filter1.getFilterValues().clear();
-			filter1.getFilterValues().put(5, "State");
-			filterList3.add(filter1);
-		}
-		teamListMap.put("team3", filterList3);
-		Map<Integer, Map<Question, MeResponse>> result = eh.getCompletedMeQuestionListForTeam(companyId, 1, teamListMap);
-		for (Map<Question, MeResponse> meResMap : result.values()) {
-			for (Question q : meResMap.keySet()) {
-				System.out.println("question----" + q.getQuestionId());
-				System.out.println("strongly disagree---" + meResMap.get(q).getStronglyDisagree());
-				System.out.println("disagree----" + meResMap.get(q).getDisagree());
-				System.out.println("neutral----" + meResMap.get(q).getNeutral());
-				System.out.println("agree----" + meResMap.get(q).getAgree());
-				System.out.println("strongly agree---" + meResMap.get(q).getStronglyAgree());
-			}
-
-		}
-		
 	}
 
 	@Test

@@ -477,147 +477,6 @@ public class ExploreHelper extends TheBorg {
 	}
 
 	/**
-	 * Returns the list of completed ME questions along with the organization response details
-	 * @param companyId - Company ID
-	 * @param relationshipTypeId - Relationship type ID
-	 * @return Map of question ID and map of Question object and MeResponse object
-	 */
-	public Map<Integer, Map<Question, MeResponse>> getCompletedMeQuestionList(int companyId, int relationshipTypeId) {
-		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		Map<Integer, Map<Question, MeResponse>> result = new HashMap<>();
-		try {
-			dch.getCompanyConnection(companyId);
-			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection()
-					.prepareCall("{call getCompletedMeQuestionList(?,?)}");
-			cstmt.setTimestamp(1, UtilHelper.convertJavaDateToSqlTimestamp(Date.from(Instant.now())));
-			cstmt.setInt(2, relationshipTypeId);
-			ResultSet rs = cstmt.executeQuery();
-			while (rs.next()) {
-				Question q = new Question();
-				MeResponse meResponse = new MeResponse();
-				Map<Question, MeResponse> quesMeResponseMap = new HashMap<>();
-				q.setQuestionId(rs.getInt("que_id"));
-				q.setQuestionText(rs.getString("question"));
-				q.setStartDate(rs.getDate("start_date"));
-				q.setEndDate(rs.getDate("end_date"));
-				q.setResponsePercentage(rs.getDouble("response_rate"));
-				q.setRelationshipTypeId(rs.getInt("rel_id"));
-				meResponse.setAgree(rs.getInt("agree"));
-				meResponse.setDisagree(rs.getInt("disagree"));
-				meResponse.setNeutral(rs.getInt("neutral"));
-				meResponse.setStronglyAgree(rs.getInt("strongly_agree"));
-				meResponse.setStronglyDisagree(rs.getInt("strongly_disagree"));
-				quesMeResponseMap.put(q, meResponse);
-				result.put(q.getQuestionId(), quesMeResponseMap);
-			}
-
-		} catch (SQLException e) {
-			org.apache.log4j.Logger.getLogger(ExploreHelper.class).error("Exception while retrieving the Me response details", e);
-		}
-
-		return result;
-	}
-
-	/**
-	 * Returns the Me Response details for teams
-	 * @param companyId - company ID
-	 * @param questionId - question ID for which the responses are required
-	 * @param filterList - list of Filter objects
-	 * @return map of question ID and map of team name and Me Response object
-	 */
-	public Map<Integer, Map<String, MeResponse>> getMeResponseDetailsForTeam(int companyId, int questionId, Map<String, List<Filter>> teamListMap) {
-		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		Map<Integer, Map<String, MeResponse>> result = new HashMap<>();
-		Map<String, MeResponse> meResponseMap = new HashMap<>();
-		for (String teamName : teamListMap.keySet()) {
-			Map<String, Object> parsedFilterMap = new HashMap<>();
-			List<Filter> filterList = teamListMap.get(teamName);
-			parsedFilterMap = UtilHelper.parseFilterList(filterList);
-			try {
-				dch.getCompanyConnection(companyId);
-				CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
-						"{call getMeResponseDetailsForTeam(?,?,?,?)}");
-				cstmt.setInt("queid", questionId);
-				cstmt.setInt("fun", (int) parsedFilterMap.get("funcId"));
-				cstmt.setInt("pos", (int) parsedFilterMap.get("posId"));
-				cstmt.setInt("zon", (int) parsedFilterMap.get("zoneId"));
-				ResultSet rs = cstmt.executeQuery();
-				while (rs.next()) {
-					MeResponse meResponse = new MeResponse();
-					meResponse.setAgree(rs.getInt("agree"));
-					meResponse.setDisagree(rs.getInt("disagree"));
-					meResponse.setNeutral(rs.getInt("neutral"));
-					meResponse.setStronglyAgree(rs.getInt("strongly_agree"));
-					meResponse.setStronglyDisagree(rs.getInt("strongly_disagree"));
-					meResponseMap.put(teamName, meResponse);
-					result.put(questionId, meResponseMap);
-				}
-
-			} catch (SQLException e) {
-				org.apache.log4j.Logger.getLogger(ExploreHelper.class).error("Exception while retrieving the Me response details", e);
-			}
-		}
-
-		return result;
-	}
-
-	public Map<Integer, Map<Question, MeResponse>> getCompletedMeQuestionListForTeam(int companyId, int relationshipTypeId,
-			Map<String, List<Filter>> teamListMap) {
-		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		Map<Integer, Map<Question, MeResponse>> result = new HashMap<>();
-		try {
-			dch.getCompanyConnection(companyId);
-			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection()
-					.prepareCall("{call getCompletedMeQuestionList(?,?)}");
-			cstmt.setTimestamp(1, UtilHelper.convertJavaDateToSqlTimestamp(Date.from(Instant.now())));
-			cstmt.setInt(2, relationshipTypeId);
-			ResultSet rs = cstmt.executeQuery();
-			while (rs.next()) {
-				Question q = new Question();
-				MeResponse meResponse = new MeResponse();
-				Map<Question, MeResponse> quesMeResponseMap = new HashMap<>();
-				q.setQuestionId(rs.getInt("que_id"));
-				q.setQuestionText(rs.getString("question"));
-				q.setStartDate(rs.getDate("start_date"));
-				q.setEndDate(rs.getDate("end_date"));
-				q.setResponsePercentage(rs.getDouble("response_rate"));
-				q.setRelationshipTypeId(rs.getInt("rel_id"));
-				Map<Question, MeResponse> meResponseMap = new HashMap<>();
-				for (String teamName : teamListMap.keySet()) {
-					Map<String, Object> parsedFilterMap = new HashMap<>();
-					List<Filter> filterList = teamListMap.get(teamName);
-					parsedFilterMap = UtilHelper.parseFilterList(filterList);
-
-					dch.getCompanyConnection(companyId);
-					CallableStatement cstmt1 = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
-							"{call getMeResponseDetailsForTeam(?,?,?,?)}");
-					cstmt1.setInt("queid", rs.getInt("que_id"));
-					cstmt1.setInt("fun", (int) parsedFilterMap.get("funcId"));
-					cstmt1.setInt("pos", (int) parsedFilterMap.get("posId"));
-					cstmt1.setInt("zon", (int) parsedFilterMap.get("zoneId"));
-					ResultSet rs1 = cstmt1.executeQuery();
-					while (rs1.next()) {
-						meResponse.setAgree(meResponse.getAgree() + rs1.getInt("agree"));
-						meResponse.setDisagree(meResponse.getDisagree() + rs1.getInt("disagree"));
-						meResponse.setNeutral(meResponse.getNeutral() + rs1.getInt("neutral"));
-						meResponse.setStronglyAgree(meResponse.getStronglyAgree() + rs1.getInt("strongly_agree"));
-						meResponse.setStronglyDisagree(meResponse.getStronglyDisagree() + rs1.getInt("strongly_disagree"));
-						meResponseMap.put(q, meResponse);
-
-					}
-				}
-				result.put(q.getQuestionId(), meResponseMap);
-			}
-
-		} catch (SQLException e) {
-			org.apache.log4j.Logger.getLogger(ExploreHelper.class).error("Exception while retrieving the Me response details", e);
-		}
-
-		return result;
-
-	}
-
-	/**
 	 * Returns a list of MeResponseAnalysis objects
 	 * @param companyId - company ID
 	 * @param relationshipTypeId - relationship type ID
@@ -633,6 +492,8 @@ public class ExploreHelper extends TheBorg {
 			cstmt.setTimestamp(1, UtilHelper.convertJavaDateToSqlTimestamp(Date.from(Instant.now())));
 			cstmt.setInt(2, relationshipTypeId);
 			ResultSet rs = cstmt.executeQuery();
+
+			// fill the question object and the MeResponse object
 			while (rs.next()) {
 				Question q = new Question();
 				MeResponse meResponse = new MeResponse();
@@ -677,8 +538,144 @@ public class ExploreHelper extends TheBorg {
 		return result;
 	}
 
-	public List<MeResponseAnalysis> getMeResponseAnalysis(int companyId, int relationshipTypeId, Map<String, List<Filter>> teamListMap) {
+	/**
+	 * Returns a list of MeResponseAnalysis objects
+	 * @param companyId - Company ID
+	 * @param relationshipTypeId - Relationship type ID
+	 * @param teamListMap - List of filters for each team selected
+	 * @return List of MeResponseAnalysis objects which include Question object,MeResponse object and MeResponse object with aggregate
+	 */
+	public List<MeResponseAnalysis> getMeResponseAnalysisForTeam(int companyId, int relationshipTypeId, Map<String, List<Filter>> teamListMap) {
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<MeResponseAnalysis> result = new ArrayList<>();
+		List<Integer> questionIdList = new ArrayList<>();
+		int totalEmployees = 0;
+		try {
+			dch.getCompanyConnection(companyId);
+			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection()
+					.prepareCall("{call getCompletedMeQuestionList(?,?)}");
+			cstmt.setTimestamp(1, UtilHelper.convertJavaDateToSqlTimestamp(Date.from(Instant.now())));
+			cstmt.setInt(2, relationshipTypeId);
+			ResultSet rs = cstmt.executeQuery();
+			Map<Integer, Question> questionMap = new HashMap<>();
+
+			// fill the Question object
+
+			while (rs.next()) {
+				Question q = new Question();
+				q.setQuestionId(rs.getInt("que_id"));
+				q.setQuestionText(rs.getString("question"));
+				q.setStartDate(rs.getDate("start_date"));
+				q.setEndDate(rs.getDate("end_date"));
+				q.setRelationshipTypeId(rs.getInt("rel_id"));
+				questionIdList.add(rs.getInt("que_id"));
+				questionMap.put(rs.getInt("que_id"), q);
+			}
+
+			// fill the MeResponse object for team
+
+			Map<Integer, Map<String, MeResponse>> mer = new HashMap<>();
+			Map<String, MeResponse> teamMeResponseList = new HashMap<>();
+			for (String teamName : teamListMap.keySet()) {
+				List<Filter> filterList = teamListMap.get(teamName);
+				Map<String, Object> parsedFilterMap = UtilHelper.parseFilterList(filterList);
+				System.out.println(parsedFilterMap.get("posId"));
+				CallableStatement cstmt1 = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+						"{call getMeResponseAnalysisForTeam(?,?,?,?)}");
+				cstmt1.setString("que_list", questionIdList.toString().substring(1, questionIdList.toString().length() - 1).replaceAll(" ", ""));
+				cstmt1.setInt("fun", (int) parsedFilterMap.get("funcId"));
+				cstmt1.setInt("pos", (int) parsedFilterMap.get("posId"));
+				cstmt1.setInt("zon", (int) parsedFilterMap.get("zoneId"));
+				ResultSet rs1 = cstmt1.executeQuery();
+				while (rs1.next()) {
+					int questionId = rs1.getInt("que_id");
+					if (mer.containsKey(questionId)) {
+						teamMeResponseList = mer.get(questionId);
+					} else {
+						teamMeResponseList = new HashMap<>();
+					}
+
+					MeResponse meResponse = new MeResponse();
+					meResponse.setAgree(rs1.getInt("agree"));
+					meResponse.setDisagree(rs1.getInt("disagree"));
+					meResponse.setNeutral(rs1.getInt("neutral"));
+					meResponse.setStronglyAgree(rs1.getInt("strongly_agree"));
+					meResponse.setStronglyDisagree(rs1.getInt("strongly_disagree"));
+					int meResponseSum = rs1.getInt("agree") + rs1.getInt("disagree") + rs1.getInt("neutral") + rs1.getInt("strongly_agree")
+							+ rs1.getInt("strongly_disagree");
+					double meResponseAverage = Math.round(((double) ((rs1.getInt("agree") * 4) + (rs1.getInt("disagree") * 2)
+							+ (rs1.getInt("neutral") * 3) + (rs1.getInt("strongly_agree") * 5) + (rs1.getInt("strongly_disagree") * 1)))
+							/ meResponseSum);
+					meResponse.setAverage(meResponseAverage);
+					teamMeResponseList.put(teamName, meResponse);
+					mer.put(questionId, teamMeResponseList);
+
+				}
+
+				// calculate total number of employees as sum of employees in each team which will be used in calculating the response rate for a
+				// question
+
+				rs1.first();
+				totalEmployees = totalEmployees + rs1.getInt("total_employee");
+			}
+
+			// fill the MeResponseAggregate object for team
+
+			Map<Integer, MeResponseAnalysis> meResAnalysis = new HashMap<>();
+			for (Integer qId : questionMap.keySet()) {
+				MeResponseAnalysis meResponseAnalysisWithResponse = new MeResponseAnalysis();
+				MeResponse meResponseAggregate = new MeResponse();
+				Map<String, MeResponse> meResponseList = new HashMap<>();
+
+				// if there is an existing MeResponse object for that question ID fetch that object
+				if (mer.containsKey(qId)) {
+					meResponseList = mer.get(qId);
+					for (MeResponse meRes : meResponseList.values()) {
+						meResponseAggregate.setStronglyDisagree(meResponseAggregate.getStronglyDisagree() + meRes.getStronglyDisagree());
+						meResponseAggregate.setDisagree(meResponseAggregate.getDisagree() + meRes.getDisagree());
+						meResponseAggregate.setNeutral(meResponseAggregate.getNeutral() + meRes.getNeutral());
+						meResponseAggregate.setAgree(meResponseAggregate.getAgree() + meRes.getAgree());
+						meResponseAggregate.setStronglyAgree(meResponseAggregate.getStronglyAgree() + meRes.getStronglyAgree());
+
+					}
+
+				}
+
+				// if there is no existing MeResponse object in case of no responses for a question, send the object with value 0
+				else {
+					meResponseList = new HashMap<>();
+					for (String teamName : teamListMap.keySet()) {
+						meResponseList.put(teamName, meResponseAggregate);
+					}
+				}
+				meResponseAnalysisWithResponse.setTeamResponseMap(meResponseList);
+				meResponseAnalysisWithResponse.setMeResponseAggregate(meResponseAggregate);
+				meResAnalysis.put(qId, meResponseAnalysisWithResponse);
+			}
+
+			// create the final MeResponseAnalysis object for team by mapping the question object created at start of the function
+			MeResponseAnalysis finalMeResponseanalysis = new MeResponseAnalysis();
+			for (int qId : questionMap.keySet()) {
+				finalMeResponseanalysis = meResAnalysis.get(qId);
+				Question q = questionMap.get(qId);
+
+				// calculate the response rate for each question
+				int meResponseSum = finalMeResponseanalysis.getMeResponseAggregate().getAgree()
+						+ finalMeResponseanalysis.getMeResponseAggregate().getDisagree()
+						+ finalMeResponseanalysis.getMeResponseAggregate().getNeutral()
+						+ finalMeResponseanalysis.getMeResponseAggregate().getStronglyAgree()
+						+ finalMeResponseanalysis.getMeResponseAggregate().getStronglyDisagree();
+				double meResponseRate = Math.round((double) meResponseSum / totalEmployees * 100);
+				System.out.println("response rate for question Id" + qId + "is " + meResponseRate);
+				q.setResponsePercentage(meResponseRate);
+				finalMeResponseanalysis.setQuestion(q);
+				result.add(finalMeResponseanalysis);
+
+			}
+
+		} catch (SQLException e) {
+			org.apache.log4j.Logger.getLogger(ExploreHelper.class).error("Exception while retrieving the Me response details for team", e);
+		}
 
 		return result;
 	}
