@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum QuestionType {
-	ME(0), WE(1);
+	ME(0), WE(1), MOOD(2);
 
 	// Reverse-lookup map for getting a question type from an question type ID
 	private static final Map<Integer, QuestionType> lookup = new HashMap<Integer, QuestionType>();

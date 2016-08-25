@@ -1049,7 +1049,7 @@ calculate_edge=function(CompanyId){
   response=rbind(we_response[,c("emp_id","que_id","response_time","target_emp_id","rel_id","weight")],
                  appreciation_response[,c("emp_id","que_id","response_time","target_emp_id","rel_id","weight")])
   response=unique(response)
-  response=response[response$weight]
+  response=response[response$weight>0,]
   
   opcal=data.frame(emp_id=as.numeric(),target_emp_id=as.numeric(),
                    rel_id=as.numeric(),weight=as.numeric())
