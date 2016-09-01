@@ -416,9 +416,41 @@ SmartListResponse=function(CompanyId,emp_id,rel_id){
   comp_sql_server=CompanyConfig$sql_server[1]
   comp_sql_user_id=CompanyConfig$sql_user_id[1]
   comp_sql_password=CompanyConfig$sql_password[1]
-  
+  comp_sql_domain=CompanyConfig$comp_domain[1]
   # sql DB connection
   mydb = dbConnect(MySQL(), user=comp_sql_user_id, password=comp_sql_password, dbname=comp_sql_dbname, host=comp_sql_server, port=mysqlport)
+  
+  # For IHCL
+  if(comp_sql_domain=="tajhotels.com"){
+    query=paste("call getListColleague(",emp_id,");",sep="")
+    
+    res <- dbSendQuery(mydb,query)
+    
+    employeeCube<- fetch(res,-1)
+    
+    employeeCube$Rank=1:nrow(employeeCube)
+    
+    if(nrow(employeeCube)<=5){
+      dbDisconnect(mydb)
+      mydb = dbConnect(MySQL(), user=comp_sql_user_id, password=comp_sql_password, dbname=comp_sql_dbname, host=comp_sql_server, port=mysqlport)
+      
+      query=paste("select emp_id from employee where cube_id in (select cube_id from cube_master where Function=
+(select Function from cube_master where cube_id=(select cube_id from employee where emp_id=",emp_id,")));",sep="")
+      
+      res <- dbSendQuery(mydb,query)
+      
+      op<- fetch(res,-1)
+      op$Rank=1:nrow(op)
+    }else{
+      op=employeeCube
+    }
+    op=employeeCube
+    op$emp_id=as.integer(op$emp_id)
+    op$Rank=as.integer(op$Rank)
+    dbDisconnect(mydb)
+    return(op)
+    
+  }
   
   if(CompanyConfig$smart_list[1]=="all_employee"){
     query="select employee.emp_id,employee.first_name from employee join login_table on employee.emp_id=login_table.emp_id where login_table.status='active';"
@@ -436,8 +468,6 @@ SmartListResponse=function(CompanyId,emp_id,rel_id){
     return(op)
     
   }
-  
-  
   
   query=paste("select rel_name from relationship_master where rel_id=",rel_id,";",sep="")
   
