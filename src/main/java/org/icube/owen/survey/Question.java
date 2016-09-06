@@ -270,19 +270,25 @@ public class Question extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Map<Integer, Employee> employeeRankMap = new HashMap<>();
 		List<Employee> employeeList = new ArrayList<>();
-
+		EmployeeList el = new EmployeeList();
 		try {
-			/*CallableStatement cstmt = dch.masterCon.prepareCall("{call getCompanyConfig(?)}");
-			cstmt.setInt(1, companyId);
-			ResultSet rs = cstmt.executeQuery();
-			while(rs.next()){
-				dch.setCompanyConfigDetails(companyId, dch.companyConfigMap.get(companyId), rs);
-			}
-            */
 			CompanyConfig ccObj = dch.companyConfigMap.get(companyId);
 			if (ccObj.getSmartList().equals("all_employee")) {
-				EmployeeList el = new EmployeeList();
 				employeeList.addAll(el.getEmployeeMasterList(companyId));
+			} else if (ccObj.getSmartList().equals("cube")) {
+				dch.getCompanyConnection(companyId);
+				CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getListColleague(?)}");
+				cstmt.setString("array", String.valueOf(employeeId));
+				ResultSet rs = cstmt.executeQuery();
+				List<Integer> empIdList = new ArrayList<>();
+				while (rs.next()) {
+					empIdList.add(rs.getInt("emp_id"));
+				}
+				for (int i = 0; i < empIdList.size(); i++) {
+					Employee e = new Employee();
+					e = e.get(companyId, empIdList.get(i));
+					employeeList.add(e);
+				}
 			} else {
 				RConnection rCon = dch.getRConn();
 				org.apache.log4j.Logger.getLogger(Question.class).debug("R Connection Available : " + rCon.isConnected());

@@ -203,7 +203,7 @@ public class EmployeeList extends TheBorg {
 	 * @return employee object
 	 * @throws SQLException - if employee details are not set
 	 */
-	protected Employee setEmployeeDetails(int companyId, ResultSet res) throws SQLException {
+	public Employee setEmployeeDetails(int companyId, ResultSet res) throws SQLException {
 		Employee e = new Employee();
 		e.setEmployeeId(res.getInt("emp_id"));
 		e.setCompanyEmployeeId(res.getString("emp_int_id"));

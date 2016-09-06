@@ -58,7 +58,12 @@ public class QuestionTest {
 
 	@Test
 	public void testGetSmartListForQuestion() {
-		List<Employee> result = q.getSmartListForQuestion(1, 1, q.getQuestion(companyId, 1));
+		// smart list test
+		List<Employee> result = q.getSmartListForQuestion(companyId, 1, q.getQuestion(companyId, 1));
+		assertNotNull(result);
+
+		// cube list test
+		result = q.getSmartListForQuestion(4, 1, q.getQuestion(4, 1));
 		assertNotNull(result);
 	}
 
