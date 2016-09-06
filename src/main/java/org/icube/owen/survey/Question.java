@@ -5,6 +5,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -284,6 +285,7 @@ public class Question extends TheBorg {
 				while (rs.next()) {
 					empIdList.add(rs.getInt("emp_id"));
 				}
+				Collections.shuffle(empIdList);
 				for (int i = 0; i < empIdList.size(); i++) {
 					Employee e = new Employee();
 					e = e.get(companyId, empIdList.get(i));
