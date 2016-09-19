@@ -15,12 +15,12 @@ import org.junit.Test;
 public class ResponseTest {
 
 	Response r = (Response) ObjectFactory.getInstance("org.icube.owen.survey.Response");
-	int companyId = 2;
+	int companyId = 5;
 
-	@Ignore
+	@Test
 	public void testSaveMeResponse() {
 		Question q = new Question();
-		assertTrue(r.saveMeResponse(1, 1, q.getQuestion(companyId, 1), 3, "test feedback"));
+		assertTrue(r.saveMeResponse(companyId, 64, 1, 3, "test feedback"));
 	}
 
 	@Test
@@ -35,6 +35,6 @@ public class ResponseTest {
 		employeeRating.put(e.get(companyId, 4), 8);
 		employeeRating.put(e.get(companyId, 5), 9);
 
-		assertTrue(r.saveWeResponse(2, 1, q.getQuestion(companyId, 1), employeeRating));
+		assertTrue(r.saveWeResponse(companyId, 64, 1, employeeRating));
 	}
 }
