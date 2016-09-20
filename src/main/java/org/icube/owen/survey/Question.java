@@ -267,7 +267,7 @@ public class Question extends TheBorg {
 	 * @param q - A question object
 	 * @return List of employee objects - view of the employee list should be sorted by the rank
 	 */
-	public List<Employee> getSmartListForQuestion(int companyId, int employeeId, Question q) {
+	public List<Employee> getSmartListForQuestion(int companyId, int employeeId, int questionId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Map<Integer, Employee> employeeRankMap = new HashMap<>();
 		List<Employee> employeeList = new ArrayList<>();
@@ -292,6 +292,7 @@ public class Question extends TheBorg {
 					employeeList.add(e);
 				}
 			} else {
+				Question q = getQuestion(companyId, questionId);
 				RConnection rCon = dch.getRConn();
 				org.apache.log4j.Logger.getLogger(Question.class).debug("R Connection Available : " + rCon.isConnected());
 				org.apache.log4j.Logger.getLogger(Question.class).debug("Filling up parameters for rscript function");

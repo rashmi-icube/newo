@@ -2,7 +2,6 @@ package org.icube.owen.survey;
 
 import java.sql.CallableStatement;
 import java.sql.ResultSet;
-import java.sql.Types;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Map;

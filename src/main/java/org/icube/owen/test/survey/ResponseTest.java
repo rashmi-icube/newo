@@ -7,9 +7,7 @@ import java.util.Map;
 
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.employee.Employee;
-import org.icube.owen.survey.Question;
 import org.icube.owen.survey.Response;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class ResponseTest {
@@ -19,13 +17,13 @@ public class ResponseTest {
 
 	@Test
 	public void testSaveMeResponse() {
-		Question q = new Question();
+
 		assertTrue(r.saveMeResponse(companyId, 64, 1, 3, "test feedback"));
 	}
 
 	@Test
 	public void testSaveWeResponse() {
-		Question q = new Question();
+
 		Employee e = new Employee();
 
 		Map<Employee, Integer> employeeRating = new HashMap<>();
