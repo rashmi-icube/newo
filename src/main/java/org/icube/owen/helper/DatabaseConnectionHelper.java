@@ -136,35 +136,37 @@ public class DatabaseConnectionHelper extends TheBorg {
 			CompanyConnection compConnection = new CompanyConnection();
 			boolean compConnectionchanged = false;
 			String sqlUrl = "", sqlUserName = "", sqlPassword = "", neoUrl = "", neoUserName = "", neoPassword = "";
-			// check if the sql connection pool contains the connection for the given company and if it is valid else call the db procedure for
-			// connection details
+			
+			//check if company connection doesn't exist in the connection pool OR
+			//check if company connection exists but sql connection is invalid OR
+			//check if company connection exists but neo conneciton is invalid
+			
 			if (!companyConnectionMap.containsKey(companyId)
 					|| (companyConnectionMap.containsKey(companyId) && !companyConnectionMap.get(companyId).getSqlConnection().isValid(0))
 					|| (companyConnectionMap.containsKey(companyId) && !companyConnectionMap.get(companyId).getNeoConnection().isValid(0))) {
-
-				// get company details
-
+				//get company connection details from db
 				CallableStatement cstmt = masterCon.prepareCall("{call getCompanyConfig(?)}");
 				cstmt.setInt(1, companyId);
 				ResultSet rs = cstmt.executeQuery();
 
 				while (rs.next()) {
 
-					// fill the company SQL connection object
+					// fill the company SQL connection variables
 					sqlUrl = "jdbc:mysql://" + rs.getString("sql_server") + ":3306/" + rs.getString("comp_sql_dbname");
 					sqlUserName = rs.getString("sql_user_id");
 					sqlPassword = rs.getString("sql_password");
 
-					// fill the company Neo connection object
+					// fill the company Neo connection variables
 					neoUrl = rs.getString("neo_db_url");
 					neoUserName = rs.getString("neo_user_name");
 					neoPassword = rs.getString("neo_password");
 
+					// fill all parameters for company config (slack, email, etc...)
 					compConfig = setCompanyConfigDetails(companyId, compConfig, rs);
 					companyConfigMap.put(companyId, compConfig);
 
 					// retrieve the neo and sql connections only if the company is already present in the company config map
-					if (companyConnectionMap.containsKey(companyId)) {
+					/*if (companyConnectionMap.containsKey(companyId)) {
 
 						// create a new config object and compare it with the existing config
 						// if changed, update the config (if config has changed) and connection (if connection has changed) object
@@ -191,7 +193,7 @@ public class DatabaseConnectionHelper extends TheBorg {
 
 						}
 
-					}
+					}*/
 					compConnectionchanged = true;
 				}
 			}
@@ -206,7 +208,7 @@ public class DatabaseConnectionHelper extends TheBorg {
 					compConnection.setSqlConnection(conn);
 					// retrieve the neo connection if the company is already in the company config map
 					if (companyConnectionMap.containsKey(companyId)) {
-						compConnection = refreshConfigAndConnectionDetails(companyId, compConnection);
+						//compConnection = refreshConfigAndConnectionDetails(companyId, compConnection);
 						compConnectionchanged = true;
 					}
 				}
@@ -230,7 +232,7 @@ public class DatabaseConnectionHelper extends TheBorg {
 					compConnection.setNeoConnection(compNeoConn);
 					// retrieve the sql connection if the company is already in the company config map
 					if (companyConnectionMap.containsKey(companyId)) {
-						compConnection = refreshConfigAndConnectionDetails(companyId, compConnection);
+						//compConnection = refreshConfigAndConnectionDetails(companyId, compConnection);
 						compConnectionchanged = true;
 						// compConnection.setSqlConnection(companyConnectionMap.get(companyId).getSqlConnection());
 					}
@@ -246,7 +248,7 @@ public class DatabaseConnectionHelper extends TheBorg {
 
 			// create a new config object and compare it with the existing config
 			// if changed, update the config (if config has changed) and connection (if connection has changed) object
-			try {
+			/*try {
 				if (companyConnectionMap.containsKey(companyId) && companyConnectionMap.get(companyId).getNeoConnection().isValid(0)
 						|| companyConnectionMap.containsKey(companyId) && companyConnectionMap.get(companyId).getSqlConnection().isValid(0)) {
 					compConnection = refreshConfigAndConnectionDetails(companyId, compConnection);
@@ -257,7 +259,7 @@ public class DatabaseConnectionHelper extends TheBorg {
 			} catch (SQLException e) {
 				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error(
 						"An error occurred while connecting to db for companyId : " + companyId, e);
-			}
+			}*/
 
 			// add the company config object to the company config map
 			if (compConnectionchanged)
