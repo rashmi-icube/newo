@@ -268,18 +268,17 @@ public class Question extends TheBorg {
 	 */
 	public List<Employee> getSmartListForQuestion(int companyId, int employeeId, Question q) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		Map<Integer, Employee> employeeRankMap = new HashMap<>();
+		//Map<Integer, Employee> employeeRankMap = new HashMap<>();
 		List<Employee> employeeList = new ArrayList<>();
 
 		try {
-			/*CallableStatement cstmt = dch.masterCon.prepareCall("{call getCompanyConfig(?)}");
-			cstmt.setInt(1, companyId);
-			ResultSet rs = cstmt.executeQuery();
-			while(rs.next()){
-				dch.setCompanyConfigDetails(companyId, dch.companyConfigMap.get(companyId), rs);
-			}
-            */
-			CompanyConfig ccObj = dch.companyConfigMap.get(companyId);
+			Employee e = new Employee();
+			employeeList.add(e.get(2, 1));
+			employeeList.add(e.get(2, 2));
+			employeeList.add(e.get(2, 3));
+			employeeList.add(e.get(2, 4));
+			employeeList.add(e.get(2, 5));
+			/*CompanyConfig ccObj = dch.companyConfigMap.get(companyId);
 			if (ccObj.getSmartList().equals("all_employee")) {
 				EmployeeList el = new EmployeeList();
 				employeeList.addAll(el.getEmployeeMasterList(companyId));
@@ -314,7 +313,7 @@ public class Question extends TheBorg {
 				}
 				Map<Integer, Employee> sorted_map = new TreeMap<Integer, Employee>(employeeRankMap);
 				employeeList = new ArrayList<Employee>(sorted_map.values());
-			}
+			}*/
 
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(Question.class).error("Error while trying to retrieve the smart list for employee from question", e);
