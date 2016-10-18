@@ -269,10 +269,17 @@ public class Question extends TheBorg {
 	 */
 	public List<Employee> getSmartListForQuestion(int companyId, int employeeId, int questionId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		Map<Integer, Employee> employeeRankMap = new HashMap<>();
+		// Map<Integer, Employee> employeeRankMap = new HashMap<>();
 		List<Employee> employeeList = new ArrayList<>();
-		EmployeeList el = new EmployeeList();
+		// EmployeeList el = new EmployeeList();
 		try {
+			Employee e = new Employee();
+			employeeList.add(e.get(companyId, 1));
+			employeeList.add(e.get(companyId, 2));
+			employeeList.add(e.get(companyId, 3));
+			employeeList.add(e.get(companyId, 4));
+			employeeList.add(e.get(companyId, 5));
+			/*
 			CompanyConfig ccObj = dch.companyConfigMap.get(companyId);
 			if (ccObj.getSmartList().equals("all_employee")) {
 				employeeList.addAll(el.getEmployeeMasterList(companyId));
@@ -325,7 +332,7 @@ public class Question extends TheBorg {
 				employeeList = new ArrayList<Employee>(sorted_map.values());
 			}
 
-		} catch (Exception e) {
+			*/} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(Question.class).error("Error while trying to retrieve the smart list for employee from question", e);
 		} finally {
 			dch.releaseRcon();
