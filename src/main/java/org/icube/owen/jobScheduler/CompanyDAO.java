@@ -220,7 +220,8 @@ public class CompanyDAO extends TimerTask {
 				cstmt.setInt(1, companyId);
 				ResultSet rs = cstmt.executeQuery();
 				while (rs.next()) {
-					dch.setCompanyConfigDetails(companyId, dch.companyConfigMap.get(companyId), rs);
+					//TODO : Swarna ... Need code review for this code
+					//dch.setCompanyConfigDetails(companyId, dch.companyConfigMap.get(companyId), rs);
 				}
 
 				if (dch.companyConfigMap.get(companyId).isSendEmail()) {

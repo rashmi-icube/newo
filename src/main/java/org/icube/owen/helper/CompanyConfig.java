@@ -16,7 +16,7 @@ public class CompanyConfig {
 	private String neoUserName;
 	private String neoPassword;
 	private boolean runJobs;
-	
+
 	public String getImagePath() {
 		return imagePath;
 	}
@@ -120,7 +120,7 @@ public class CompanyConfig {
 	public void setNeoPassword(String neoPassword) {
 		this.neoPassword = neoPassword;
 	}
-	
+
 	public boolean isRunJobs() {
 		return runJobs;
 	}
@@ -128,72 +128,5 @@ public class CompanyConfig {
 	public void setRunJobs(boolean runJobs) {
 		this.runJobs = runJobs;
 	}
-	
-	
-	@Override
-	public boolean equals(Object obj) {
-	    if (!(obj instanceof CompanyConfig)) {
-	        return false;
-	    }
 
-	    CompanyConfig that = (CompanyConfig)obj;
-	    boolean objectChangedStatus = false;
-
-	    // equality check 
-	    if(!(this.status.equals(that.status))){
-	    	objectChangedStatus = true;
-	    }
-	    
-	    if(!(this.displayNetworkName == that.displayNetworkName)){
-	    	System.out.println("display network value changed");
-	    	objectChangedStatus = true;
-	    }
-	    
-	    if(!(this.sendEmail == that.sendEmail)){
-	    	objectChangedStatus = true;
-	    }
-	    
-	    if(!(this.sendSlack == that.sendSlack)){
-	    	objectChangedStatus = true;
-	    }
-	    
-	    if(!(this.smartList.equals(that.smartList))){
-	    	objectChangedStatus = true;
-	    }
-	    
-	    if(!(this.imagePath.equals(that.imagePath))){
-	    	objectChangedStatus = true;
-	    }
-	    
-	    if(!(this.neoUserName.equals(that.neoUserName))){
-	    	objectChangedStatus = true;
-	    }
-	    
-	    if(!(this.neoPassword.equals(that.neoPassword))){
-	    	objectChangedStatus = true;
-	    }
-	    
-	    if(!(this.neoUrl.equals(that.neoUrl))){
-	    	objectChangedStatus = true;
-	    }
-	    
-	    if(!(this.sqlUserName.equals(that.sqlUserName))){
-	    	objectChangedStatus = true;
-	    }
-	    
-	    if(!(this.sqlPassword.equals(that.sqlPassword))){
-	    	objectChangedStatus = true;
-	    }
-	    
-	    if(!(this.sqlUrl.equals(that.sqlUrl))){
-	    	objectChangedStatus = true;
-	    }
-	    
-	    if(!(this.runJobs == that.runJobs)){
-	    	objectChangedStatus = true;
-	    }
-	    return objectChangedStatus;
-	}
-
-	
 }

@@ -47,15 +47,6 @@ public class Login extends TheBorg {
 				companyName = rs.getString("comp_name");
 				org.apache.log4j.Logger.getLogger(Login.class).debug("Company Name : " + companyName);
 			}
-			// refresh the company config details when the user logs in
-
-			/*CallableStatement cstmt2 = dch.masterCon.prepareCall("{call getCompanyConfig(?)}");
-			cstmt2.setInt(1, companyId);
-			ResultSet rs1 = cstmt2.executeQuery();
-			while(rs1.next()){
-				dch.setCompanyConfigDetails(companyId, dch.companyConfigMap.get(companyId), rs1);
-				
-			}*/
 			org.apache.log4j.Logger.getLogger(Login.class).debug("Role ID for user : " + emailId + " is : " + roleId);
 			CallableStatement cstmt1 = companySqlCon.prepareCall("{call verifyLogin(?,?,?,?,?)}");
 			cstmt1.setString("loginid", emailId);
