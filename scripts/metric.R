@@ -444,6 +444,7 @@ SmartListResponse=function(CompanyId,emp_id,rel_id){
     }else{
       op=employeeCube
     }
+    
     op$emp_id=as.integer(op$emp_id)
     op$Rank=as.integer(op$Rank)
     dbDisconnect(mydb)
