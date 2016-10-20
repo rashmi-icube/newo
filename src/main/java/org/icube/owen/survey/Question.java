@@ -274,6 +274,7 @@ public class Question extends TheBorg {
 			dch.getCompanyConnection(companyId);
 			CompanyConfig ccObj = dch.companyConfigMap.get(companyId);
 			if (ccObj.getSmartList().equals("all_employee")) {
+				org.apache.log4j.Logger.getLogger(Question.class).debug("Calling getEmployeeMasterList");
 				employeeList.addAll(el.getEmployeeMasterList(companyId));
 			} else if (ccObj.getSmartList().equals("cube")) {
 

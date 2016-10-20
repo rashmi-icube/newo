@@ -321,6 +321,7 @@ public class IndividualDashboardHelper extends TheBorg {
 			CompanyConfig ccObj = dch.companyConfigMap.get(companyId);
 			if (ccObj.getSmartList().equals("all_employee")) {
 				EmployeeList el = new EmployeeList();
+				org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Calling getEmployeeMasterList");
 				employeeList.addAll(el.getEmployeeMasterList(companyId));
 			} else {
 				RConnection rCon = dch.getRConn();
