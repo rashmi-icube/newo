@@ -80,7 +80,7 @@ public class Login extends TheBorg {
 	 * @param companyId - ID of the company
 	 * @return Map of role ID and role
 	 */
-	public Map<Integer, String> getUserRoleMap(int companyId) {
+	/*public Map<Integer, String> getUserRoleMap(int companyId) {
 		Map<Integer, String> userRoleMap = new HashMap<>();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
@@ -94,7 +94,7 @@ public class Login extends TheBorg {
 			org.apache.log4j.Logger.getLogger(Login.class).error("Exception while retrieving the user role map", e);
 		}
 		return userRoleMap;
-	}
+	}*/
 
 	/**
 	 * Validates the employee ID for login page

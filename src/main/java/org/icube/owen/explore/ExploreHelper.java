@@ -31,7 +31,7 @@ public class ExploreHelper extends TheBorg {
 	 * @return metricsMapList - Map with (teamName, metricList) pair
 	 */
 	public Map<String, List<Metrics>> getTeamMetricsData(int companyId, Map<String, List<Filter>> teamListMap) {
-
+		org.apache.log4j.Logger.getLogger(ExploreHelper.class).info("HashMap created!!!");
 		Map<String, List<Metrics>> result = new HashMap<>();
 
 		for (String teamName : teamListMap.keySet()) {
@@ -59,9 +59,11 @@ public class ExploreHelper extends TheBorg {
 
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
+		org.apache.log4j.Logger.getLogger(ExploreHelper.class).info("HashMap created!!!");
 		Map<String, Map<Integer, List<Map<Date, Integer>>>> result = new HashMap<>();
 
 		for (String teamName : teamListMap.keySet()) {
+			org.apache.log4j.Logger.getLogger(ExploreHelper.class).info("HashMap created!!!");
 			Map<Integer, List<Map<Date, Integer>>> timeSeriesMap = new HashMap<>();
 			List<Filter> filterList = teamListMap.get(teamName);
 			Map<String, Object> parsedFilterListResult = UtilHelper.parseFilterList(filterList);
@@ -116,6 +118,7 @@ public class ExploreHelper extends TheBorg {
 	public Map<Employee, List<Metrics>> getIndividualMetricsData(int companyId, List<Employee> employeeList) {
 
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		org.apache.log4j.Logger.getLogger(ExploreHelper.class).info("HashMap created!!!");
 		Map<Employee, List<Metrics>> result = new HashMap<>();
 		try {
 			dch.getCompanyConnection(companyId);
@@ -145,11 +148,13 @@ public class ExploreHelper extends TheBorg {
 	public Map<Employee, Map<Integer, List<Map<Date, Integer>>>> getIndividualTimeSeriesGraph(int companyId, List<Employee> employeeList) {
 
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		org.apache.log4j.Logger.getLogger(ExploreHelper.class).info("HashMap created!!!");
 		Map<Employee, Map<Integer, List<Map<Date, Integer>>>> result = new HashMap<>();
 
 		try {
 			dch.getCompanyConnection(companyId);
 			for (Employee e : employeeList) {
+				org.apache.log4j.Logger.getLogger(ExploreHelper.class).info("HashMap created!!!");
 				Map<Integer, List<Map<Date, Integer>>> metricsList = new HashMap<>();
 				CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
 						"{call getIndividualMetricTimeSeries(?)}");
@@ -172,11 +177,13 @@ public class ExploreHelper extends TheBorg {
 	 * @throws SQLException - if the time series map is not retrieved
 	 */
 	public Map<Integer, List<Map<Date, Integer>>> getTimeSeriesMap(ResultSet rs) throws SQLException {
+		org.apache.log4j.Logger.getLogger(ExploreHelper.class).info("HashMap created!!!");
 		Map<Integer, List<Map<Date, Integer>>> result = new HashMap<>();
 
 		while (rs.next()) {
 			if (result.containsKey(rs.getInt("metric_id"))) {
 				List<Map<Date, Integer>> metricScoreMapList = new ArrayList<>();
+				org.apache.log4j.Logger.getLogger(ExploreHelper.class).info("HashMap created!!!");
 				Map<Date, Integer> metricScoreMap = new HashMap<>();
 				metricScoreMapList = result.get(rs.getInt("metric_id"));
 				metricScoreMap.put(rs.getDate("calc_time"), rs.getInt("Score"));
@@ -184,6 +191,7 @@ public class ExploreHelper extends TheBorg {
 				result.put(rs.getInt("metric_id"), metricScoreMapList);
 			} else {
 				List<Map<Date, Integer>> metricScoreMapList = new ArrayList<>();
+				org.apache.log4j.Logger.getLogger(ExploreHelper.class).info("HashMap created!!!");
 				Map<Date, Integer> metricScoreMap = new HashMap<>();
 				metricScoreMap.put(rs.getDate("calc_time"), rs.getInt("Score"));
 				metricScoreMapList.add(metricScoreMap);
@@ -202,6 +210,7 @@ public class ExploreHelper extends TheBorg {
 	 */
 	public Map<String, List<?>> getTeamNetworkDiagram(int companyId, Map<String, List<Filter>> teamListMap, Map<Integer, String> relationshipType) {
 		org.apache.log4j.Logger.getLogger(ExploreHelper.class).debug("Entering getTeamNetworkDiagram method");
+		org.apache.log4j.Logger.getLogger(ExploreHelper.class).info("HashMap created!!!");
 		Map<String, List<?>> result = new HashMap<>();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
@@ -311,6 +320,7 @@ public class ExploreHelper extends TheBorg {
 		org.apache.log4j.Logger.getLogger(ExploreHelper.class).debug("Entering getIndividualNetworkDiagram method");
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
+		org.apache.log4j.Logger.getLogger(ExploreHelper.class).info("HashMap created!!!");
 		Map<String, List<?>> result = new HashMap<>();
 		List<Node> nodeList = new ArrayList<>();
 		List<Edge> edgeList = new ArrayList<>();
@@ -446,6 +456,7 @@ public class ExploreHelper extends TheBorg {
 	 */
 	public Map<Integer, String> getRelationshipTypeMap(int companyId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		org.apache.log4j.Logger.getLogger(ExploreHelper.class).info("HashMap created!!!");
 		Map<Integer, String> relationshipTypeMap = new HashMap<>();
 		try {
 			dch.getCompanyConnection(companyId);
@@ -498,6 +509,7 @@ public class ExploreHelper extends TheBorg {
 				Question q = new Question();
 				MeResponse meResponse = new MeResponse();
 				MeResponse meResponseAggregate = new MeResponse();
+				org.apache.log4j.Logger.getLogger(ExploreHelper.class).info("HashMap created!!!");
 				Map<String, MeResponse> orgMeResponseMap = new HashMap<>();
 				MeResponseAnalysis meResponseAnalysis = new MeResponseAnalysis();
 				q.setQuestionId(rs.getInt("que_id"));
@@ -557,6 +569,7 @@ public class ExploreHelper extends TheBorg {
 			cstmt.setTimestamp(1, UtilHelper.convertJavaDateToSqlTimestamp(Date.from(Instant.now())));
 			cstmt.setInt(2, relationshipTypeId);
 			ResultSet rs = cstmt.executeQuery();
+			org.apache.log4j.Logger.getLogger(ExploreHelper.class).info("HashMap created!!!");
 			Map<Integer, Question> questionMap = new HashMap<>();
 
 			// fill the Question object
@@ -573,7 +586,7 @@ public class ExploreHelper extends TheBorg {
 			}
 
 			// fill the MeResponse object for team
-
+			org.apache.log4j.Logger.getLogger(ExploreHelper.class).info("HashMap created!!!");
 			Map<Integer, Map<String, MeResponse>> mer = new HashMap<>();
 			Map<String, MeResponse> teamMeResponseList = new HashMap<>();
 			for (String teamName : teamListMap.keySet()) {
@@ -592,6 +605,7 @@ public class ExploreHelper extends TheBorg {
 					if (mer.containsKey(questionId)) {
 						teamMeResponseList = mer.get(questionId);
 					} else {
+						org.apache.log4j.Logger.getLogger(ExploreHelper.class).info("HashMap created!!!");
 						teamMeResponseList = new HashMap<>();
 					}
 
@@ -620,11 +634,12 @@ public class ExploreHelper extends TheBorg {
 			}
 
 			// fill the MeResponseAggregate object for team
-
+			org.apache.log4j.Logger.getLogger(ExploreHelper.class).info("HashMap created!!!");
 			Map<Integer, MeResponseAnalysis> meResAnalysis = new HashMap<>();
 			for (Integer qId : questionMap.keySet()) {
 				MeResponseAnalysis meResponseAnalysisWithResponse = new MeResponseAnalysis();
 				MeResponse meResponseAggregate = new MeResponse();
+				org.apache.log4j.Logger.getLogger(ExploreHelper.class).info("HashMap created!!!");
 				Map<String, MeResponse> meResponseList = new HashMap<>();
 
 				// if there is an existing MeResponse object for that question ID fetch that object
@@ -643,6 +658,7 @@ public class ExploreHelper extends TheBorg {
 
 				// if there is no existing MeResponse object in case of no responses for a question, send the object with value 0
 				else {
+					org.apache.log4j.Logger.getLogger(ExploreHelper.class).info("HashMap created!!!");
 					meResponseList = new HashMap<>();
 					for (String teamName : teamListMap.keySet()) {
 						meResponseList.put(teamName, meResponseAggregate);

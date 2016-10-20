@@ -14,8 +14,14 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
 import org.icube.owen.employee.Employee;
+import org.icube.owen.employee.EmployeeList;
+import org.icube.owen.helper.CompanyConfig;
 import org.icube.owen.helper.DatabaseConnectionHelper;
 import org.icube.owen.helper.UtilHelper;
+import org.rosuda.REngine.REXP;
+import org.rosuda.REngine.REXPInteger;
+import org.rosuda.REngine.RList;
+import org.rosuda.REngine.Rserve.RConnection;
 
 public class Question extends TheBorg {
 
@@ -151,6 +157,7 @@ public class Question extends TheBorg {
 
 	public Map<Date, Integer> getResponse(int companyId, Question q) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		org.apache.log4j.Logger.getLogger(Question.class).info("HashMap created!!!");
 		Map<Date, Integer> responseMap = new HashMap<>();
 		try {
 			dch.getCompanyConnection(companyId);
@@ -261,22 +268,15 @@ public class Question extends TheBorg {
 	 */
 	public List<Employee> getSmartListForQuestion(int companyId, int employeeId, int questionId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		// Map<Integer, Employee> employeeRankMap = new HashMap<>();
 		List<Employee> employeeList = new ArrayList<>();
-		// EmployeeList el = new EmployeeList();
+		EmployeeList el = new EmployeeList();
 		try {
-			Employee e = new Employee();
-			employeeList.add(e.get(companyId, 1));
-			employeeList.add(e.get(companyId, 2));
-			employeeList.add(e.get(companyId, 3));
-			employeeList.add(e.get(companyId, 4));
-			employeeList.add(e.get(companyId, 5));
-			/*
+			dch.getCompanyConnection(companyId);
 			CompanyConfig ccObj = dch.companyConfigMap.get(companyId);
 			if (ccObj.getSmartList().equals("all_employee")) {
 				employeeList.addAll(el.getEmployeeMasterList(companyId));
 			} else if (ccObj.getSmartList().equals("cube")) {
-				dch.getCompanyConnection(companyId);
+
 				CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getListColleague(?)}");
 				cstmt.setString("array", String.valueOf(employeeId));
 				ResultSet rs = cstmt.executeQuery();
@@ -284,13 +284,13 @@ public class Question extends TheBorg {
 				while (rs.next()) {
 					empIdList.add(rs.getInt("emp_id"));
 				}
-				Collections.shuffle(empIdList);
 				for (int i = 0; i < empIdList.size(); i++) {
 					Employee e = new Employee();
 					e = e.get(companyId, empIdList.get(i));
 					employeeList.add(e);
 				}
 			} else {
+				// Map<Integer, Employee> employeeRankMap = new TreeMap<>();
 				Question q = getQuestion(companyId, questionId);
 				RConnection rCon = dch.getRConn();
 				org.apache.log4j.Logger.getLogger(Question.class).debug("R Connection Available : " + rCon.isConnected());
@@ -312,19 +312,18 @@ public class Question extends TheBorg {
 				RList result = employeeSmartList.asList();
 				REXPInteger empIdResult = (REXPInteger) result.get("emp_id");
 				int[] empIdArray = empIdResult.asIntegers();
-				REXPInteger rankResult = (REXPInteger) (result.get("Rank"));
-				int[] rankArray = rankResult.asIntegers();
+
+				// keep here for testing the order of the rank
+				/*REXPInteger rankResult = (REXPInteger) (result.get("Rank"));
+				int[] rankArray = rankResult.asIntegers();*/
 
 				for (int i = 0; i < empIdArray.length; i++) {
 					Employee e = new Employee();
-					e = e.get(companyId, empIdArray[i]);
-					employeeRankMap.put(rankArray[i], e);
+					employeeList.add(e.get(companyId, empIdArray[i]));
 				}
-				Map<Integer, Employee> sorted_map = new TreeMap<Integer, Employee>(employeeRankMap);
-				employeeList = new ArrayList<Employee>(sorted_map.values());
 			}
 
-			*/} catch (Exception e) {
+		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(Question.class).error("Error while trying to retrieve the smart list for employee from question", e);
 		} finally {
 			dch.releaseRcon();

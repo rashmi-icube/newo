@@ -60,6 +60,7 @@ public class UtilHelper {
 	 * @return Map of values of filter object 
 	 */
 	public static Map<String, Object> parseFilterList(List<Filter> filterList) {
+		org.apache.log4j.Logger.getLogger(UtilHelper.class).info("HashMap created!!!");
 		Map<String, Object> result = new HashMap<>();
 
 		int funcListSize = 0, posListSize = 0, zoneListSize = 0, countAll = 0, dimensionId = 0, dimensionValueId = 0, funcId = 0, posId = 0, zoneId = 0;

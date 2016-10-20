@@ -47,6 +47,7 @@ public class InitiativeHelper extends TheBorg {
 		f.setFilterName(filterName);
 		List<Integer> partOfIdList = (List<Integer>) res.getObject("PartOfID");
 		List<String> partOfNameList = (List<String>) res.getObject("PartOfName");
+		org.apache.log4j.Logger.getLogger(InitiativeHelper.class).info("HashMap created!!!");
 		Map<Integer, String> filterValuesMap = new HashMap<>();
 		for (int j = 0; j < partOfIdList.size(); j++) {
 			filterValuesMap.put(partOfIdList.get(j), partOfNameList.get(j));
@@ -129,17 +130,19 @@ public class InitiativeHelper extends TheBorg {
 	 * @return empty initiative count map
 	 */
 	private Map<String, Map<String, Object>> getEmptyInitiativeCountMap(int companyId, String category) {
+		org.apache.log4j.Logger.getLogger(InitiativeHelper.class).info("HashMap created!!!");
 		Map<String, Map<String, Object>> initiativeCountMasterMap = new HashMap<>();
 		Initiative i = new Initiative();
 		Map<Integer, String> initiativeTypeMap = i.getInitiativeTypeMap(companyId, category);
 		for (int initiativeTypeId : initiativeTypeMap.keySet()) {
+			org.apache.log4j.Logger.getLogger(InitiativeHelper.class).info("HashMap created!!!");
 			Map<String, Object> m = new HashMap<>();
 			m.put("status", "Completed");
 			m.put("category", category);
 			m.put("initiativeType", initiativeTypeId);
 			m.put("totalInitiatives", 0);
 			initiativeCountMasterMap.put(initiativeTypeId + "_Completed", m);
-
+			org.apache.log4j.Logger.getLogger(InitiativeHelper.class).info("HashMap created!!!");
 			m = new HashMap<>();
 			m.put("status", "Active");
 			m.put("category", category);
@@ -189,8 +192,11 @@ public class InitiativeHelper extends TheBorg {
 				ResultSet rs = cs.executeQuery();
 				metricsList = mh.fillMetricsData(companyId, rs, mh.getPrimaryMetricMap(companyId, i.getInitiativeTypeId()), "Individual");
 			} else if (i.getInitiativeCategory().equalsIgnoreCase("Team")) {
-				org.apache.log4j.Logger.getLogger(InitiativeHelper.class).debug("setInitiativeMetrics for team  calling procedure getTeamInitiativeMetricValueAggregate for initiative ID: " + i.getInitiativeId());
-				CallableStatement cs = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getTeamInitiativeMetricValueAggregate(?)}");
+				org.apache.log4j.Logger.getLogger(InitiativeHelper.class).debug(
+						"setInitiativeMetrics for team  calling procedure getTeamInitiativeMetricValueAggregate for initiative ID: "
+								+ i.getInitiativeId());
+				CallableStatement cs = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+						"{call getTeamInitiativeMetricValueAggregate(?)}");
 				int initId = i.getInitiativeId();
 				cs.setInt(1, initId);
 				ResultSet rs = cs.executeQuery();

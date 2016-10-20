@@ -11,6 +11,7 @@ import java.util.Map;
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
 import org.icube.owen.employee.Employee;
+import org.icube.owen.employee.EmployeeHelper;
 import org.icube.owen.employee.EmployeeList;
 import org.icube.owen.filter.Filter;
 import org.icube.owen.helper.DatabaseConnectionHelper;
@@ -72,6 +73,7 @@ public class Alert extends TheBorg {
 			Filter f = new Filter();
 			f.setFilterId(rs.getInt("dimension_id_" + i));
 			f.setFilterName(rs.getString("dimension_name_" + i));
+			org.apache.log4j.Logger.getLogger(Alert.class).info("HashMap created!!!");
 			Map<Integer, String> filterValuesMap = new HashMap<>();
 			filterValuesMap.put(rs.getInt("dimension_val_id_" + i), rs.getString("dimension_val_name_" + i));
 			f.setFilterValues(filterValuesMap);

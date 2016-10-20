@@ -65,6 +65,7 @@ public class MetricsList extends TheBorg {
 		dch.getCompanyConnection(companyId);
 		MetricsHelper mh = new MetricsHelper();
 		List<Metrics> metricsList = new ArrayList<>();
+		org.apache.log4j.Logger.getLogger(MetricsList.class).info("HashMap created!!!");
 		Map<Integer, Integer> currentScoreMap = new HashMap<>();
 		Map<Integer, Integer> previousScoreMap = new HashMap<>();
 		Map<Integer, Date> dateOfCalcMap = new HashMap<>();

@@ -61,11 +61,15 @@ public class InitiativeList extends TheBorg {
 		InitiativeHelper ih = new InitiativeHelper();
 		org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Get initiative list");
 		List<Initiative> initiativeList = new ArrayList<Initiative>();
+		org.apache.log4j.Logger.getLogger(InitiativeList.class).info("HashMap created!!!");
 		Map<Integer, Initiative> initiativeIdMap = new HashMap<Integer, Initiative>();
 		try {
 			String initiativeListQuery = "";
 			if (viewByCriteria.equalsIgnoreCase("Type")) {
-				initiativeListQuery = "match (i:Init {Type:" + (Integer) viewByValue + ", Category:'" + category
+				initiativeListQuery = "match (i:Init {Type:"
+						+ (Integer) viewByValue
+						+ ", Category:'"
+						+ category
 						+ "'})<-[r:part_of]-(a) WITH i,a optional match (o:Employee)-[:owner_of]->(i) return i.Id as Id, "
 						+ "i.Name as Name,i.StartDate as StartDate, i.EndDate as EndDate, i.CreatedByEmpId as CreatedByEmpId, i.CreatedOn as CreationDate, "
 						+ "case i.Category when 'Individual' then collect(distinct(a.emp_id)) else collect(distinct(a.Id)) "
@@ -75,7 +79,10 @@ public class InitiativeList extends TheBorg {
 						"Query for retrieving initiative of type " + viewByValue + " : " + initiativeListQuery);
 
 			} else if (viewByCriteria.equalsIgnoreCase("Status")) {
-				initiativeListQuery = "match (i:Init {Status:'" + (String) viewByValue + "', Category:'" + category
+				initiativeListQuery = "match (i:Init {Status:'"
+						+ (String) viewByValue
+						+ "', Category:'"
+						+ category
 						+ "'})<-[r:part_of]-(a) WITH i,a optional match (o:Employee)-[:owner_of]->(i) return i.Id as Id, "
 						+ "i.Name as Name,i.StartDate as StartDate, i.EndDate as EndDate, i.CreatedByEmpId as CreatedByEmpId, i.CreatedOn as CreationDate, "
 						+ "case i.Category when 'Individual' then collect(distinct(a.emp_id)) else collect(distinct(a.Id)) "
@@ -142,9 +149,11 @@ public class InitiativeList extends TheBorg {
 		InitiativeHelper ih = new InitiativeHelper();
 		org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Get initiative list");
 		List<Initiative> initiativeList = new ArrayList<Initiative>();
+		org.apache.log4j.Logger.getLogger(InitiativeList.class).info("HashMap created!!!");
 		Map<Integer, Initiative> initiativeIdMap = new HashMap<Integer, Initiative>();
 		try {
-			String initiativeListQuery = "match (i:Init {Category:'" + category
+			String initiativeListQuery = "match (i:Init {Category:'"
+					+ category
 					+ "'})<-[r:part_of]-(a) where i.Status in ['Active','Pending'] WITH i,a optional "
 					+ "match (o:Employee)-[:owner_of]->(i) return i.Id as Id, i.Name as Name,i.StartDate as StartDate, "
 					+ "i.EndDate as EndDate,i.CreatedByEmpId as CreatedByEmpId, i.CreatedOn as CreationDate, case i.Category when 'Individual' then collect(distinct(a.emp_id)) "

@@ -16,7 +16,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -92,6 +91,7 @@ public class IndividualDashboardHelper extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
 		ExploreHelper eh = new ExploreHelper();
+		org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).info("HashMap created!!!");
 		Map<Integer, List<Map<Date, Integer>>> metricsListMap = new HashMap<>();
 		try {
 			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
@@ -117,12 +117,14 @@ public class IndividualDashboardHelper extends TheBorg {
 	 * @return A map of metric Id and list of maps of date and metric score set to 0
 	 */
 	private Map<Integer, List<Map<Date, Integer>>> getEmptyTimeSeriesMap(int companyId, String category) {
+		org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).info("HashMap created!!!");
 		Map<Integer, List<Map<Date, Integer>>> metricsTimeSeriesMasterMap = new HashMap<>();
 		MetricsHelper mh = new MetricsHelper();
 		Map<Integer, String> metricListMap = mh.getMetricListForCategory(companyId, category);
 		for (int metric_id : metricListMap.keySet()) {
 			List<Map<Date, Integer>> metricsTimeSeriesList = new ArrayList<>();
 			if (metric_id == 1 || metric_id == 2 || metric_id == 4) {
+				org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).info("HashMap created!!!");
 				Map<Date, Integer> metricsTimeSeriesMap = new HashMap<>();
 				metricsTimeSeriesMap.put(Date.from(Instant.now()), 0);
 				metricsTimeSeriesList.add(metricsTimeSeriesMap);
@@ -146,6 +148,7 @@ public class IndividualDashboardHelper extends TheBorg {
 		InitiativeList il = new InitiativeList();
 		List<Initiative> initiativeList = new ArrayList<>();
 		org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Get initiative list");
+		org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).info("HashMap created!!!");
 		Map<Integer, Initiative> initiativeIdMap = new HashMap<Integer, Initiative>();
 		try {
 			String initiativeListQuery = "match(i:Init {Status:'Active'})<-[r:owner_of]-(e:Employee {emp_id:"
@@ -285,6 +288,7 @@ public class IndividualDashboardHelper extends TheBorg {
 	private Map<Integer, Integer> getMetricRelationshipTypeMapping(int companyId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
+		org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).info("HashMap created!!!");
 		Map<Integer, Integer> result = new HashMap<>();
 		try {
 			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getMetricRelationshipType()}");
@@ -311,17 +315,9 @@ public class IndividualDashboardHelper extends TheBorg {
 	public List<Employee> getSmartList(int companyId, int employeeId, int metricId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
-		Map<Integer, Employee> employeeRankMap = new LinkedHashMap<>();
 		List<Employee> employeeList = new ArrayList<>();
-		Map<Integer, Integer> MetricRelationshipTypeMap = getMetricRelationshipTypeMapping(companyId);
+		Map<Integer, Integer> metricRelationshipTypeMap = getMetricRelationshipTypeMapping(companyId);
 		try {
-			/*CallableStatement cstmt = dch.masterCon.prepareCall("{call getCompanyConfig(?)}");
-			cstmt.setInt(1, companyId);
-			ResultSet rs = cstmt.executeQuery();
-			while(rs.next()){
-				dch.setCompanyConfigDetails(companyId, dch.companyConfigMap.get(companyId), rs);
-			}
-			*/
 			CompanyConfig ccObj = dch.companyConfigMap.get(companyId);
 			if (ccObj.getSmartList().equals("all_employee")) {
 				EmployeeList el = new EmployeeList();
@@ -333,7 +329,7 @@ public class IndividualDashboardHelper extends TheBorg {
 				rCon.assign("company_id", new int[] { companyId });
 				org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Company id : " + companyId);
 				rCon.assign("emp_id", new int[] { employeeId });
-				rCon.assign("rel_id", new int[] { MetricRelationshipTypeMap.get(metricId) });
+				rCon.assign("rel_id", new int[] { metricRelationshipTypeMap.get(metricId) });
 				org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Calling the actual function in RScript SmartListResponse");
 				REXP employeeSmartList = rCon.parseAndEval("try(eval(SmartListResponse(company_id, emp_id, rel_id)))");
 				if (employeeSmartList.inherits("try-error")) {
@@ -348,16 +344,15 @@ public class IndividualDashboardHelper extends TheBorg {
 				RList result = employeeSmartList.asList();
 				REXPInteger empIdResult = (REXPInteger) result.get("emp_id");
 				int[] empIdArray = empIdResult.asIntegers();
-				REXPInteger rankResult = (REXPInteger) result.get("Rank");
-				int[] rankArray = rankResult.asIntegers();
+
+				// keep here for testing the order of the rank
+				/*REXPInteger rankResult = (REXPInteger) (result.get("Rank"));
+				int[] rankArray = rankResult.asIntegers();*/
 
 				for (int i = 0; i < empIdArray.length; i++) {
 					Employee e = new Employee();
-					e = e.get(companyId, empIdArray[i]);
-					employeeRankMap.put(rankArray[i], e);
+					employeeList.add(e.get(companyId, empIdArray[i]));
 				}
-				Map<Integer, Employee> sorted_map = new TreeMap<Integer, Employee>(employeeRankMap);
-				employeeList = new ArrayList<Employee>(sorted_map.values());
 			}
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error(

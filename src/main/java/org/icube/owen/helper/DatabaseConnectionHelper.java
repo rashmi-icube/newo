@@ -68,13 +68,16 @@ public class DatabaseConnectionHelper extends TheBorg {
 			} else {
 				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Successfully loaded metric.r script");
 			}
+			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).info("HashMap created!!!");
 			companyConfigMap = new HashMap<>();
+			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).info("HashMap created!!!");
 			companyConnectionMap = new HashMap<>();
 		} catch (RserveException | REXPMismatchException e) {
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("An error occurred while trying to connect to R", e);
 		}
 
-		runScheduler();
+		// TODO : Swarna ... Fix job scheduler hash map issue
+		// runScheduler();
 
 	}
 

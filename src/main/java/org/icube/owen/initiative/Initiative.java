@@ -213,6 +213,7 @@ public class Initiative extends TheBorg {
 		dch.getCompanyConnection(companyId);
 		try {
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Create Initiative Connections for initiativeId " + initiativeId);
+			org.apache.log4j.Logger.getLogger(Initiative.class).info("HashMap created!!!");
 			Map<String, Object> params = new HashMap<>();
 			params.put("initiativeId", initiativeId);
 			for (int i = 0; i < filterList.size(); i++) {
@@ -384,7 +385,7 @@ public class Initiative extends TheBorg {
 	public Map<Integer, String> getInitiativeTypeMap(int companyId, String category) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
-
+		org.apache.log4j.Logger.getLogger(Initiative.class).info("HashMap created!!!");
 		Map<Integer, String> initiativeTypeMap = new HashMap<>();
 		try {
 

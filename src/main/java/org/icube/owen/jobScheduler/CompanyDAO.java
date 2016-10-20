@@ -26,7 +26,7 @@ public class CompanyDAO extends TimerTask {
 	private RConnection rCon;
 	private DatabaseConnectionHelper dch;
 	Map<Integer, List<Map<String, String>>> schedulerJobStatusMap = new HashMap<>();
-	//private String loginUrl = UtilHelper.getConfigProperty("login_page_url");
+	// private String loginUrl = UtilHelper.getConfigProperty("login_page_url");
 	boolean jobStatus = true;
 
 	@Override
@@ -72,6 +72,7 @@ public class CompanyDAO extends TimerTask {
 				dch.getCompanyConnection(companyDetails.getInt("comp_id"));
 				CompanyConfig compConfig = dch.companyConfigMap.get(companyDetails.getInt("comp_id"));
 				if (compConfig.isRunJobs()) {
+					org.apache.log4j.Logger.getLogger(CompanyDAO.class).info("HashMap created!!!");
 					Map<String, String> jobStatusMap = new HashMap<>();
 					List<Map<String, String>> jobStatusMapList = new ArrayList<>();
 					// run JobInitStatus
@@ -145,6 +146,7 @@ public class CompanyDAO extends TimerTask {
 				}
 
 			} else {
+				org.apache.log4j.Logger.getLogger(CompanyDAO.class).info("HashMap created!!!");
 				Map<String, String> jobStatusMap = new HashMap<>();
 				jobStatusMap.put("Company Metrics Job", "No questions were closed");
 				schedulerJobStatusMap.get(companyId).add(jobStatusMap);
@@ -167,7 +169,7 @@ public class CompanyDAO extends TimerTask {
 	 * @throws Exception - if the R functions are not executed successfully
 	 */
 	public void runRMethod(String rFunctionName, int companyId, String companyName) throws Exception {
-
+		org.apache.log4j.Logger.getLogger(CompanyDAO.class).info("HashMap created!!!");
 		Map<String, String> jobStatusMap = new HashMap<>();
 		org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("Parameters for R function :  CompanyId : " + companyId);
 		rCon = dch.getRConn();
@@ -197,6 +199,7 @@ public class CompanyDAO extends TimerTask {
 	 */
 	public void runNewQuestionJob(int companyId) throws SQLException {
 		ArrayList<String> addresses = new ArrayList<String>();
+		org.apache.log4j.Logger.getLogger(CompanyDAO.class).info("HashMap created!!!");
 		Map<String, String> jobStatusMapForEmail = new HashMap<>();
 		Map<String, String> jobStatusMapForSlack = new HashMap<>();
 		Map<String, String> jobStatusMap = new HashMap<>();
@@ -220,8 +223,8 @@ public class CompanyDAO extends TimerTask {
 				cstmt.setInt(1, companyId);
 				ResultSet rs = cstmt.executeQuery();
 				while (rs.next()) {
-					//TODO : Swarna ... Need code review for this code
-					//dch.setCompanyConfigDetails(companyId, dch.companyConfigMap.get(companyId), rs);
+					// TODO : Swarna ... Need code review for this code
+					// dch.setCompanyConfigDetails(companyId, dch.companyConfigMap.get(companyId), rs);
 				}
 
 				if (dch.companyConfigMap.get(companyId).isSendEmail()) {
@@ -235,7 +238,8 @@ public class CompanyDAO extends TimerTask {
 
 				if (dch.companyConfigMap.get(companyId).isSendSlack()) {
 					SlackIntegration sl = new SlackIntegration();
-					sl.sendMessage(companyId, "You have new questions to answer\nPlease login to answer\n<http://engage.owenanalytics.com|engage.owenanalytics.com>");
+					sl.sendMessage(companyId,
+							"You have new questions to answer\nPlease login to answer\n<http://engage.owenanalytics.com|engage.owenanalytics.com>");
 					jobStatusMapForSlack.put("NewQuestionJobSlack", "Slack message sent for company");
 				} else {
 					jobStatusMapForSlack.put("NewQuestionJobSlack", "New question slack is disabled for the company");

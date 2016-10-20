@@ -39,6 +39,7 @@ public class MetricsHelper extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
 		List<Metrics> metricList = new ArrayList<>();
+		org.apache.log4j.Logger.getLogger(MetricsHelper.class).info("HashMap created!!!");
 		Map<Integer, String> primaryMetricMap = new HashMap<>();
 		if (initiativeTypeId > 0) {
 			primaryMetricMap = getPrimaryMetricMap(companyId, initiativeTypeId);
@@ -161,6 +162,7 @@ public class MetricsHelper extends TheBorg {
 		dch.getCompanyConnection(companyId);
 		List<Metrics> metricsList = new ArrayList<>();
 		Map<Integer, String> metricListForCategory = getMetricListForCategory(companyId, "Team");
+		org.apache.log4j.Logger.getLogger(MetricsHelper.class).info("HashMap created!!!");
 		Map<Integer, String> primaryMetricMap = new HashMap<>();
 		if (initiativeTypeId > 0) {
 			primaryMetricMap = getPrimaryMetricMap(companyId, initiativeTypeId);
@@ -206,6 +208,7 @@ public class MetricsHelper extends TheBorg {
 			double[] scoreArray = scoreResult.asDoubles();
 			REXPString dateOfCalculation = (REXPString) result.get("calc_time");
 			String[] dateOfCalculationArray = dateOfCalculation.asStrings();
+			org.apache.log4j.Logger.getLogger(MetricsHelper.class).info("HashMap created!!!");
 			Map<Integer, Integer> currentScoreMap = new HashMap<>();
 			Map<Integer, Integer> previousScoreMap = new HashMap<>();
 			Map<Integer, Date> dateOfCalcMap = new HashMap<>();
@@ -238,6 +241,7 @@ public class MetricsHelper extends TheBorg {
 	public Map<Integer, String> getPrimaryMetricMap(int companyId, int initiativeTypeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
+		org.apache.log4j.Logger.getLogger(MetricsHelper.class).info("HashMap created!!!");
 		Map<Integer, String> primaryMetricMap = new HashMap<>();
 		try {
 			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getInitiativePrimaryMetric(?)}");
@@ -262,6 +266,7 @@ public class MetricsHelper extends TheBorg {
 	public Map<Integer, String> getMetricListForCategory(int companyId, String category) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
+		org.apache.log4j.Logger.getLogger(MetricsHelper.class).info("HashMap created!!!");
 		Map<Integer, String> metricListForCategory = new HashMap<>();
 		try {
 			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getMetricListForCategory(?)}");
@@ -323,6 +328,7 @@ public class MetricsHelper extends TheBorg {
 	 * @return A map of metric ID and Metrics object
 	 */
 	public Map<Integer, Metrics> getEmptyMetricScoreList(int companyId, String category, Map<Integer, String> primaryMetricMap) {
+		org.apache.log4j.Logger.getLogger(MetricsHelper.class).info("HashMap created!!!");
 		Map<Integer, Metrics> metricsMasterMap = new HashMap<>();
 		MetricsHelper mh = new MetricsHelper();
 		Map<Integer, String> metricListMap = mh.getMetricListForCategory(companyId, category);

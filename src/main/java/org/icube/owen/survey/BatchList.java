@@ -27,7 +27,7 @@ public class BatchList extends TheBorg {
 
 	public Map<Integer, String> getFrequencyLabelMap(int companyId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-
+		org.apache.log4j.Logger.getLogger(BatchList.class).info("HashMap created!!!");
 		Map<Integer, String> getFrequencyLabelMap = new HashMap<>();
 		try {
 			dch.getCompanyConnection(companyId);

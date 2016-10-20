@@ -33,6 +33,7 @@ public class TheWallHelper extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
 		List<Map<String, Object>> result = new ArrayList<>();
+		org.apache.log4j.Logger.getLogger(TheWallHelper.class).info("HashMap created!!!");
 		Map<String, Object> parsedFilterMap = new HashMap<>();
 		if (filterList == null || filterList.isEmpty()) {
 			parsedFilterMap.put("funcId", 0);
@@ -45,7 +46,8 @@ public class TheWallHelper extends TheBorg {
 		org.apache.log4j.Logger.getLogger(TheWallHelper.class).debug("Position : " + parsedFilterMap.get("posId"));
 		org.apache.log4j.Logger.getLogger(TheWallHelper.class).debug("Zone : " + parsedFilterMap.get("zoneId"));
 		try {
-			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getWallFeedIndividual(?,?,?,?,?,?,?,?)}");
+			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+					"{call getWallFeedIndividual(?,?,?,?,?,?,?,?)}");
 			cstmt.setInt("fun", (int) parsedFilterMap.get("funcId"));
 			cstmt.setInt("pos", (int) parsedFilterMap.get("posId"));
 			cstmt.setInt("zon", (int) parsedFilterMap.get("zoneId"));
@@ -56,6 +58,7 @@ public class TheWallHelper extends TheBorg {
 			cstmt.setInt("metricid", metricId);
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
+				org.apache.log4j.Logger.getLogger(TheWallHelper.class).info("HashMap created!!!");
 				Map<String, Object> employeeDetailsMap = new HashMap<>();
 				employeeDetailsMap.put("companyId", companyId);
 				employeeDetailsMap.put("employeeId", rs.getInt("emp_id"));
@@ -101,6 +104,7 @@ public class TheWallHelper extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
 		List<Map<String, Object>> result = new ArrayList<>();
+		org.apache.log4j.Logger.getLogger(TheWallHelper.class).info("HashMap created!!!");
 		Map<String, Object> parsedFilterMap = new HashMap<>();
 		if (filterList == null || filterList.isEmpty()) {
 			parsedFilterMap.put("funcId", 0);
@@ -113,7 +117,8 @@ public class TheWallHelper extends TheBorg {
 		org.apache.log4j.Logger.getLogger(TheWallHelper.class).debug("Position : " + parsedFilterMap.get("posId"));
 		org.apache.log4j.Logger.getLogger(TheWallHelper.class).debug("Zone : " + parsedFilterMap.get("zoneId"));
 		try {
-			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getWallFeedTeam(?,?,?,?,?,?,?,?)}");
+			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+					"{call getWallFeedTeam(?,?,?,?,?,?,?,?)}");
 			cstmt.setInt("fun", (int) parsedFilterMap.get("funcId"));
 			cstmt.setInt("pos", (int) parsedFilterMap.get("posId"));
 			cstmt.setInt("zon", (int) parsedFilterMap.get("zoneId"));
@@ -124,6 +129,7 @@ public class TheWallHelper extends TheBorg {
 			cstmt.setInt("metricid", metricId);
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
+				org.apache.log4j.Logger.getLogger(TheWallHelper.class).info("HashMap created!!!");
 				Map<String, Object> teamDetailsMap = new HashMap<>();
 				teamDetailsMap.put("cubeId", rs.getInt("cube_id"));
 				teamDetailsMap.put("metricScore", rs.getInt("metric_value"));
@@ -132,6 +138,7 @@ public class TheWallHelper extends TheBorg {
 					Filter f = new Filter();
 					f.setFilterId(rs.getInt("dimension_id_" + i));
 					f.setFilterName(rs.getString("dimension_name_" + i));
+					org.apache.log4j.Logger.getLogger(TheWallHelper.class).info("HashMap created!!!");
 					Map<Integer, String> filterValueMap = new HashMap<>();
 					filterValueMap.put(rs.getInt("dimension_val_id_" + i), rs.getString("dimension_val_name_" + i));
 					f.setFilterValues(filterValueMap);

@@ -204,6 +204,7 @@ public class EmployeeHelper extends TheBorg {
 	 * @return - A map of language id and language name
 	 */
 	public Map<Integer, String> getLanguageMasterMap(int companyId) {
+		org.apache.log4j.Logger.getLogger(EmployeeHelper.class).info("HashMap created!!!");
 		Map<Integer, String> languageMasterMap = new HashMap<>();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
@@ -318,7 +319,8 @@ public class EmployeeHelper extends TheBorg {
 		dch.getCompanyConnection(companyId);
 		try {
 			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).debug("Updating employee basic details" + bed.getEmployeeId());
-			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call updateEmployeeBasicDetails(?, ?)}");
+			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+					"{call updateEmployeeBasicDetails(?, ?)}");
 			cstmt.setInt("empid", bed.getEmployeeId());
 			cstmt.setString("phoneno", bed.getPhone());
 			ResultSet rs = cstmt.executeQuery();
@@ -348,7 +350,8 @@ public class EmployeeHelper extends TheBorg {
 		dch.getCompanyConnection(companyId);
 		try {
 			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).debug("Adding new work experience for employee" + wek.getEmployeeId());
-			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call insertWorkExperience(?, ?, ?, ?, ?, ?)}");
+			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+					"{call insertWorkExperience(?, ?, ?, ?, ?, ?)}");
 			cstmt.setInt("emp_id_ip", wek.getEmployeeId());
 			cstmt.setString("organization_name_ip", wek.getCompanyName());
 			cstmt.setString("position_ip", wek.getDesignation());
@@ -382,7 +385,8 @@ public class EmployeeHelper extends TheBorg {
 		dch.getCompanyConnection(companyId);
 		try {
 			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).debug("Adding new education for employee" + ed.getEmployeeId());
-			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call insertEducation(?, ?, ?, ?, ?, ?)}");
+			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+					"{call insertEducation(?, ?, ?, ?, ?, ?)}");
 			cstmt.setInt("emp_id_ip", ed.getEmployeeId());
 			cstmt.setString("institute_name_ip", ed.getInstitution());
 			cstmt.setString("certification_ip", ed.getCertification());

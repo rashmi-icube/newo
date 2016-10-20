@@ -38,6 +38,7 @@ public class FilterList extends TheBorg {
 			cstmt.setInt(1, f.getFilterId());
 			ResultSet rs = cstmt.executeQuery();
 			org.apache.log4j.Logger.getLogger(FilterList.class).debug("getFilterValues method started");
+			org.apache.log4j.Logger.getLogger(FilterList.class).info("HashMap created!!!");
 			Map<Integer, String> filterValuesMap = new HashMap<>();
 			filterValuesMap.put(0, "All");
 			while (rs.next()) {
@@ -76,6 +77,7 @@ public class FilterList extends TheBorg {
 
 				f.setFilterId(filterId);
 				f.setFilterName(filterName);
+				org.apache.log4j.Logger.getLogger(FilterList.class).info("HashMap created!!!");
 				Map<Integer, String> filterValuesMap = new HashMap<>();
 				filterValuesMap.put(0, "All");
 				while (rs.next()) {
@@ -105,6 +107,7 @@ public class FilterList extends TheBorg {
 	public Map<Integer, String> getFilterLabelMap(int companyId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
+		org.apache.log4j.Logger.getLogger(FilterList.class).info("HashMap created!!!");
 		Map<Integer, String> filterLabelMap = new HashMap<>();
 		try {
 			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getDimensionList()}");
