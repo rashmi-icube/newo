@@ -28,7 +28,8 @@ public class EmailSender {
 	DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 
 	public static final int MAX_EMAILS_TO_BE_SENT = 50;
-	List<String> toAddresses = Arrays.asList("hpatel@i-cube.in", "rashmi@i-cube.in", "ssrivastava@i-cube.in", "adoshi@i-cube.in");
+	//List<String> toAddresses = Arrays.asList("hpatel@i-cube.in", "rashmi@i-cube.in", "ssrivastava@i-cube.in", "adoshi@i-cube.in");
+	List<String> toAddresses = Arrays.asList("ssrivastava@i-cube.in");
 
 	/**
 	 * Sends email for the Scheduler Job
@@ -38,7 +39,7 @@ public class EmailSender {
 	 * @throws AddressException - If the email ID is incorrect
 	 * @throws MessagingException - If error in sending email
 	 */
-	public void sendEmail(Map<Integer, List<Map<String, String>>> schedulerJobStatusMap, String subject) throws AddressException, MessagingException {
+	public void sendEmail(Map<Integer, Map<String, String>> schedulerJobStatusMap, String subject) throws AddressException, MessagingException {
 		String host = "smtp.zoho.com";
 		String username = "owen@owenanalytics.com";
 		String password = "Abcd@654321";
@@ -68,7 +69,7 @@ public class EmailSender {
 	 * @param schedulerJobStatusMap - map of company id, job name and status of job
 	 * @return a StringBuilder object
 	 */
-	private StringBuilder getEmailTable(Map<Integer, List<Map<String, String>>> schedulerJobStatusMap) {
+	private StringBuilder getEmailTable(Map<Integer, Map<String, String>> schedulerJobStatusMap) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("<html>");
 		sb.append("<table border = 1>");
@@ -79,18 +80,17 @@ public class EmailSender {
 		sb.append("<td><b>Status</b></td>");
 		sb.append("</tr>");
 		for (int companyId : schedulerJobStatusMap.keySet()) {
-			List<Map<String, String>> companyStatusList = schedulerJobStatusMap.get(companyId);
-			for (int i = 0; i < companyStatusList.size(); i++) {
-				Map<String, String> jobStatusMap = companyStatusList.get(i);
+			Map<String, String> companyStatusMap = schedulerJobStatusMap.get(companyId);
+			for(String jobName : companyStatusMap.keySet()){
 				sb.append("<tr>");
 				sb.append("<td>");
 				sb.append(companyId);
 				sb.append("</td>");
 				sb.append("<td>");
-				sb.append(jobStatusMap.keySet().iterator().next());
+				sb.append(jobName);
 				sb.append("</td>");
 				sb.append("<td>");
-				sb.append(jobStatusMap.values().iterator().next());
+				sb.append(companyStatusMap.get(jobName));
 				sb.append("</td>");
 				sb.append("</tr>");
 			}

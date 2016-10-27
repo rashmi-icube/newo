@@ -1,13 +1,11 @@
 package org.icube.owen.jobScheduler;
 
-import java.sql.CallableStatement;
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.TimerTask;
 
@@ -16,7 +14,6 @@ import javax.mail.MessagingException;
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.helper.CompanyConfig;
 import org.icube.owen.helper.DatabaseConnectionHelper;
-//import org.icube.owen.helper.UtilHelper;
 import org.icube.owen.slack.SlackIntegration;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.Rserve.RConnection;
@@ -25,8 +22,7 @@ public class CompanyDAO extends TimerTask {
 
 	private RConnection rCon;
 	private DatabaseConnectionHelper dch;
-	Map<Integer, List<Map<String, String>>> schedulerJobStatusMap = new HashMap<>();
-	// private String loginUrl = UtilHelper.getConfigProperty("login_page_url");
+	Map<Integer, Map<String, String>> schedulerJobStatusMap = new HashMap<>();
 	boolean jobStatus = true;
 
 	@Override
@@ -36,13 +32,15 @@ public class CompanyDAO extends TimerTask {
 		EmailSender es = new EmailSender();
 		String subject;
 		try {
-			// check if all the jobs have run successfully or not
+			// check if all the jobs have run successfully or not and accordingly set the subject of the mail
 			if (jobStatus == true) {
 				subject = "Scheduler job executed successfully";
 			} else {
 				subject = "Scheduler job failed";
 				jobStatus = true;
 			}
+
+			// send the scheduler mail
 			es.sendEmail(schedulerJobStatusMap, subject);
 		} catch (MessagingException e) {
 			org.apache.log4j.Logger.getLogger(CompanyDAO.class).error("Error in sending mail", e);
@@ -57,46 +55,54 @@ public class CompanyDAO extends TimerTask {
 		try {
 			// get company connections
 			dch = ObjectFactory.getDBHelper();
-			ResultSet companyDetails = null;
-			// startDbConnection();
-
-			Statement stmt = null;
-			stmt = dch.masterCon.createStatement();
-			companyDetails = stmt
+			Statement stmt = dch.masterCon.createStatement();
+			ResultSet companyDetails = stmt
 					.executeQuery("Select comp_name, comp_id, comp_sql_dbname, sql_server, sql_user_id, sql_password from company_master where comp_status='Active'");
 
 			// connect to r
 			RConnection rCon = dch.getRConn();
 			org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("R Connection Available : " + rCon.isConnected());
+
+			// loop through every active company from the database
 			while (companyDetails.next()) {
-				dch.getCompanyConnection(companyDetails.getInt("comp_id"));
-				CompanyConfig compConfig = dch.companyConfigMap.get(companyDetails.getInt("comp_id"));
+
+				int companyId = companyDetails.getInt("comp_id");
+				dch.getCompanyConnection(companyId);
+				CompanyConfig compConfig = dch.companyConfigMap.get(companyId);
+
+				// check if run jobs is enabled for the company or not
 				if (compConfig.isRunJobs()) {
 					org.apache.log4j.Logger.getLogger(CompanyDAO.class).info("HashMap created!!!");
 					Map<String, String> jobStatusMap = new HashMap<>();
-					List<Map<String, String>> jobStatusMapList = new ArrayList<>();
-					// run JobInitStatus
-					org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("JobInitStatus method started");
-					org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug(
-							"Parameters for R function :  CompanyId : " + companyDetails.getInt("comp_id"));
 
-					rCon.assign("CompanyId", new int[] { companyDetails.getInt("comp_id") });
+					// run JobInitStatus if run jobs is enabled for the company
+					org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("JobInitStatus method started");
+					org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("Parameters for R function :  CompanyId : " + companyId);
+
+					rCon.assign("CompanyId", new int[] { companyId });
 					org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("Calling the actual function in R Script JobInitStatus");
 					REXP status = rCon.parseAndEval("try(eval(JobInitStatus(CompanyId)))");
 					if (status.inherits("try-error")) {
-						// add to map of status
+
+						// add the error to map of status
 						jobStatusMap.put("JobInitStatus", "failed :" + status.asString());
 						jobStatus = false;
 					} else {
 						org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("Successfully executed the JobInitStatus method ");
-						// add to map of status
+
+						// add the job success status to map of status
 						jobStatusMap.put("JobInitStatus", "Pass");
 					}
-					jobStatusMapList.add(jobStatusMap);
-					schedulerJobStatusMap.put(companyDetails.getInt("comp_id"), jobStatusMapList);
+
+					// add the jobStatusMapList to the schedulerJobStatusMap for the company
+					schedulerJobStatusMap.put(companyId, jobStatusMap);
 					dch.releaseRcon();
-					runCompanyMetricJobs(companyDetails);
-					runNewQuestionJob(companyDetails.getInt("comp_id"));
+
+					// call runCompanyMetricJobs function to run the 10 scheduler jobs
+					runCompanyMetricJobs(companyDetails, jobStatusMap);
+
+					// call function to run the new question jobs to find if there any any new questions
+					runNewQuestionJob(companyId, jobStatusMap);
 				}
 			}
 		} catch (Exception e) {
@@ -108,13 +114,16 @@ public class CompanyDAO extends TimerTask {
 	}
 
 	/**
-	 * Connects to the company database and execute the methods
+	 * Connects to the company database and execute the scheduler job methods
 	 * @param rs - ResultSet containing the details of the company
+	 * @param jobStatusMap 
 	 */
 
-	public void runCompanyMetricJobs(ResultSet rs) {
+	public void runCompanyMetricJobs(ResultSet rs, Map<String, String> jobStatusMap) {
 
 		try {
+
+			// get the company connection details and connect to the company database
 			int companyId = rs.getInt("comp_id");
 			String companyName = rs.getString("comp_name");
 			dch.getCompanyConnection(companyId);
@@ -122,34 +131,38 @@ public class CompanyDAO extends TimerTask {
 			org.apache.log4j.Logger.getLogger(CompanyDAO.class)
 					.debug("Successfully connected to company db with companyId : " + rs.getInt("comp_id"));
 
+			// find the number of questions closed
 			org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("Starting query to retrieve number of questions closed");
 			Date date = new Date(System.currentTimeMillis() - 24 * 60 * 60 * 1000);
 			ResultSet res = stmt.executeQuery("select count(que_id) as question_ended from question where end_date='" + date
 					+ "' and survey_batch_id=1;");
 			res.next();
 			int questionsClosed = res.getInt("question_ended");
+
+			// if there are questions closed, only then execute the jobs
 			if (questionsClosed > 0) {
 				org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("Started jobs for company: " + companyName);
 				try {
-					runRMethod("calculate_edge", companyId, companyName);
-					runRMethod("update_neo", companyId, companyName);
-					runRMethod("JobIndNwMetric", companyId, companyName);
-					runRMethod("JobCubeNwMetric", companyId, companyName);
-					runRMethod("JobDimensionNwMetric", companyId, companyName);
-					runRMethod("JobIndividualMetric", companyId, companyName);
-					runRMethod("JobTeamMetric", companyId, companyName);
-					runRMethod("JobDimensionMetric", companyId, companyName);
-					runRMethod("JobInitiativeMetric", companyId, companyName);
-					runRMethod("JobAlert", companyId, companyName);
+					runRMethod("calculate_edge", companyId, companyName, jobStatusMap);
+					runRMethod("update_neo", companyId, companyName, jobStatusMap);
+					runRMethod("JobIndNwMetric", companyId, companyName, jobStatusMap);
+					runRMethod("JobCubeNwMetric", companyId, companyName, jobStatusMap);
+					runRMethod("JobDimensionNwMetric", companyId, companyName, jobStatusMap);
+					runRMethod("JobIndividualMetric", companyId, companyName, jobStatusMap);
+					runRMethod("JobTeamMetric", companyId, companyName, jobStatusMap);
+					runRMethod("JobDimensionMetric", companyId, companyName, jobStatusMap);
+					runRMethod("JobInitiativeMetric", companyId, companyName, jobStatusMap);
+					runRMethod("JobAlert", companyId, companyName, jobStatusMap);
 				} catch (Exception e) {
+					dch.releaseRcon();
 					org.apache.log4j.Logger.getLogger(CompanyDAO.class).error("Unable to execute Scheduler jobs ", e);
 				}
 
 			} else {
-				org.apache.log4j.Logger.getLogger(CompanyDAO.class).info("HashMap created!!!");
-				Map<String, String> jobStatusMap = new HashMap<>();
+
+				// update the jobStatusMap
 				jobStatusMap.put("Company Metrics Job", "No questions were closed");
-				schedulerJobStatusMap.get(companyId).add(jobStatusMap);
+				schedulerJobStatusMap.put(companyId, jobStatusMap);
 			}
 
 		} catch (Exception e) {
@@ -166,27 +179,31 @@ public class CompanyDAO extends TimerTask {
 	 * @param rFunctionName - R function name
 	 * @param companyId - Company ID
 	 * @param companyName - Company name
+	 * @param jobStatusMap 
 	 * @throws Exception - if the R functions are not executed successfully
 	 */
-	public void runRMethod(String rFunctionName, int companyId, String companyName) throws Exception {
-		org.apache.log4j.Logger.getLogger(CompanyDAO.class).info("HashMap created!!!");
-		Map<String, String> jobStatusMap = new HashMap<>();
+	public void runRMethod(String rFunctionName, int companyId, String companyName, Map<String, String> jobStatusMap) throws Exception {
 		org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("Parameters for R function :  CompanyId : " + companyId);
 		rCon = dch.getRConn();
 		rCon.assign("CompanyId", new int[] { companyId });
 		org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug(rFunctionName + " method started");
 
+		// execute the R function
 		REXP status = rCon.parseAndEval("try(eval(" + rFunctionName + "(CompanyId)))");
+
+		// if job fails, update the job fail error message
 		if (status.inherits("try-error")) {
 			dch.releaseRcon();
 			jobStatus = false;
 			jobStatusMap.put(rFunctionName, "Failed : " + status.asString());
-			schedulerJobStatusMap.get(companyId).add(jobStatusMap);
+			schedulerJobStatusMap.put(companyId, jobStatusMap);
 			org.apache.log4j.Logger.getLogger(CompanyDAO.class).error("Error: " + status.asString());
 			throw new Exception("Error: " + status.asString());
 		} else {
+
+			// if job is successfully executed, update the job success status
 			jobStatusMap.put(rFunctionName, "Pass");
-			schedulerJobStatusMap.get(companyId).add(jobStatusMap);
+			schedulerJobStatusMap.put(companyId, jobStatusMap);
 			org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("Successfully executed the " + rFunctionName + " method ");
 		}
 		dch.releaseRcon();
@@ -195,14 +212,11 @@ public class CompanyDAO extends TimerTask {
 	/**
 	 * Retrieves the new questions to be answered and sends notification mails
 	 * @param companyId - Company ID
+	 * @param jobStatusMap 
 	 * @throws SQLException - if error in retrieving data from database
 	 */
-	public void runNewQuestionJob(int companyId) throws SQLException {
+	public void runNewQuestionJob(int companyId, Map<String, String> jobStatusMap) throws SQLException {
 		ArrayList<String> addresses = new ArrayList<String>();
-		org.apache.log4j.Logger.getLogger(CompanyDAO.class).info("HashMap created!!!");
-		Map<String, String> jobStatusMapForEmail = new HashMap<>();
-		Map<String, String> jobStatusMapForSlack = new HashMap<>();
-		Map<String, String> jobStatusMap = new HashMap<>();
 		try {
 			Statement stmt = dch.companyConnectionMap.get(companyId).getSqlConnection().createStatement();
 			// check if new emails have to be sent for the specific company
@@ -216,39 +230,39 @@ public class CompanyDAO extends TimerTask {
 			}
 			// in case of new questions send email
 			if (addresses.size() > 0) {
-
-				// refresh the company config details
-
-				CallableStatement cstmt = dch.masterCon.prepareCall("{call getCompanyConfig(?)}");
-				cstmt.setInt(1, companyId);
-				ResultSet rs = cstmt.executeQuery();
-				while (rs.next()) {
-					// TODO : Swarna ... Need code review for this code
-					// dch.setCompanyConfigDetails(companyId, dch.companyConfigMap.get(companyId), rs);
-				}
-
+				// if Send email is enabled for the company, send the new question emails
 				if (dch.companyConfigMap.get(companyId).isSendEmail()) {
 					EmailSender es = new EmailSender();
 					es.sendEmailforQuestions(companyId, addresses);
-					jobStatusMapForEmail.put("NewQuestionJobEmail", "Total emails sent : " + addresses.size());
-				} else {
-					jobStatusMapForEmail.put("NewQuestionJobEmail", "New question emails are disabled for the company");
-				}
-				schedulerJobStatusMap.get(companyId).add(jobStatusMapForEmail);
 
+					// update the count of number of new question emails sent
+					jobStatusMap.put("NewQuestionJobEmail", "Total emails sent : " + addresses.size());
+				} else {
+					jobStatusMap.put("NewQuestionJobEmail", "New question emails are disabled for the company");
+				}
+
+				// add the jobStatusMapForEmail to the schedulerJobStatusMap
+				schedulerJobStatusMap.put(companyId, jobStatusMap);
+				// schedulerJobStatusMap.get(companyId).add(jobStatusMapForEmail);
+
+				// if send slack is enabled for the company, then send slack message
 				if (dch.companyConfigMap.get(companyId).isSendSlack()) {
 					SlackIntegration sl = new SlackIntegration();
 					sl.sendMessage(companyId,
 							"You have new questions to answer\nPlease login to answer\n<http://engage.owenanalytics.com|engage.owenanalytics.com>");
-					jobStatusMapForSlack.put("NewQuestionJobSlack", "Slack message sent for company");
+					jobStatusMap.put("NewQuestionJobSlack", "Slack message sent for company");
 				} else {
-					jobStatusMapForSlack.put("NewQuestionJobSlack", "New question slack is disabled for the company");
+					jobStatusMap.put("NewQuestionJobSlack", "New question slack is disabled for the company");
 				}
-				schedulerJobStatusMap.get(companyId).add(jobStatusMapForSlack);
+				// schedulerJobStatusMap.get(companyId).add(jobStatusMapForSlack);
+				schedulerJobStatusMap.put(companyId, jobStatusMap);
 
 			} else {
+
+				// if no new questions are there for the company, just update the jobStatusMap
 				jobStatusMap.put("NewQuestionJob", "No new questions");
-				schedulerJobStatusMap.get(companyId).add(jobStatusMap);
+				// schedulerJobStatusMap.get(companyId).add(jobStatusMap);
+				schedulerJobStatusMap.put(companyId, jobStatusMap);
 			}
 
 		} catch (SQLException e) {
