@@ -178,4 +178,28 @@ public class HrDashboardHelper extends TheBorg {
 		}
 		return alertList;
 	}
+	
+	
+	// TODO : RASHMI ::: DUMMY FUNCTIONS FOR TENTATIVE DASHBOARD
+	public Map<String, int[]> getReportData1(String group, String subGroup){
+		Map<String, int[]> subResult = new HashMap<>();
+		int[] anArray = {20, 20, 20,20, 20};
+		subResult.put("All Day Dining", anArray);
+		int[] anArray1 = { 40, 30, 20,10, 0};
+		subResult.put("Bakery", anArray1);
+		int[] anArray2 = {50, 10, 10,10, 20};
+		subResult.put("Banquets Team", anArray2);
+		return subResult;
+	}
+	
+	public Map<String, int[]> getReportData2(String group, String subGroup){
+		Map<String, int[]> subResult = new HashMap<>();
+		int[] anArray = {20, 20, 20,20, 20};
+		int[] anArray1 = { 40, 30, 20,10, 0};
+		int[] anArray2 = {50, 10, 10,10, 20};
+		subResult.put("All Day Dining", anArray2);
+		subResult.put("Bakery", anArray);
+		subResult.put("Banquets Team", anArray1);
+		return subResult;
+	}
 }

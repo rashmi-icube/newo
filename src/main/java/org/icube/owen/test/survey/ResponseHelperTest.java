@@ -7,12 +7,12 @@ import java.util.Map;
 
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.employee.Employee;
-import org.icube.owen.survey.Response;
+import org.icube.owen.survey.ResponseHelper;
 import org.junit.Test;
 
-public class ResponseTest {
+public class ResponseHelperTest {
 
-	Response r = (Response) ObjectFactory.getInstance("org.icube.owen.survey.Response");
+	ResponseHelper r = (ResponseHelper) ObjectFactory.getInstance("org.icube.owen.survey.Response");
 	int companyId = 5;
 
 	@Test

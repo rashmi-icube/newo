@@ -12,7 +12,7 @@ import org.junit.runners.Suite.SuiteClasses;
 		org.icube.owen.test.initiative.InitiativeHelperTest.class, org.icube.owen.test.initiative.InitiativeListTest.class,
 		org.icube.owen.test.initiative.InitiativeTest.class, org.icube.owen.test.metrics.MetricsListTest.class,
 		org.icube.owen.test.survey.BatchListTest.class, org.icube.owen.test.survey.QuestionListTest.class,
-		org.icube.owen.test.survey.QuestionTest.class, org.icube.owen.test.survey.ResponseTest.class })
+		org.icube.owen.test.survey.QuestionTest.class, org.icube.owen.test.survey.ResponseHelperTest.class })
 public class AllTests {
 
 }
