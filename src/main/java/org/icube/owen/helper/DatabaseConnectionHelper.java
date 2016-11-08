@@ -76,8 +76,7 @@ public class DatabaseConnectionHelper extends TheBorg {
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("An error occurred while trying to connect to R", e);
 		}
 
-		// TODO : Swarna ... Fix job scheduler hash map issue
-		// runScheduler();
+		runScheduler();
 
 	}
 

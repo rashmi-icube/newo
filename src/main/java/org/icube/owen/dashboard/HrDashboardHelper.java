@@ -178,28 +178,106 @@ public class HrDashboardHelper extends TheBorg {
 		}
 		return alertList;
 	}
-	
-	
+
 	// TODO : RASHMI ::: DUMMY FUNCTIONS FOR TENTATIVE DASHBOARD
-	public Map<String, int[]> getReportData1(String group, String subGroup){
-		Map<String, int[]> subResult = new HashMap<>();
-		int[] anArray = {20, 20, 20,20, 20};
-		subResult.put("All Day Dining", anArray);
-		int[] anArray1 = { 40, 30, 20,10, 0};
-		subResult.put("Bakery", anArray1);
-		int[] anArray2 = {50, 10, 10,10, 20};
-		subResult.put("Banquets Team", anArray2);
+	/*public Map<String, ReportObject> getReportData1(String group, String subGroup) {
+		Map<String, ReportObject> subResult = new HashMap<>();
+		ReportObject ro = new ReportObject();
+		ro.setStronglyAgree(20);
+		ro.setAgree(20);
+		ro.setNeutral(20);
+		ro.setDisagree(20);
+		ro.setStronglyDisagree(20);
+		subResult.put("All Day Dining", ro);
+		ro.setStronglyAgree(40);
+		ro.setAgree(30);
+		ro.setNeutral(20);
+		ro.setDisagree(10);
+		ro.setStronglyDisagree(0);
+		subResult.put("Bakery", ro);
+		ro.setStronglyAgree(50);
+		ro.setAgree(10);
+		ro.setNeutral(10);
+		ro.setDisagree(10);
+		ro.setStronglyDisagree(20);
+		subResult.put("Banquets Team", ro);
 		return subResult;
 	}
+
+	public Map<String, ReportObject> getReportData2(String group, String subGroup) {
+		Map<String, ReportObject> subResult = new HashMap<>();
+		ReportObject ro = new ReportObject();
+		ro.setStronglyAgree(50);
+		ro.setAgree(10);
+		ro.setNeutral(10);
+		ro.setDisagree(10);
+		ro.setStronglyDisagree(20);
+		subResult.put("All Day Dining", ro);
+		ro.setStronglyAgree(20);
+		ro.setAgree(20);
+		ro.setNeutral(20);
+		ro.setDisagree(20);
+		ro.setStronglyDisagree(20);
+		subResult.put("Bakery", ro);
+		ro.setStronglyAgree(40);
+		ro.setAgree(30);
+		ro.setNeutral(20);
+		ro.setDisagree(10);
+		ro.setStronglyDisagree(0);
+		subResult.put("Banquets Team", ro);
+		return subResult;
+	}*/
 	
-	public Map<String, int[]> getReportData2(String group, String subGroup){
-		Map<String, int[]> subResult = new HashMap<>();
-		int[] anArray = {20, 20, 20,20, 20};
-		int[] anArray1 = { 40, 30, 20,10, 0};
-		int[] anArray2 = {50, 10, 10,10, 20};
-		subResult.put("All Day Dining", anArray2);
-		subResult.put("Bakery", anArray);
-		subResult.put("Banquets Team", anArray1);
+	public Map<String, ReportObject> getReportData1(String group, String subGroup) {
+		Map<String, ReportObject> subResult = new HashMap<>();
+		ReportObject ro = new ReportObject();
+		ro.setStronglyAgree(20);
+		ro.setAgree(20);
+		ro.setNeutral(20);
+		ro.setDisagree(20);
+		ro.setStronglyDisagree(20);
+		subResult.put("Dining", ro);
+		ReportObject ro1 = new ReportObject();
+		ro1.setStronglyAgree(40);
+		ro1.setAgree(30);
+		ro1.setNeutral(20);
+		ro1.setDisagree(10);
+		ro1.setStronglyDisagree(0);
+		subResult.put("Bakery", ro1);
+		ReportObject ro2 = new ReportObject();
+		ro2.setStronglyAgree(50);
+		ro2.setAgree(10);
+		ro2.setNeutral(10);
+		ro2.setDisagree(10);
+		ro2.setStronglyDisagree(20);
+		subResult.put("Banquets", ro2);
+		
+		return subResult;
+	}
+
+	public Map<String, ReportObject> getReportData2(String group, String subGroup) {
+		Map<String, ReportObject> subResult = new HashMap<>();
+		ReportObject ro = new ReportObject();
+		ro.setStronglyAgree(50);
+		ro.setAgree(10);
+		ro.setNeutral(10);
+		ro.setDisagree(10);
+		ro.setStronglyDisagree(20);
+		subResult.put("Dining", ro);
+		ReportObject ro1 = new ReportObject();
+		ro1.setStronglyAgree(20);
+		ro1.setAgree(20);
+		ro1.setNeutral(20);
+		ro1.setDisagree(20);
+		ro1.setStronglyDisagree(20);
+		subResult.put("Bakery", ro1);
+		ReportObject ro2 = new ReportObject();
+		ro2.setStronglyAgree(40);
+		ro2.setAgree(30);
+		ro2.setNeutral(20);
+		ro2.setDisagree(10);
+		ro2.setStronglyDisagree(0);
+		subResult.put("Banquets", ro2);
 		return subResult;
 	}
 }

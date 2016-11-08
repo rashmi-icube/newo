@@ -15,19 +15,32 @@ import org.icube.owen.helper.UtilHelper;
 
 public class ResponseHelper extends TheBorg {
 
+	/**
+	 * Save all responses for ME/WE/MOOD question using the same function
+	 * @param companyId
+	 * @param employeeId - logged in user
+	 * @param responseList - answer objects
+	 * @return true/false - if the response is saved or not
+	 */
 	public boolean saveAllResponses(int companyId, int employeeId, List<Response> responseList) {
+		org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug("Entering saveAllResponses for employee ID : " + employeeId);
 		boolean allResponsesSaved = true;
 
 		if (!responseList.isEmpty()) {
-			for (int i = 0; i <= responseList.size(); i++) {
+			for (int i = 0; i < responseList.size(); i++) {
 				Response respObj = responseList.get(i);
 				if (respObj.getQuestionType() == QuestionType.ME || respObj.getQuestionType() == QuestionType.MOOD) {
-					allResponsesSaved = (allResponsesSaved || saveMeResponse(companyId, employeeId, respObj.getQuestionId(), respObj
-							.getResponseValue(), respObj.getFeedback()));
+					org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug(
+							"Entering saveAllResponses (ME/MOOD) for question ID" + respObj.getQuestionId() + " for employee ID : " + employeeId);
+					boolean flag = saveMeResponse(companyId, employeeId, respObj.getQuestionId(), respObj.getResponseValue(), respObj.getFeedback());
+					allResponsesSaved = (allResponsesSaved || flag);
 
 				} else {
-					allResponsesSaved = (allResponsesSaved || saveWeResponse(companyId, employeeId, respObj.getQuestionId(), respObj
-							.getTargetEmployee(), respObj.getResponseValue()));
+					org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug(
+							"Entering saveAllResponses (WE) for question ID" + respObj.getQuestionId() + " for employee ID : " + employeeId);
+					boolean flag = saveWeResponse(companyId, employeeId, respObj.getQuestionId(), respObj.getTargetEmployee(), respObj
+							.getResponseValue());
+					allResponsesSaved = (allResponsesSaved || flag);
 				}
 			}
 		}
@@ -39,7 +52,7 @@ public class ResponseHelper extends TheBorg {
 	 * Saves the response for the ME question
 	 * @param companyId - Company ID
 	 * @param employeeId - ID of the employee who is logged in
-	 * @param q - the question object
+	 * @param questionId 
 	 * @param responseValue - Value of the response
 	 * @param feedback - The comments for the question
 	 * @return true/false - if the response is saved or not
@@ -54,22 +67,61 @@ public class ResponseHelper extends TheBorg {
 			cstmt.setTimestamp("responsetime", UtilHelper.convertJavaDateToSqlTimestamp(Date.from(Instant.now())));
 			cstmt.setInt("score", responseValue);
 			cstmt.setString("feedbck", feedback);
-			org.apache.log4j.Logger.getLogger(Response.class).debug("SQL statement for question : " + questionId + " : " + cstmt.toString());
+			org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug("SQL statement for question : " + questionId + " : " + cstmt.toString());
 			ResultSet rs = cstmt.executeQuery();
 			if (rs.next()) {
-				org.apache.log4j.Logger.getLogger(Response.class).debug("RS statement for question : " + questionId + " : " + rs.toString());
+				org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug("RS statement for question : " + questionId + " : " + rs.toString());
 				responseSaved = true;
-				org.apache.log4j.Logger.getLogger(Response.class).debug("Successfully saved the response for : " + questionId);
+				org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug("Successfully saved the response for : " + questionId);
 			}
 		} catch (Exception e) {
-			org.apache.log4j.Logger.getLogger(Response.class).error("Exception while saving the response for question : " + questionId, e);
+			org.apache.log4j.Logger.getLogger(ResponseHelper.class).error("Exception while saving the response for question : " + questionId, e);
 		}
 
 		return responseSaved;
 	}
 
-	public boolean saveWeResponse(int companyId, int employeeId, int questionId, int targeEmployee, int responseValue) {
+	/**
+	 * Save we response from the all questions function
+	 * @param companyId
+	 * @param employeeId - logged in employee
+	 * @param questionId
+	 * @param targetEmployee
+	 * @param responseValue
+	 * @return true/false - if the response is saved or not
+	 */
+	public boolean saveWeResponse(int companyId, int employeeId, int questionId, int targetEmployee, int responseValue) {
 		boolean responseSaved = false;
+		org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug(
+				"Entering the saveWeResponse for companyId " + companyId + " employeeId " + employeeId);
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		try {
+			dch.getCompanyConnection(companyId);
+			org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug(
+					"Saving the response in the db for questionId " + questionId + "target employee " + targetEmployee + " with the response "
+							+ responseValue);
+
+			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call insertWeResponse(?,?,?,?,?)}");
+			cstmt.setInt("empid", employeeId);
+			cstmt.setInt("queid", questionId);
+			cstmt.setTimestamp("responsetime", UtilHelper.convertJavaDateToSqlTimestamp(Date.from(Instant.now())));
+			cstmt.setInt("targetid", targetEmployee);
+			cstmt.setInt("wt", responseValue);
+			org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug("SQL statement for question : " + questionId + " : " + cstmt.toString());
+			ResultSet rs = cstmt.executeQuery();
+			if (rs.next()) {
+				org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug("RS statement for question : " + questionId + " : " + rs.toString());
+				responseSaved = true;
+			}
+			org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug(
+					"Successfully saved the response for questionId " + questionId + "target employee " + targetEmployee + " with the response "
+							+ responseValue);
+
+		} catch (Exception e) {
+			org.apache.log4j.Logger.getLogger(ResponseHelper.class).error(
+					"Exception while saving the response for questionId " + questionId + "target employee " + targetEmployee + " with the response "
+							+ responseValue, e);
+		}
 
 		return responseSaved;
 	}
@@ -83,7 +135,7 @@ public class ResponseHelper extends TheBorg {
 	 * @return true/false - if the response is saved successfully or not
 	 */
 	public boolean saveWeResponse(int companyId, int employeeId, int questionId, Map<Employee, Integer> employeeRating) {
-		org.apache.log4j.Logger.getLogger(Response.class).debug(
+		org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug(
 				"Entering the saveWeResponse for companyId " + companyId + " employeeId " + employeeId);
 		boolean responseSaved = false;
 		int count = 0;
@@ -99,7 +151,7 @@ public class ResponseHelper extends TheBorg {
 				dch.getCompanyConnection(companyId);
 
 				for (Employee e : employeeRating.keySet()) {
-					org.apache.log4j.Logger.getLogger(Response.class).debug(
+					org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug(
 							"Saving the response in the db for questionId " + questionId + "target employee " + e.getEmployeeId()
 									+ " with the response " + employeeRating.get(e));
 
@@ -110,24 +162,26 @@ public class ResponseHelper extends TheBorg {
 					cstmt.setTimestamp("responsetime", UtilHelper.convertJavaDateToSqlTimestamp(Date.from(Instant.now())));
 					cstmt.setInt("targetid", e.getEmployeeId());
 					cstmt.setInt("wt", employeeRating.get(e));
-					org.apache.log4j.Logger.getLogger(Response.class).debug("SQL statement for question : " + questionId + " : " + cstmt.toString());
+					org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug(
+							"SQL statement for question : " + questionId + " : " + cstmt.toString());
 					ResultSet rs = cstmt.executeQuery();
 					if (rs.next()) {
-						org.apache.log4j.Logger.getLogger(Response.class).debug("RS statement for question : " + questionId + " : " + rs.toString());
+						org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug(
+								"RS statement for question : " + questionId + " : " + rs.toString());
 						responseSaved = true;
 						count++;
 					}
 				}
 				if (employeeRating.size() == count) {
-					org.apache.log4j.Logger.getLogger(Response.class).debug("Successfully saved the response for : " + questionId);
+					org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug("Successfully saved the response for : " + questionId);
 				}
 			} else {
-				org.apache.log4j.Logger.getLogger(Response.class).debug(
+				org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug(
 						"Response is already stored for question ID :" + questionId + " for employee ID : " + employeeId);
 			}
 
 		} catch (Exception e) {
-			org.apache.log4j.Logger.getLogger(Response.class).error("Exception while saving the response for question : " + questionId, e);
+			org.apache.log4j.Logger.getLogger(ResponseHelper.class).error("Exception while saving the response for question : " + questionId, e);
 		}
 
 		return responseSaved;
