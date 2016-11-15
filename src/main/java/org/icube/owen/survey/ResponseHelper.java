@@ -17,29 +17,31 @@ public class ResponseHelper extends TheBorg {
 
 	/**
 	 * Save all responses for ME/WE/MOOD question using the same function
-	 * @param companyId
-	 * @param employeeId - logged in user
 	 * @param responseList - answer objects
 	 * @return true/false - if the response is saved or not
 	 */
-	public boolean saveAllResponses(int companyId, int employeeId, List<Response> responseList) {
-		org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug("Entering saveAllResponses for employee ID : " + employeeId);
+	public boolean saveAllResponses(List<Response> responseList) {
 		boolean allResponsesSaved = true;
 
 		if (!responseList.isEmpty()) {
+			org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug("Entering saveAllResponses");
+
 			for (int i = 0; i < responseList.size(); i++) {
 				Response respObj = responseList.get(i);
 				if (respObj.getQuestionType() == QuestionType.ME || respObj.getQuestionType() == QuestionType.MOOD) {
 					org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug(
-							"Entering saveAllResponses (ME/MOOD) for question ID" + respObj.getQuestionId() + " for employee ID : " + employeeId);
-					boolean flag = saveMeResponse(companyId, employeeId, respObj.getQuestionId(), respObj.getResponseValue(), respObj.getFeedback());
+							"Entering saveAllResponses (ME/MOOD) for question ID" + respObj.getQuestionId() + " for employee ID : "
+									+ respObj.getEmployeeId());
+					boolean flag = saveMeResponse(respObj.getCompanyId(), respObj.getEmployeeId(), respObj.getQuestionId(), respObj
+							.getResponseValue());
 					allResponsesSaved = (allResponsesSaved || flag);
 
 				} else {
 					org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug(
-							"Entering saveAllResponses (WE) for question ID" + respObj.getQuestionId() + " for employee ID : " + employeeId);
-					boolean flag = saveWeResponse(companyId, employeeId, respObj.getQuestionId(), respObj.getTargetEmployee(), respObj
-							.getResponseValue());
+							"Entering saveAllResponses (WE) for question ID" + respObj.getQuestionId() + " for employee ID : "
+									+ respObj.getEmployeeId());
+					boolean flag = saveWeResponse(respObj.getCompanyId(), respObj.getEmployeeId(), respObj.getQuestionId(), respObj
+							.getTargetEmployee(), respObj.getResponseValue());
 					allResponsesSaved = (allResponsesSaved || flag);
 				}
 			}
@@ -57,7 +59,7 @@ public class ResponseHelper extends TheBorg {
 	 * @param feedback - The comments for the question
 	 * @return true/false - if the response is saved or not
 	 */
-	public boolean saveMeResponse(int companyId, int employeeId, int questionId, int responseValue, String feedback) {
+	public boolean saveMeResponse(int companyId, int employeeId, int questionId, int responseValue) {
 		boolean responseSaved = false;
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		try {
@@ -66,7 +68,7 @@ public class ResponseHelper extends TheBorg {
 			cstmt.setInt("queid", questionId);
 			cstmt.setTimestamp("responsetime", UtilHelper.convertJavaDateToSqlTimestamp(Date.from(Instant.now())));
 			cstmt.setInt("score", responseValue);
-			cstmt.setString("feedbck", feedback);
+			cstmt.setString("feedbck", "");
 			org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug("SQL statement for question : " + questionId + " : " + cstmt.toString());
 			ResultSet rs = cstmt.executeQuery();
 			if (rs.next()) {

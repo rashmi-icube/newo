@@ -4,11 +4,28 @@ import org.icube.owen.TheBorg;
 
 public class Response extends TheBorg {
 
+	private int companyId;
+	private int employeeId;
 	private int questionId;
 	private QuestionType questionType;
 	private int responseValue;
-	private String feedback;
 	private int targetEmployee;
+
+	public int getCompanyId() {
+		return companyId;
+	}
+
+	public void setCompanyId(int companyId) {
+		this.companyId = companyId;
+	}
+
+	public int getEmployeeId() {
+		return employeeId;
+	}
+
+	public void setEmployeeId(int employeeId) {
+		this.employeeId = employeeId;
+	}
 
 	public int getQuestionId() {
 		return questionId;
@@ -32,14 +49,6 @@ public class Response extends TheBorg {
 
 	public void setResponseValue(int responseValue) {
 		this.responseValue = responseValue;
-	}
-
-	public String getFeedback() {
-		return feedback;
-	}
-
-	public void setFeedback(String feedback) {
-		this.feedback = feedback;
 	}
 
 	public int getTargetEmployee() {

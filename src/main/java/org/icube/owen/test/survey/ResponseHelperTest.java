@@ -18,7 +18,7 @@ public class ResponseHelperTest {
 	@Test
 	public void testSaveMeResponse() {
 
-		assertTrue(r.saveMeResponse(companyId, 64, 1, 3, "test feedback"));
+		assertTrue(r.saveMeResponse(companyId, 64, 1, 3));
 	}
 
 	@Test

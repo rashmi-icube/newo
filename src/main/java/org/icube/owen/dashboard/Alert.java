@@ -11,7 +11,6 @@ import java.util.Map;
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.TheBorg;
 import org.icube.owen.employee.Employee;
-import org.icube.owen.employee.EmployeeHelper;
 import org.icube.owen.employee.EmployeeList;
 import org.icube.owen.filter.Filter;
 import org.icube.owen.helper.DatabaseConnectionHelper;
