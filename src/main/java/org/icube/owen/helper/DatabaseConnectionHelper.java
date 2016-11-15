@@ -8,17 +8,12 @@ import java.sql.SQLException;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Timer;
 import java.util.concurrent.TimeUnit;
 
 import org.icube.owen.TheBorg;
 import org.icube.owen.jobScheduler.CompanyDAO;
-import org.neo4j.jdbc.Driver;
-import org.rosuda.REngine.REXP;
-import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RConnection;
-import org.rosuda.REngine.Rserve.RserveException;
 
 public class DatabaseConnectionHelper extends TheBorg {
 
@@ -48,8 +43,9 @@ public class DatabaseConnectionHelper extends TheBorg {
 					"An error occurred while connecting to the master database on : " + MASTER_URL + " with user name : " + MASTER_USER, e);
 		}
 
+		// TODO:remove comment once a final solution to R and neo is found
 		// R connection
-		try {
+		/*try {
 			rCon = (rCon != null && rCon.isConnected()) ? rCon : new RConnection();
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Successfully connected to R");
 			String rScriptPath = UtilHelper.getConfigProperty("r_script_path");
@@ -67,16 +63,16 @@ public class DatabaseConnectionHelper extends TheBorg {
 				throw new REXPMismatchException(loadRScript, "Error: " + loadRScript.asString());
 			} else {
 				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Successfully loaded metric.r script");
-			}
-			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).info("HashMap created!!!");
-			companyConfigMap = new HashMap<>();
-			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).info("HashMap created!!!");
-			companyConnectionMap = new HashMap<>();
-		} catch (RserveException | REXPMismatchException e) {
+			}*/
+		org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).info("HashMap created!!!");
+		companyConfigMap = new HashMap<>();
+		org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).info("HashMap created!!!");
+		companyConnectionMap = new HashMap<>();
+		/*} catch (RserveException | REXPMismatchException e) {
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("An error occurred while trying to connect to R", e);
-		}
+		}*/
 
-		runScheduler();
+		// runScheduler();
 
 	}
 
@@ -109,18 +105,22 @@ public class DatabaseConnectionHelper extends TheBorg {
 				}
 			}
 
-			if (rCon.isConnected()) {
+			// TODO:remove comment once a final solution to R and neo is found
+
+			/*if (rCon.isConnected()) {
 				rCon.close();
 				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Connection to R closed!!!!");
-			}
+			}*/
 
 			for (int companyId : companyConnectionMap.keySet()) {
 				companyConnectionMap.get(companyId).getSqlConnection().close();
 				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug(
 						"Connection to company sql for companyId : " + companyId + " is " + "closed!!!!");
-				companyConnectionMap.get(companyId).getNeoConnection().close();
+
+				// TODO:remove comment once a final solution to R and neo is found
+				/*companyConnectionMap.get(companyId).getNeoConnection().close();
 				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug(
-						"Connection to company neo4j for companyId : " + companyId + " is closed!!!!");
+						"Connection to company neo4j for companyId : " + companyId + " is closed!!!!");*/
 			}
 
 		} catch (SQLException e) {
@@ -152,8 +152,10 @@ public class DatabaseConnectionHelper extends TheBorg {
 				// company sql connection
 				compConnection.setSqlConnection(createSqlConnection(companyId, compConfig));
 
+				// TODO:remove comment once a final solution to R and neo is found
+
 				// company neo connection
-				compConnection.setNeoConnection(createNeoConnection(companyId, compConfig));
+				// compConnection.setNeoConnection(createNeoConnection(companyId, compConfig));
 
 				compConnectionChanged = true;
 			} else {
@@ -163,11 +165,12 @@ public class DatabaseConnectionHelper extends TheBorg {
 					compConnectionChanged = true;
 				}
 
+				// TODO:remove comment once a final solution to R and neo is found
 				// check if Neo connection is valid; if not refresh the connection
-				if (!companyConnectionMap.get(companyId).getNeoConnection().isValid(0)) {
+				/*if (!companyConnectionMap.get(companyId).getNeoConnection().isValid(0)) {
 					compConnection.setNeoConnection(createNeoConnection(companyId, companyConfigMap.get(companyId)));
 					compConnectionChanged = true;
-				}
+				}*/
 			}
 
 			if (compConnectionChanged) {
@@ -180,7 +183,8 @@ public class DatabaseConnectionHelper extends TheBorg {
 
 	}
 
-	private Connection createNeoConnection(int companyId, CompanyConfig compConfig) {
+	// TODO:remove comment once a final solution to R and neo is found
+	/*private Connection createNeoConnection(int companyId, CompanyConfig compConfig) {
 		Connection conn = null;
 		try {
 			String neoUrl = compConfig.getNeoUrl();
@@ -200,7 +204,7 @@ public class DatabaseConnectionHelper extends TheBorg {
 		}
 		return conn;
 	}
-
+	*/
 	private Connection createSqlConnection(int companyId, CompanyConfig compConfig) {
 		Connection conn = null;
 		try {
@@ -246,6 +250,7 @@ public class DatabaseConnectionHelper extends TheBorg {
 	}
 
 	public RConnection getRConn() {
+		org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Entering the get R connection function");
 		while (rConInUse)
 			try {
 				Thread.sleep(100);

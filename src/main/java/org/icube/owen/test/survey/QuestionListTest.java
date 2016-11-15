@@ -11,7 +11,7 @@ import org.junit.Test;
 
 public class QuestionListTest {
 	QuestionList ql = (QuestionList) ObjectFactory.getInstance("org.icube.owen.survey.QuestionList");
-	int companyId = 2;
+	int companyId = 5;
 
 	@Test
 	public void testGetQuestionList() {
