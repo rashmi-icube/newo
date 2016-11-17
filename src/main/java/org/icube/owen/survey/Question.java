@@ -18,6 +18,9 @@ import org.icube.owen.employee.EmployeeList;
 import org.icube.owen.helper.CompanyConfig;
 import org.icube.owen.helper.DatabaseConnectionHelper;
 import org.icube.owen.helper.UtilHelper;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPInteger;
 import org.rosuda.REngine.RList;
@@ -257,6 +260,31 @@ public class Question extends TheBorg {
 		}
 
 		return questionList;
+	}
+	
+	
+	public String getJsonEmployeeQuestionList(int companyId, int employeeId){
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		JSONArray arr = new JSONArray();
+		try {
+			dch.getCompanyConnection(companyId);
+			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getEmpQuestionList(?,?)}");
+			cstmt.setInt(1, employeeId);
+			Date date = Date.from(Instant.now());
+			cstmt.setDate(2, UtilHelper.convertJavaDateToSqlDate(date));
+			ResultSet rs = cstmt.executeQuery();
+			
+			while (rs.next()) {
+				JSONObject json = new JSONObject();
+				json.put("questionId", rs.getInt("que_id"));
+				json.put("questionText", rs.getString("question"));
+				json.put("questionType", QuestionType.get(rs.getInt("que_type")));
+				arr.put(json);
+			}
+		} catch (SQLException | JSONException e) {
+			org.apache.log4j.Logger.getLogger(Question.class).error("Exception while retrieving the questionList", e);
+		}
+		return arr.toString();
 	}
 
 	/**
