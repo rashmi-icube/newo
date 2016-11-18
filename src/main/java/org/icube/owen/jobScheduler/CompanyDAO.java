@@ -103,12 +103,18 @@ public class CompanyDAO extends TimerTask {
 
 					// call function to run the new question jobs to find if there any any new questions
 					runNewQuestionJob(companyId, jobStatusMap);
+
 				}
+
 			}
+			stmt.close();
+			companyDetails.close();
+
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(CompanyDAO.class).error("Failed to get the db connection details", e);
 
 		} finally {
+
 			dch.releaseRcon();
 		}
 	}
@@ -165,6 +171,8 @@ public class CompanyDAO extends TimerTask {
 				schedulerJobStatusMap.put(companyId, jobStatusMap);
 			}
 
+			stmt.close();
+			res.close();
 		} catch (Exception e) {
 			// add to map of status
 			org.apache.log4j.Logger.getLogger(CompanyDAO.class).error("Unable to execute Scheduler jobs ", e);
@@ -265,6 +273,8 @@ public class CompanyDAO extends TimerTask {
 				schedulerJobStatusMap.put(companyId, jobStatusMap);
 			}
 
+			stmt.close();
+			res.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(CompanyDAO.class).error("Error in executing runNewQuestionJob function", e);
 			jobStatus = false;

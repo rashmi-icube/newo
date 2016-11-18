@@ -44,9 +44,10 @@ public class MetricsHelper extends TheBorg {
 		if (initiativeTypeId > 0) {
 			primaryMetricMap = getPrimaryMetricMap(companyId, initiativeTypeId);
 		}
+		CallableStatement cstmt = null;
 		if ((int) parsedFilterListResult.get("countAll") == 3) {
 			// if all selections are ALL then it is a organizational team metric
-			CallableStatement cstmt;
+
 			if (previousScoreNeeded) {
 				org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Calling the getOrganizationMetricValueAggregate");
 				cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getOrganizationMetricValueAggregate()}");
@@ -56,10 +57,11 @@ public class MetricsHelper extends TheBorg {
 			}
 			ResultSet rs = cstmt.executeQuery();
 			metricList = fillMetricsData(companyId, rs, primaryMetricMap, "Team");
+			rs.close();
+			cstmt.close();
 			org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Calculated metrics for organization : " + metricList.size());
 		} else if ((int) parsedFilterListResult.get("countAll") == 2) {
 			// if two of the filters are ALL then it is a dimension metric
-			CallableStatement cstmt;
 			if (previousScoreNeeded) {
 				org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Calling the getDimensionMetricValueAggregate");
 				org.apache.log4j.Logger.getLogger(MetricsHelper.class)
@@ -75,13 +77,13 @@ public class MetricsHelper extends TheBorg {
 				cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getDimensionMetricValue(?)}");
 				cstmt.setInt(1, (int) parsedFilterListResult.get("dimensionValueId"));
 			}
-
 			ResultSet rs = cstmt.executeQuery();
 			metricList = fillMetricsData(companyId, rs, primaryMetricMap, "Team");
+			rs.close();
+			cstmt.close();
 			org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Calculated metrics for dimension : " + metricList.size());
 		} else if ((int) parsedFilterListResult.get("countAll") == 0) {
 			// if none of the filters is ALL then it is a cube metric
-			CallableStatement cstmt;
 			if (previousScoreNeeded) {
 				org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Calling the getTeamMetricValueAggregate");
 				cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getTeamMetricValueAggregate(?, ?, ?)}");
@@ -95,12 +97,14 @@ public class MetricsHelper extends TheBorg {
 			ResultSet rs = cstmt.executeQuery();
 			metricList = fillMetricsData(companyId, rs, primaryMetricMap, "Team");
 			org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Calculated metrics for team : " + metricList.size());
+			rs.close();
+			cstmt.close();
 		} else {
 			// else call metric.R
 			MetricsList ml = new MetricsList();
 			metricList = ml.getInitiativeMetricsForTeam(companyId, 0, (List<Filter>) parsedFilterListResult.get("filterList"));
 		}
-
+		cstmt.close();
 		return metricList;
 	}
 
@@ -250,6 +254,8 @@ public class MetricsHelper extends TheBorg {
 			while (rs.next()) {
 				primaryMetricMap.put(rs.getInt("metric_id"), rs.getString("metric_name"));
 			}
+			rs.close();
+			cstmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(MetricsHelper.class).error("Exception while getting the primary metrics for initiative", e);
 		}
@@ -275,6 +281,8 @@ public class MetricsHelper extends TheBorg {
 			while (rs.next()) {
 				metricListForCategory.put(rs.getInt("metric_id"), rs.getString("metric_name"));
 			}
+			rs.close();
+			cstmt.close();
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(MetricsHelper.class).error(
 					"Exception while getting the metrics list for initiative of category" + category, e);

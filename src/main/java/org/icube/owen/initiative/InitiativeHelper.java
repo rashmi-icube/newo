@@ -115,6 +115,7 @@ public class InitiativeHelper extends TheBorg {
 			}
 			initiativeCountMapList.addAll(masterMap.values());
 			stmt.close();
+			res.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(InitiativeHelper.class).error("Exception while getting the initiative count list", e);
 		}
@@ -191,6 +192,8 @@ public class InitiativeHelper extends TheBorg {
 				cs.setInt(1, empId);
 				ResultSet rs = cs.executeQuery();
 				metricsList = mh.fillMetricsData(companyId, rs, mh.getPrimaryMetricMap(companyId, i.getInitiativeTypeId()), "Individual");
+				cs.close();
+				rs.close();
 			} else if (i.getInitiativeCategory().equalsIgnoreCase("Team")) {
 				org.apache.log4j.Logger.getLogger(InitiativeHelper.class).debug(
 						"setInitiativeMetrics for team  calling procedure getTeamInitiativeMetricValueAggregate for initiative ID: "
@@ -203,6 +206,8 @@ public class InitiativeHelper extends TheBorg {
 				org.apache.log4j.Logger.getLogger(InitiativeHelper.class).debug("fill metric map for initiative : " + i.getInitiativeId());
 				metricsList = mh.fillMetricsData(companyId, rs, mh.getPrimaryMetricMap(companyId, i.getInitiativeTypeId()), "Team");
 				org.apache.log4j.Logger.getLogger(InitiativeHelper.class).debug("finished fill metric map for initiative : " + i.getInitiativeId());
+				cs.close();
+				rs.close();
 			}
 
 		} catch (SQLException e) {

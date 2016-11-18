@@ -186,7 +186,8 @@ public class EmployeeList extends TheBorg {
 			}
 
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("employeeList : " + employeeList.toString());
-
+			res.close();
+			cstmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).error("Exception while getting the employee master list", e);
 
@@ -261,6 +262,8 @@ public class EmployeeList extends TheBorg {
 			}
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("Employee ID List : " + employeeIdList);
 			employeeList = get(companyId, employeeIdList);
+			rs.close();
+			cstmt.close();
 		} catch (SQLException e1) {
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).error("Exception while retrieving the employee list based on dimension", e1);
 		}
@@ -306,10 +309,11 @@ public class EmployeeList extends TheBorg {
 					empList.add(e);
 				}
 				listIndex = listIndex + subListSize;
+				res.close();
+				cstmt.close();
 			} catch (SQLException e1) {
 				org.apache.log4j.Logger.getLogger(EmployeeList.class).error(
 						"Exception while retrieving employee object with employeeIds : " + employeeIdList, e1);
-
 			}
 		}
 		return empList;

@@ -36,6 +36,8 @@ public class BatchList extends TheBorg {
 			while (rs.next()) {
 				getFrequencyLabelMap.put(rs.getInt(1), rs.getString(2));
 			}
+			cstmt.close();
+			rs.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(BatchList.class).error("Exception while retrieving frequency label map", e);
 		}
@@ -82,9 +84,13 @@ public class BatchList extends TheBorg {
 					q.setRelationshipTypeId(rs1.getInt("rel_id"));
 					questionList.add(q);
 				}
+				rs1.close();
+				cstmt1.close();
 				b.setQuestionList(questionList);
 				batchList.add(b);
 			}
+			rs.close();
+			cstmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(BatchList.class).error("Exception while retrieving batch list", e);
 		}
@@ -129,13 +135,15 @@ public class BatchList extends TheBorg {
 				boolean isCurrent = q.getQuestionStatus(q.getStartDate(), q.getEndDate()).equalsIgnoreCase("current");
 				previousEndDate = updateQuestion(q, changedFrequency, isCurrent, previousEndDate);
 				try {
-					CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call updateQuestionDate(?, ?, ?)}");
+					CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+							"{call updateQuestionDate(?, ?, ?)}");
 					cstmt.setInt(1, questionId);
 					cstmt.setDate(2, UtilHelper.convertJavaDateToSqlDate(q.getStartDate()));
 					cstmt.setDate(3, UtilHelper.convertJavaDateToSqlDate(q.getEndDate()));
 					cstmt.executeQuery();
 					org.apache.log4j.Logger.getLogger(BatchList.class).debug(
 							"Successfully changed frequency for question " + questionId + " in batch " + batch.getBatchId());
+					cstmt.close();
 				} catch (SQLException e) {
 					org.apache.log4j.Logger.getLogger(BatchList.class).error("Exception while updating question ID : " + questionId, e);
 				}
@@ -153,6 +161,7 @@ public class BatchList extends TheBorg {
 			cstmt.executeQuery();
 			org.apache.log4j.Logger.getLogger(BatchList.class).debug("Successfully changed frequency for batch " + batch.getBatchId());
 			isChanged = true;
+			cstmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(BatchList.class).error("Exception while updating batch ID : " + batch.getBatchId(), e);
 		}

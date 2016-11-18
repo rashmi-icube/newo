@@ -46,30 +46,36 @@ public class Login extends TheBorg {
 				org.apache.log4j.Logger.getLogger(Login.class).debug("Company Name : " + companyName);
 			}
 			org.apache.log4j.Logger.getLogger(Login.class).debug("Role ID for user : " + emailId + " is : " + roleId);
-			CallableStatement cstmt1 = companySqlCon.prepareCall("{call verifyLogin(?,?,?,?,?)}");
-			cstmt1.setString("loginid", emailId);
-			cstmt1.setString("pass", password);
-			cstmt1.setTimestamp("curr_time", UtilHelper.convertJavaDateToSqlTimestamp(Date.from(Instant.now())));
-			cstmt1.setString("ip", ipAddress);
-			cstmt1.setInt("roleid", roleId);
-			ResultSet res = cstmt1.executeQuery();
-			while (res.next()) {
-				if (res.getInt("emp_id") == 0) {
+			cstmt.close();
+			rs.close();
+			cstmt = companySqlCon.prepareCall("{call verifyLogin(?,?,?,?,?)}");
+			cstmt.setString("loginid", emailId);
+			cstmt.setString("pass", password);
+			cstmt.setTimestamp("curr_time", UtilHelper.convertJavaDateToSqlTimestamp(Date.from(Instant.now())));
+			cstmt.setString("ip", ipAddress);
+			cstmt.setInt("roleid", roleId);
+			rs = cstmt.executeQuery();
+			while (rs.next()) {
+				if (rs.getInt("emp_id") == 0) {
 					org.apache.log4j.Logger.getLogger(Login.class).error("Invalid username/password");
+					cstmt.close();
+					rs.close();
+					companySqlCon.close();
 					throw new Exception("Invalid credentials!!!");
 				} else {
-					e = e.get(companyId, res.getInt("emp_id"));
+					e = e.get(companyId, rs.getInt("emp_id"));
 					e.setCompanyId(companyId);
-					e.setFirstTimeLogin(res.getBoolean("first_time_login"));
+					e.setFirstTimeLogin(rs.getBoolean("first_time_login"));
 					e.setCompanyName(companyName);
 					org.apache.log4j.Logger.getLogger(Login.class).debug("Successfully validated user with userID : " + emailId);
-
 				}
 			}
-
+			cstmt.close();
+			rs.close();
 		} catch (SQLException e1) {
 			org.apache.log4j.Logger.getLogger(Login.class).error("Exception while retrieving the company database", e1);
 		}
+		companySqlCon.close();
 		return e;
 	}
 
@@ -112,6 +118,8 @@ public class Login extends TheBorg {
 			if (res1.getBoolean("status")) {
 				status = true;
 			}
+			cstmt2.close();
+			res1.close();
 
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(Login.class).error("Exception while retrieving the company database", e);

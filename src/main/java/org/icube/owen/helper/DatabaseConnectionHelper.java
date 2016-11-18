@@ -148,6 +148,8 @@ public class DatabaseConnectionHelper extends TheBorg {
 					compConfig = setCompanyConfigDetails(companyId, rs);
 					companyConfigMap.put(companyId, compConfig);
 				}
+				rs.close();
+				cstmt.close();
 
 				// company sql connection
 				compConnection.setSqlConnection(createSqlConnection(companyId, compConfig));

@@ -57,6 +57,8 @@ public class EmployeeTest {
 			ex.printStackTrace();
 		}
 
+		out.close();
+
 	}
 
 	@Test

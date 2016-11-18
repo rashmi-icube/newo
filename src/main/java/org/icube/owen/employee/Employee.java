@@ -168,7 +168,8 @@ public class Employee extends TheBorg {
 			e = el.setEmployeeDetails(companyId, res);
 			org.apache.log4j.Logger.getLogger(Employee.class).debug(
 					"Employee  : " + e.getEmployeeId() + "-" + e.getFirstName() + "-" + e.getLastName());
-
+			res.close();
+			cstmt.close();
 		} catch (SQLException e1) {
 			org.apache.log4j.Logger.getLogger(Employee.class).error("Exception while retrieving employee object with employeeId : " + employeeId, e1);
 
@@ -238,6 +239,13 @@ public class Employee extends TheBorg {
 			org.apache.log4j.Logger.getLogger(Employee.class).error("Exception while saving employee image with employeeId : " + employeeId, ex);
 		}
 		org.apache.log4j.Logger.getLogger(Employee.class).debug("Exiting the save employee image function" + imageSaved);
+
+		try {
+			out.close();
+		} catch (IOException e) {
+			org.apache.log4j.Logger.getLogger(Employee.class).error("Exception while closing out for employeeId : " + employeeId, e);
+		}
+		
 		return imageSaved;
 	}
 

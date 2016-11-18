@@ -72,6 +72,8 @@ public class IndividualDashboardHelper extends TheBorg {
 					metricsList.add(m);
 				}
 			}
+			cstmt.close();
+			rs.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while retrieving individual metrics data", e);
 		}
@@ -102,7 +104,8 @@ public class IndividualDashboardHelper extends TheBorg {
 			for (int i : metricsListMap.keySet()) {
 				metricsTimeSeriesMasterMap.put(i, metricsListMap.get(i));
 			}
-
+			cstmt.close();
+			rs.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while retrieving individual metrics data", e);
 		}
@@ -180,6 +183,7 @@ public class IndividualDashboardHelper extends TheBorg {
 			}
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("List of initiatives : " + initiativeList.toString());
 			stmt.close();
+			res.close();
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while getting the initiative list", e);
 		}
@@ -273,6 +277,9 @@ public class IndividualDashboardHelper extends TheBorg {
 				}
 			}
 			stmt.close();
+			cstmt.close();
+			res.close();
+			rs.close();
 		} catch (SQLException | ParseException e) {
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while retrieving the activity feed data", e);
 		}
@@ -296,6 +303,8 @@ public class IndividualDashboardHelper extends TheBorg {
 			while (rs.next()) {
 				result.put(rs.getInt("metric_id"), rs.getInt("rel_id"));
 			}
+			cstmt.close();
+			rs.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while retrieving metrics relationship type id data",
 					e);
@@ -395,8 +404,10 @@ public class IndividualDashboardHelper extends TheBorg {
 				} else {
 					org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Error in saving the appreciation ");
 				}
-
+				cstmt.close();
+				rs.close();
 			}
+
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while saving the appreciation ", e);
 		}
@@ -429,6 +440,8 @@ public class IndividualDashboardHelper extends TheBorg {
 				passwordChanged = true;
 			} else {
 				org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Current password is incorrect");
+				cstmt.close();
+				rs.close();
 				throw new Exception("Current password is incorrect");
 			}
 			Statement stmt = dch.companyConnectionMap.get(companyId).getSqlConnection().createStatement();
@@ -438,6 +451,10 @@ public class IndividualDashboardHelper extends TheBorg {
 			res.next();
 			emailId = res.getString("email_id");
 
+			cstmt.close();
+			rs.close();
+			stmt.close();
+			res.close();
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while validating password ", e);
 		}
@@ -484,19 +501,26 @@ public class IndividualDashboardHelper extends TheBorg {
 			if (updatePassword == 0) {
 				org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error(
 						"Error in generating a new password. Please enter your company Email address.");
+				stmt.close();
+				cstmt.close();
+				rs.close();
+				companySqlCon.close();
 				throw new Exception("Error in resetting the password");
 			} else {
 				passwordChanged = true;
 			}
-
+			stmt.close();
+			cstmt.close();
+			rs.close();
 		} catch (SQLException e1) {
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while retrieving the company database", e1);
 		}
 		org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Successfully updated the new password");
 
 		// send the new password to the employee
-
 		sendNewPasswordMail(companySqlCon, emailId, randStr.toString());
+
+		companySqlCon.close();
 		return passwordChanged;
 	}
 
@@ -520,6 +544,8 @@ public class IndividualDashboardHelper extends TheBorg {
 					res.next();
 					es.sendNewPasswordEmail(res.getString("first_name"), res.getString("last_name"), address, newPassword.toString());
 					org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Sent email for new password");
+					stm.close();
+					res.close();
 				} catch (MessagingException | SQLException e) {
 					org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Error in sending email", e);
 				}
@@ -550,6 +576,8 @@ public class IndividualDashboardHelper extends TheBorg {
 					res.next();
 					es.sendChangedPasswordEmail(res.getString("first_name"), res.getString("last_name"), address, newPassword.toString());
 					org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Sent email for new password");
+					stm.close();
+					res.close();
 				} catch (MessagingException | SQLException e) {
 					org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Error in sending email", e);
 				}
@@ -595,6 +623,8 @@ public class IndividualDashboardHelper extends TheBorg {
 			if (rs.getBoolean(1)) {
 				timestampUpdated = true;
 			}
+			cstmt.close();
+			rs.close();
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while updating notification timestamp", e);
 		}
@@ -640,6 +670,9 @@ public class IndividualDashboardHelper extends TheBorg {
 				notificationCount += res.getInt("initiative_count");
 			}
 			stmt.close();
+			cstmt.close();
+			rs.close();
+			res.close();
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while updating notification timestamp", e);
 		}

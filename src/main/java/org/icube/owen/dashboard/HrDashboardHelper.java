@@ -42,6 +42,8 @@ public class HrDashboardHelper extends TheBorg {
 			ResultSet rs = cstmt.executeQuery();
 			MetricsHelper mh = new MetricsHelper();
 			dimensionMetricsList = mh.fillMetricsData(companyId, rs, null, "Team");
+			rs.close();
+			cstmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).error("Exception while retrieving organization level metrics", e);
 		}
@@ -60,12 +62,13 @@ public class HrDashboardHelper extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
 		try {
-
 			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
 					"{call getOrganizationMetricValueAggregate()}");
 			ResultSet rs = cstmt.executeQuery();
 			MetricsHelper mh = new MetricsHelper();
 			orgMetricsList = mh.fillMetricsData(companyId, rs, null, "Team");
+			rs.close();
+			cstmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).error("Exception while retrieving organization level metrics", e);
 		}
@@ -95,6 +98,8 @@ public class HrDashboardHelper extends TheBorg {
 			cstmt.setInt(1, filter.getFilterValues().keySet().iterator().next().intValue());
 			ResultSet rs = cstmt.executeQuery();
 			result = getTimeSeriesMap(rs);
+			cstmt.close();
+			rs.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).error("Exception while retrieving metrics", e);
 		}
@@ -148,6 +153,8 @@ public class HrDashboardHelper extends TheBorg {
 					"{call getOrganizationMetricTimeSeries()}");
 			ResultSet rs = cstmt.executeQuery();
 			result = getTimeSeriesMap(rs);
+			rs.close();
+			cstmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).error("Exception while retrieving organization level metrics", e);
 		}
@@ -173,6 +180,8 @@ public class HrDashboardHelper extends TheBorg {
 				Alert a = new Alert();
 				alertList.add(a.fillAlertDetails(companyId, rs));
 			}
+			rs.close();
+			cstmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).error("Exception while retrieving organization level metrics", e);
 		}

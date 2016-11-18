@@ -127,6 +127,8 @@ public class Question extends TheBorg {
 				q.setSurveyBatchId(rs.getInt("survey_batch_id"));
 				q.setRelationshipTypeId(rs.getInt("rel_id"));
 			}
+			rs.close();
+			cstmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(Question.class).error("Exception while retrieving Question with ID" + questionId, e);
 		}
@@ -181,6 +183,8 @@ public class Question extends TheBorg {
 					responseMap.put(d, 0);
 				}
 			}
+			rs.close();
+			cstmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(Question.class).error("Exception while retrieving response data", e);
 		}
@@ -255,15 +259,16 @@ public class Question extends TheBorg {
 
 				questionList.add(q);
 			}
+			rs.close();
+			cstmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(Question.class).error("Exception while retrieving the questionList", e);
 		}
 
 		return questionList;
 	}
-	
-	
-	public String getJsonEmployeeQuestionList(int companyId, int employeeId){
+
+	public String getJsonEmployeeQuestionList(int companyId, int employeeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		JSONArray arr = new JSONArray();
 		try {
@@ -273,7 +278,7 @@ public class Question extends TheBorg {
 			Date date = Date.from(Instant.now());
 			cstmt.setDate(2, UtilHelper.convertJavaDateToSqlDate(date));
 			ResultSet rs = cstmt.executeQuery();
-			
+
 			while (rs.next()) {
 				JSONObject json = new JSONObject();
 				json.put("questionId", rs.getInt("que_id"));
@@ -281,6 +286,8 @@ public class Question extends TheBorg {
 				json.put("questionType", QuestionType.get(rs.getInt("que_type")));
 				arr.put(json);
 			}
+			rs.close();
+			cstmt.close();
 		} catch (SQLException | JSONException e) {
 			org.apache.log4j.Logger.getLogger(Question.class).error("Exception while retrieving the questionList", e);
 		}
@@ -313,6 +320,8 @@ public class Question extends TheBorg {
 				while (rs.next()) {
 					empIdList.add(rs.getInt("emp_id"));
 				}
+				rs.close();
+				cstmt.close();
 				for (int i = 0; i < empIdList.size(); i++) {
 					Employee e = new Employee();
 					e = e.get(companyId, empIdList.get(i));
@@ -356,6 +365,7 @@ public class Question extends TheBorg {
 			org.apache.log4j.Logger.getLogger(Question.class).error("Error while trying to retrieve the smart list for employee from question", e);
 		} finally {
 			dch.releaseRcon();
+			employeeList = null;
 		}
 		return employeeList;
 	}

@@ -46,6 +46,8 @@ public class Alert extends TheBorg {
 			while (rs.next()) {
 				a = fillAlertDetails(companyId, rs);
 			}
+			cstmt.close();
+			rs.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(Alert.class).error("Exception while retrieving alert with ID : " + alertId, e);
 		}
@@ -111,6 +113,11 @@ public class Alert extends TheBorg {
 		a.setEmployeeList(el.get(companyId, empIdList));
 		a.setAlertStatus(rs.getString("status"));
 		a.setInitiativeTypeId(rs.getInt("init_type_id"));
+		
+		rs.close();
+		cstmt1.close();
+		rs1.close();
+		
 		return a;
 	}
 
@@ -130,6 +137,7 @@ public class Alert extends TheBorg {
 			cstmt.setInt(1, alertId);
 			cstmt.executeQuery();
 			org.apache.log4j.Logger.getLogger(Alert.class).debug("Successfully deleted alert");
+			cstmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(Alert.class).error("Exception while deleting alert with ID : " + alertId, e);
 		}

@@ -45,6 +45,8 @@ public class FilterList extends TheBorg {
 				filterValuesMap.put(rs.getInt("dimension_val_id"), rs.getString("dimension_val_name"));
 				org.apache.log4j.Logger.getLogger(FilterList.class).debug("filterValuesMap : " + filterValuesMap.toString());
 			}
+			rs.close();
+			cstmt.close();
 			f.setFilterValues(filterValuesMap);
 			org.apache.log4j.Logger.getLogger(FilterList.class).debug("Filter : " + f.toString());
 
@@ -93,6 +95,8 @@ public class FilterList extends TheBorg {
 				rs.first();
 
 			}
+			rs.close();
+			cstmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(FilterList.class).error("Exception while getting dimension value list : ", e);
 		}
@@ -115,6 +119,8 @@ public class FilterList extends TheBorg {
 			while (rs.next()) {
 				filterLabelMap.put(rs.getInt("dimension_id"), rs.getString("dimension_name"));
 			}
+			rs.close();
+			cstmt.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}

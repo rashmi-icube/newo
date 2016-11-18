@@ -119,6 +119,7 @@ public class InitiativeList extends TheBorg {
 				}
 
 			}
+			res.close();
 
 			for (int initiativeId : initiativeIdMap.keySet()) {
 				initiativeList.add(initiativeIdMap.get(initiativeId));
@@ -178,7 +179,7 @@ public class InitiativeList extends TheBorg {
 				}
 
 			}
-
+			res.close();
 			for (int initiativeId : initiativeIdMap.keySet()) {
 				initiativeList.add(initiativeIdMap.get(initiativeId));
 			}

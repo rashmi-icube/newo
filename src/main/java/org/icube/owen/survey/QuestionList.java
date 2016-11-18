@@ -39,7 +39,8 @@ public class QuestionList extends TheBorg {
 				q.setRelationshipTypeId(rs.getInt("rel_id"));
 				questionList.add(q);
 			}
-
+			rs.close();
+			cstmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(QuestionList.class).error("Exception while retrieving the list of questions", e);
 		}
@@ -73,6 +74,8 @@ public class QuestionList extends TheBorg {
 				q.setRelationshipTypeId(rs.getInt("rel_id"));
 				questionList.add(q);
 			}
+			rs.close();
+			cstmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(QuestionList.class).error("Exception while retrieving the list of questions for batch ID" + batchId, e);
 		}
@@ -99,8 +102,8 @@ public class QuestionList extends TheBorg {
 		}
 		org.apache.log4j.Logger.getLogger(QuestionList.class).debug(
 				"Retrieved " + questionListByStatus.size() + " questions for " + filter + " status.");
-		if(filter.equalsIgnoreCase("Completed")){
-			 Collections.reverse(questionListByStatus);
+		if (filter.equalsIgnoreCase("Completed")) {
+			Collections.reverse(questionListByStatus);
 		}
 		return questionListByStatus;
 	}

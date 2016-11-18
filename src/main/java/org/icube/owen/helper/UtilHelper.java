@@ -51,6 +51,12 @@ public class UtilHelper {
 		} else {
 			org.apache.log4j.Logger.getLogger(UtilHelper.class).error("property file '" + propFileName + "' not found in classpath");
 		}
+
+		try {
+			inputStream.close();
+		} catch (IOException e) {
+			org.apache.log4j.Logger.getLogger(UtilHelper.class).error("Error while closing the inputStream");
+		}
 		return propertyValue;
 	}
 

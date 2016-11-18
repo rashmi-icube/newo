@@ -101,6 +101,8 @@ public class Initiative extends TheBorg {
 			while (res.next()) {
 				initiativeId = res.getInt("Id");
 			}
+			res.close();
+			stmt.close();
 			if (initiativeId > 0) {
 				this.initiativeId = initiativeId;
 				// based on the category of the initiative either the part of employee list is set for individual or the filter list is set for team
@@ -152,6 +154,7 @@ public class Initiative extends TheBorg {
 					while (res.next()) {
 						teamSize = res.getInt("TeamSize");
 					}
+					res.close();
 					org.apache.log4j.Logger.getLogger(Initiative.class).debug("Team Size : " + teamSize);
 					MetricsList ml = new MetricsList();
 
@@ -167,9 +170,9 @@ public class Initiative extends TheBorg {
 						cstmt.setInt("metricvalue", m.getScore());
 						cstmt.setTimestamp("calctime", Timestamp.from(Instant.now()));
 						cstmt.setInt("noemp", teamSize);
-						ResultSet rs = cstmt.executeQuery();
-						while (rs.next()) {
-							if (rs.getBoolean("op")) {
+						res = cstmt.executeQuery();
+						while (res.next()) {
+							if (res.getBoolean("op")) {
 								org.apache.log4j.Logger.getLogger(Initiative.class).debug(
 										"Success in storing the metrics initiative with metricId : " + m.getId());
 							} else {
@@ -177,6 +180,8 @@ public class Initiative extends TheBorg {
 										"Unsuccessful in storing the metrics initiative with metricId : " + m.getId());
 							}
 						}
+						res.close();
+						cstmt.close();
 					}
 
 				}
@@ -189,7 +194,6 @@ public class Initiative extends TheBorg {
 			} else {
 				org.apache.log4j.Logger.getLogger(Initiative.class).error("Unable to create initiative");
 			}
-			stmt.close();
 
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception in Create initiative query", e);
@@ -367,6 +371,7 @@ public class Initiative extends TheBorg {
 			while (res.next()) {
 				il.setInitiativeValues(companyId, res, i);
 			}
+			res.close();
 			stmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(Initiative.class).error("Exception while retrieving the initiative with ID" + initiativeId, e);
@@ -395,6 +400,8 @@ public class Initiative extends TheBorg {
 			while (rs.next()) {
 				initiativeTypeMap.put(rs.getInt(1), rs.getString(2));
 			}
+			rs.close();
+			cstmt.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}

@@ -80,7 +80,8 @@ public class TheWallHelper extends TheBorg {
 
 				result.add(employeeDetailsMap);
 			}
-
+			rs.close();
+			cstmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(TheWallHelper.class).error("Exception while retrieving individual wall feed", e);
 		}
@@ -160,7 +161,8 @@ public class TheWallHelper extends TheBorg {
 
 				result.add(teamDetailsMap);
 			}
-
+			rs.close();
+			cstmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(TheWallHelper.class).error("Exception while retrieving team wall feed", e);
 		}

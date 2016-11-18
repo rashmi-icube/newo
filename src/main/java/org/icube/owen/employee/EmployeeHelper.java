@@ -49,6 +49,8 @@ public class EmployeeHelper extends TheBorg {
 				bed.setLocation(rs.getString("Zone"));
 				bed.setDesignation(rs.getString("Position"));
 			}
+			rs.close();
+			cstmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).error("Exception while getting the employee basic details", e);
 		}
@@ -108,6 +110,8 @@ public class EmployeeHelper extends TheBorg {
 					});
 				}
 			}
+			rs.close();
+			cstmt.close();
 			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).error(
 					"Work ex details for emp ID : " + employeeId + " work ex size :" + workExList.size());
 			for (WorkExperience we : workExList) {
@@ -150,6 +154,8 @@ public class EmployeeHelper extends TheBorg {
 				educationDetails.setLocation(rs.getString("location"));
 				educationDetailsList.add(educationDetails);
 			}
+			rs.close();
+			cstmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).error("Exception while getting the employee basic details", e);
 		}
@@ -190,6 +196,8 @@ public class EmployeeHelper extends TheBorg {
 				languageDetails.setLanguageId(rs.getInt("language_id"));
 				languageDetailsList.add(languageDetails);
 			}
+			rs.close();
+			cstmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).error("Exception while getting the employee basic details", e);
 		}
@@ -215,8 +223,9 @@ public class EmployeeHelper extends TheBorg {
 			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
 				languageMasterMap.put(rs.getInt("language_id"), rs.getString("language_name"));
-
 			}
+			rs.close();
+			cstmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).error("Exception while retrieving the language master map ", e);
 		}
@@ -245,6 +254,8 @@ public class EmployeeHelper extends TheBorg {
 				org.apache.log4j.Logger.getLogger(EmployeeHelper.class).debug(
 						"Successfully removed work experience details with Id" + workExperienceId);
 			}
+			rs.close();
+			cstmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).error(
 					"Exception while removing Work Experience details with Id" + workExperienceId, e);
@@ -273,6 +284,8 @@ public class EmployeeHelper extends TheBorg {
 				status = true;
 				org.apache.log4j.Logger.getLogger(EmployeeHelper.class).debug("Successfully removed work experience details with Id" + educationId);
 			}
+			rs.close();
+			cstmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).error("Exception while removing Education details with Id" + educationId, e);
 		}
@@ -300,6 +313,8 @@ public class EmployeeHelper extends TheBorg {
 				status = true;
 				org.apache.log4j.Logger.getLogger(EmployeeHelper.class).debug("Successfully removed Language details with Id" + languageId);
 			}
+			rs.close();
+			cstmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).error("Exception while removing Language details with Id" + languageId, e);
 		}
@@ -330,6 +345,8 @@ public class EmployeeHelper extends TheBorg {
 				org.apache.log4j.Logger.getLogger(EmployeeHelper.class).debug(
 						"Successfully updated employee basic details for employeeId : " + bed.getEmployeeId());
 			}
+			rs.close();
+			cstmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).error(
 					"Exception while updating employee basic details for employeeId : " + bed.getEmployeeId());
@@ -365,6 +382,8 @@ public class EmployeeHelper extends TheBorg {
 				org.apache.log4j.Logger.getLogger(EmployeeHelper.class).debug(
 						"Successfully added a new work experience for employeeId : " + wek.getEmployeeId());
 			}
+			rs.close();
+			cstmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).error(
 					"Exception while adding a new work experience for employeeId : " + wek.getEmployeeId());
@@ -400,6 +419,8 @@ public class EmployeeHelper extends TheBorg {
 				org.apache.log4j.Logger.getLogger(EmployeeHelper.class).debug(
 						"Successfully added a new education for employeeId : " + ed.getEmployeeId());
 			}
+			rs.close();
+			cstmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).error(
 					"Exception while adding a new education for employeeId : " + ed.getEmployeeId());
@@ -430,6 +451,8 @@ public class EmployeeHelper extends TheBorg {
 				org.apache.log4j.Logger.getLogger(EmployeeHelper.class).debug(
 						"Successfully added a new language for employeeId : " + ld.getEmployeeId());
 			}
+			rs.close();
+			cstmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).error(
 					"Exception while adding a new language for employeeId : " + ld.getEmployeeId());

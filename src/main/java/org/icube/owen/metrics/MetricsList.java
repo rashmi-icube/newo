@@ -88,8 +88,9 @@ public class MetricsList extends TheBorg {
 				while (rs.next()) {
 					previousScoreMap.put(rs.getInt("metric_id"), rs.getInt("previous_score"));
 					currentScoreMap.put(rs.getInt("metric_id"), rs.getInt("current_score"));
-
 				}
+				cs.close();
+				rs.close();
 			} catch (Exception e) {
 				org.apache.log4j.Logger.getLogger(MetricsList.class).error(
 						"Exception while trying to metrics list for category individual and type ID " + initiativeTypeId, e);

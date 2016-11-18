@@ -74,7 +74,8 @@ public class ExploreHelper extends TheBorg {
 							"{call getOrganizationMetricTimeSeries()}");
 					ResultSet rs = cstmt.executeQuery();
 					timeSeriesMap = getTimeSeriesMap(rs);
-
+					rs.close();
+					cstmt.close();
 				} else if ((int) parsedFilterListResult.get("countAll") == 2) {
 					// if two of the filters are ALL then it is a dimension metric
 					CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
@@ -82,6 +83,8 @@ public class ExploreHelper extends TheBorg {
 					cstmt.setInt(1, (int) parsedFilterListResult.get("dimensionValueId"));
 					ResultSet rs = cstmt.executeQuery();
 					timeSeriesMap = getTimeSeriesMap(rs);
+					rs.close();
+					cstmt.close();
 				} else if ((int) parsedFilterListResult.get("countAll") == 0) {
 					// if none of the filters is ALL then it is a cube metric
 					CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
@@ -91,7 +94,8 @@ public class ExploreHelper extends TheBorg {
 					cstmt.setInt(3, (int) parsedFilterListResult.get("zoneId"));
 					ResultSet rs = cstmt.executeQuery();
 					timeSeriesMap = getTimeSeriesMap(rs);
-
+					rs.close();
+					cstmt.close();
 				} else {
 					org.apache.log4j.Logger.getLogger(ExploreHelper.class).info(
 							"No time series graph to be displayed for the selection : " + filterList.get(0).getFilterName() + " - "
@@ -131,6 +135,8 @@ public class ExploreHelper extends TheBorg {
 				MetricsHelper mh = new MetricsHelper();
 				metricsList = mh.fillMetricsData(companyId, rs, null, "Individual");
 				result.put(e, metricsList);
+				rs.close();
+				cstmt.close();
 			}
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(ExploreHelper.class).error("Exception while retrieving individual metrics data", e);
@@ -162,6 +168,8 @@ public class ExploreHelper extends TheBorg {
 				ResultSet rs = cstmt.executeQuery();
 				metricsList = getTimeSeriesMap(rs);
 				result.put(e, metricsList);
+				rs.close();
+				cstmt.close();
 			}
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(ExploreHelper.class).error("Exception while retrieving individual metrics data", e);
@@ -266,7 +274,6 @@ public class ExploreHelper extends TheBorg {
 			org.apache.log4j.Logger.getLogger(ExploreHelper.class).debug("getTeamNetworkDiagram subQuery for team " + teamName + " : " + subQuery);
 
 		}
-
 		try {
 			List<Integer> empIdList = new ArrayList<>();
 			org.apache.log4j.Logger.getLogger(ExploreHelper.class).debug("getTeamNetworkDiagram query for all teams  : " + query);
@@ -276,13 +283,6 @@ public class ExploreHelper extends TheBorg {
 				empIdList.add(res.getInt("emp_id"));
 				Node n = new Node();
 				n.setEmployeeId(res.getInt("emp_id"));
-				/*CallableStatement cstmt = dch.masterCon.prepareCall("{call getCompanyConfig(?)}");
-				cstmt.setInt(1, companyId);
-				ResultSet rs = cstmt.executeQuery();
-				while(rs.next()){
-					dch.setCompanyConfigDetails(companyId, dch.companyConfigMap.get(companyId), rs);
-				}*/
-
 				if (dch.companyConfigMap.get(companyId).isDisplayNetworkName()) {
 					n.setFirstName(res.getString("firstName"));
 					n.setLastName(res.getString("lastName"));
@@ -293,6 +293,7 @@ public class ExploreHelper extends TheBorg {
 				n.setTeamName(res.getString("team"));
 				nodeList.add(n);
 			}
+			res.close();
 			org.apache.log4j.Logger.getLogger(ExploreHelper.class).debug("Node list size : " + nodeList.size());
 
 			edgeList = getEdges(companyId, empIdList, relationshipType);
@@ -393,7 +394,7 @@ public class ExploreHelper extends TheBorg {
 				n.setConnectedness(res.getInt("degree"));
 				nodeList.add(n);
 			}
-
+			res.close();
 			edgeList = getEdges(companyId, empIdList, relationshipTypeMap);
 			stmt.close();
 		} catch (SQLException e) {
@@ -440,13 +441,12 @@ public class ExploreHelper extends TheBorg {
 				result.add(e);
 
 			}
+			res.close();
 			stmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(ExploreHelper.class).error("Exception whil getting edgeList", e);
 		}
-
 		return result;
-
 	}
 
 	/**
@@ -465,6 +465,8 @@ public class ExploreHelper extends TheBorg {
 			while (rs.next()) {
 				relationshipTypeMap.put(rs.getInt("rel_id"), rs.getString("rel_name"));
 			}
+			rs.close();
+			cstmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(ExploreHelper.class).error("Error while retrieving relationship type map", e);
 		}
@@ -542,7 +544,8 @@ public class ExploreHelper extends TheBorg {
 				meResponseAnalysis.setMeResponseAggregate(meResponseAggregate);
 				result.add(meResponseAnalysis);
 			}
-
+			rs.close();
+			cstmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(ExploreHelper.class).error("Exception while retrieving the Me response details for organizaton", e);
 		}
@@ -573,7 +576,6 @@ public class ExploreHelper extends TheBorg {
 			Map<Integer, Question> questionMap = new HashMap<>();
 
 			// fill the Question object
-
 			while (rs.next()) {
 				Question q = new Question();
 				q.setQuestionId(rs.getInt("que_id"));
@@ -584,6 +586,8 @@ public class ExploreHelper extends TheBorg {
 				questionIdList.add(rs.getInt("que_id"));
 				questionMap.put(rs.getInt("que_id"), q);
 			}
+			rs.close();
+			cstmt.close();
 
 			// fill the MeResponse object for team
 			org.apache.log4j.Logger.getLogger(ExploreHelper.class).info("HashMap created!!!");
@@ -593,15 +597,14 @@ public class ExploreHelper extends TheBorg {
 				List<Filter> filterList = teamListMap.get(teamName);
 				Map<String, Object> parsedFilterMap = UtilHelper.parseFilterList(filterList);
 				System.out.println(parsedFilterMap.get("posId"));
-				CallableStatement cstmt1 = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
-						"{call getMeResponseAnalysisForTeam(?,?,?,?)}");
-				cstmt1.setString("que_list", questionIdList.toString().substring(1, questionIdList.toString().length() - 1).replaceAll(" ", ""));
-				cstmt1.setInt("fun", (int) parsedFilterMap.get("funcId"));
-				cstmt1.setInt("pos", (int) parsedFilterMap.get("posId"));
-				cstmt1.setInt("zon", (int) parsedFilterMap.get("zoneId"));
-				ResultSet rs1 = cstmt1.executeQuery();
-				while (rs1.next()) {
-					int questionId = rs1.getInt("que_id");
+				cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getMeResponseAnalysisForTeam(?,?,?,?)}");
+				cstmt.setString("que_list", questionIdList.toString().substring(1, questionIdList.toString().length() - 1).replaceAll(" ", ""));
+				cstmt.setInt("fun", (int) parsedFilterMap.get("funcId"));
+				cstmt.setInt("pos", (int) parsedFilterMap.get("posId"));
+				cstmt.setInt("zon", (int) parsedFilterMap.get("zoneId"));
+				rs = cstmt.executeQuery();
+				while (rs.next()) {
+					int questionId = rs.getInt("que_id");
 					if (mer.containsKey(questionId)) {
 						teamMeResponseList = mer.get(questionId);
 					} else {
@@ -610,15 +613,15 @@ public class ExploreHelper extends TheBorg {
 					}
 
 					MeResponse meResponse = new MeResponse();
-					meResponse.setAgree(rs1.getInt("agree"));
-					meResponse.setDisagree(rs1.getInt("disagree"));
-					meResponse.setNeutral(rs1.getInt("neutral"));
-					meResponse.setStronglyAgree(rs1.getInt("strongly_agree"));
-					meResponse.setStronglyDisagree(rs1.getInt("strongly_disagree"));
-					int meResponseSum = rs1.getInt("agree") + rs1.getInt("disagree") + rs1.getInt("neutral") + rs1.getInt("strongly_agree")
-							+ rs1.getInt("strongly_disagree");
-					double meResponseAverage = Math.round(((double) ((rs1.getInt("agree") * 4) + (rs1.getInt("disagree") * 2)
-							+ (rs1.getInt("neutral") * 3) + (rs1.getInt("strongly_agree") * 5) + (rs1.getInt("strongly_disagree") * 1)))
+					meResponse.setAgree(rs.getInt("agree"));
+					meResponse.setDisagree(rs.getInt("disagree"));
+					meResponse.setNeutral(rs.getInt("neutral"));
+					meResponse.setStronglyAgree(rs.getInt("strongly_agree"));
+					meResponse.setStronglyDisagree(rs.getInt("strongly_disagree"));
+					int meResponseSum = rs.getInt("agree") + rs.getInt("disagree") + rs.getInt("neutral") + rs.getInt("strongly_agree")
+							+ rs.getInt("strongly_disagree");
+					double meResponseAverage = Math.round(((double) ((rs.getInt("agree") * 4) + (rs.getInt("disagree") * 2)
+							+ (rs.getInt("neutral") * 3) + (rs.getInt("strongly_agree") * 5) + (rs.getInt("strongly_disagree") * 1)))
 							/ meResponseSum);
 					meResponse.setAverage(meResponseAverage);
 					teamMeResponseList.put(teamName, meResponse);
@@ -629,8 +632,8 @@ public class ExploreHelper extends TheBorg {
 				// calculate total number of employees as sum of employees in each team which will be used in calculating the response rate for a
 				// question
 
-				rs1.first();
-				totalEmployees = totalEmployees + rs1.getInt("total_employee");
+				rs.first();
+				totalEmployees = totalEmployees + rs.getInt("total_employee");
 			}
 
 			// fill the MeResponseAggregate object for team
@@ -688,7 +691,8 @@ public class ExploreHelper extends TheBorg {
 				result.add(finalMeResponseanalysis);
 
 			}
-
+			rs.close();
+			cstmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(ExploreHelper.class).error("Exception while retrieving the Me response details for team", e);
 		}
