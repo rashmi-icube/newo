@@ -14,7 +14,10 @@ import org.apache.tomcat.jdbc.pool.DataSource;
 import org.apache.tomcat.jdbc.pool.PoolProperties;
 import org.icube.owen.TheBorg;
 import org.icube.owen.jobScheduler.CompanyDAO;
+import org.rosuda.REngine.REXP;
+import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RConnection;
+import org.rosuda.REngine.Rserve.RserveException;
 
 public class DatabaseConnectionHelper extends TheBorg {
 
@@ -75,9 +78,8 @@ public class DatabaseConnectionHelper extends TheBorg {
 					"An error occurred while connecting to the master database on : " + MASTER_URL + " with user name : " + MASTER_USER, e);
 		}
 
-		// TODO:remove comment once a final solution to R and neo is found
 		// R connection
-		/*try {
+		try {
 			rCon = (rCon != null && rCon.isConnected()) ? rCon : new RConnection();
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Successfully connected to R");
 			String rScriptPath = UtilHelper.getConfigProperty("r_script_path");
@@ -95,14 +97,14 @@ public class DatabaseConnectionHelper extends TheBorg {
 				throw new REXPMismatchException(loadRScript, "Error: " + loadRScript.asString());
 			} else {
 				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Successfully loaded metric.r script");
-			}*/
-		org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).info("HashMap created!!!");
-		companyConfigMap = new HashMap<>();
-		org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).info("HashMap created!!!");
-		companyConnectionMap = new HashMap<>();
-		/*} catch (RserveException | REXPMismatchException e) {
+			}
+			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).info("HashMap created!!!");
+			companyConfigMap = new HashMap<>();
+			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).info("HashMap created!!!");
+			companyConnectionMap = new HashMap<>();
+		} catch (RserveException | REXPMismatchException e) {
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("An error occurred while trying to connect to R", e);
-		}*/
+		}
 
 		// runScheduler();
 
@@ -137,12 +139,10 @@ public class DatabaseConnectionHelper extends TheBorg {
 				}
 			}
 
-			// TODO:remove comment once a final solution to R and neo is found
-
-			/*if (rCon.isConnected()) {
+			if (rCon.isConnected()) {
 				rCon.close();
 				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Connection to R closed!!!!");
-			}*/
+			}
 
 			for (int companyId : companyConnectionMap.keySet()) {
 				companyConnectionMap.get(companyId).getSqlConnection().close();
