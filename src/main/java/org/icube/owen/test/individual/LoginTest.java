@@ -42,17 +42,4 @@ public class LoginTest {
 			assertEquals(e.getMessage(), "Invalid credentials!!!");
 		}
 	}
-
-	@Ignore
-	public void testloginIhcl() {
-		int companyId = 3;
-		int employeeId = 1;
-		try {
-			boolean status = l.loginIhcl(companyId, employeeId);
-			assertNotNull(status);
-		} catch (Exception e) {
-			assertEquals(e.getMessage(), "Invalid Employee ID!!!");
-		}
-
-	}
 }
