@@ -2,7 +2,6 @@ package org.icube.owen.helper;
 
 import java.sql.CallableStatement;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Calendar;
@@ -11,6 +10,8 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.tomcat.jdbc.pool.DataSource;
+import org.apache.tomcat.jdbc.pool.PoolProperties;
 import org.icube.owen.TheBorg;
 import org.icube.owen.jobScheduler.CompanyDAO;
 import org.rosuda.REngine.Rserve.RConnection;
@@ -32,13 +33,44 @@ public class DatabaseConnectionHelper extends TheBorg {
 	public DatabaseConnectionHelper() {
 
 		// master sql connection
-		try {
-			Class.forName("com.mysql.jdbc.Driver");
-			masterCon = (masterCon != null && !masterCon.isValid(0)) ? masterCon : DriverManager.getConnection(MASTER_URL, MASTER_USER,
-					MASTER_PASSWORD);
-			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Successfully connected to MySql with master database");
+		// try {
+		// Class.forName("com.mysql.jdbc.Driver");
+		// masterCon = (masterCon != null && !masterCon.isValid(0)) ? masterCon : DriverManager.getConnection(MASTER_URL, MASTER_USER,
+		// MASTER_PASSWORD);
+		// org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Successfully connected to MySql with master database");
+		//
+		// } catch (SQLException | ClassNotFoundException e) {
+		// org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error(
+		// "An error occurred while connecting to the master database on : " + MASTER_URL + " with user name : " + MASTER_USER, e);
+		// }
 
-		} catch (SQLException | ClassNotFoundException e) {
+		PoolProperties p = new PoolProperties();
+		p.setUrl(MASTER_URL);
+		p.setDriverClassName("com.mysql.jdbc.Driver");
+		p.setUsername(MASTER_USER);
+		p.setPassword(MASTER_PASSWORD);
+		p.setJmxEnabled(true);
+		p.setTestWhileIdle(false);
+		p.setTestOnBorrow(true);
+		p.setValidationQuery("SELECT 1");
+		p.setTestOnReturn(false);
+		p.setValidationInterval(30000);
+		p.setTimeBetweenEvictionRunsMillis(30000);
+		p.setMaxActive(100);
+		p.setInitialSize(10);
+		p.setMaxWait(10000);
+		p.setRemoveAbandonedTimeout(60);
+		p.setMinEvictableIdleTimeMillis(30000);
+		p.setMinIdle(10);
+		p.setLogAbandoned(true);
+		p.setRemoveAbandoned(true);
+		p.setJdbcInterceptors("org.apache.tomcat.jdbc.pool.interceptor.ConnectionState;"
+				+ "org.apache.tomcat.jdbc.pool.interceptor.StatementFinalizer");
+		DataSource datasource = new DataSource();
+		datasource.setPoolProperties(p);
+		try {
+			masterCon = datasource.getConnection();
+		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error(
 					"An error occurred while connecting to the master database on : " + MASTER_URL + " with user name : " + MASTER_USER, e);
 		}
@@ -140,16 +172,15 @@ public class DatabaseConnectionHelper extends TheBorg {
 			if (!companyConnectionMap.containsKey(companyId)) {
 
 				// get company details
-				CallableStatement cstmt = masterCon.prepareCall("{call getCompanyConfig(?)}");
-				cstmt.setInt(1, companyId);
-				ResultSet rs = cstmt.executeQuery();
-
-				while (rs.next()) {
-					compConfig = setCompanyConfigDetails(companyId, rs);
-					companyConfigMap.put(companyId, compConfig);
+				try (CallableStatement cstmt = masterCon.prepareCall("{call getCompanyConfig(?)}")) {
+					cstmt.setInt(1, companyId);
+					try (ResultSet rs = cstmt.executeQuery()) {
+						while (rs.next()) {
+							compConfig = setCompanyConfigDetails(companyId, rs);
+							companyConfigMap.put(companyId, compConfig);
+						}
+					}
 				}
-				rs.close();
-				cstmt.close();
 
 				// company sql connection
 				compConnection.setSqlConnection(createSqlConnection(companyId, compConfig));
@@ -210,12 +241,40 @@ public class DatabaseConnectionHelper extends TheBorg {
 	private Connection createSqlConnection(int companyId, CompanyConfig compConfig) {
 		Connection conn = null;
 		try {
-			String sqlUrl = compConfig.getSqlUrl();
-			String sqlUserName = compConfig.getSqlUserName();
-			String sqlPassword = compConfig.getSqlPassword();
-			Class.forName("com.mysql.jdbc.Driver");
-			conn = DriverManager.getConnection(sqlUrl, sqlUserName, sqlPassword);
-		} catch (SQLException | ClassNotFoundException e) {
+			// String sqlUrl = compConfig.getSqlUrl();
+			// String sqlUserName = compConfig.getSqlUserName();
+			// String sqlPassword = compConfig.getSqlPassword();
+			// Class.forName("com.mysql.jdbc.Driver");
+			// conn = DriverManager.getConnection(sqlUrl, sqlUserName, sqlPassword);
+
+			PoolProperties p = new PoolProperties();
+			p.setUrl(compConfig.getSqlUrl());
+			p.setDriverClassName("com.mysql.jdbc.Driver");
+			p.setUsername(compConfig.getSqlUserName());
+			p.setPassword(compConfig.getSqlPassword());
+			p.setJmxEnabled(true);
+			p.setTestWhileIdle(false);
+			p.setTestOnBorrow(true);
+			p.setValidationQuery("SELECT 1");
+			p.setTestOnReturn(false);
+			p.setValidationInterval(Integer.valueOf(UtilHelper.getConfigProperty("validationInterval")));
+			p.setTimeBetweenEvictionRunsMillis(Integer.valueOf(UtilHelper.getConfigProperty("timeBetweenEvictionRunsMillis")));
+			p.setMaxActive(Integer.valueOf(UtilHelper.getConfigProperty("maxActive")));
+			p.setInitialSize(Integer.valueOf(UtilHelper.getConfigProperty("initialSize")));
+			p.setMaxWait(Integer.valueOf(UtilHelper.getConfigProperty("maxWait")));
+			p.setRemoveAbandonedTimeout(Integer.valueOf(UtilHelper.getConfigProperty("removeAbandonedTimeout")));
+			p.setMinEvictableIdleTimeMillis(Integer.valueOf(UtilHelper.getConfigProperty("minEvictableIdleTimeMillis")));
+			p.setMinIdle(Integer.valueOf(UtilHelper.getConfigProperty("minIdle")));
+			p.setLogAbandoned(true);
+			p.setRemoveAbandoned(true);
+			p.setJdbcInterceptors("org.apache.tomcat.jdbc.pool.interceptor.ConnectionState;"
+					+ "org.apache.tomcat.jdbc.pool.interceptor.StatementFinalizer");
+			DataSource datasource = new DataSource();
+			datasource.setPoolProperties(p);
+
+			conn = datasource.getConnection();
+
+		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error(
 					"An error occurred while connecting to the sql db for companyId : " + companyId, e);
 		}
