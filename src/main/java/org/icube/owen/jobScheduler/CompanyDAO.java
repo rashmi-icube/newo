@@ -52,14 +52,11 @@ public class CompanyDAO extends TimerTask {
 	 */
 	public void runSchedulerJob() {
 
-		try {
+		try (Statement stmt = dch.masterCon.createStatement();
+				ResultSet companyDetails = stmt
+						.executeQuery("Select comp_name, comp_id, comp_sql_dbname, sql_server, sql_user_id, sql_password from company_master where comp_status='Active'")) {
 			// get company connections
-			dch = ObjectFactory.getDBHelper();
-			Statement stmt = dch.masterCon.createStatement();
-			ResultSet companyDetails = stmt
-					.executeQuery("Select comp_name, comp_id, comp_sql_dbname, sql_server, sql_user_id, sql_password from company_master where comp_status='Active'");
-
-			// connect to r
+			dch = ObjectFactory.getDBHelper();// connect to r
 			RConnection rCon = dch.getRConn();
 			org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("R Connection Available : " + rCon.isConnected());
 
@@ -107,8 +104,6 @@ public class CompanyDAO extends TimerTask {
 				}
 
 			}
-			stmt.close();
-			companyDetails.close();
 
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(CompanyDAO.class).error("Failed to get the db connection details", e);
@@ -133,46 +128,48 @@ public class CompanyDAO extends TimerTask {
 			int companyId = rs.getInt("comp_id");
 			String companyName = rs.getString("comp_name");
 			dch.getCompanyConnection(companyId);
-			Statement stmt = dch.companyConnectionMap.get(companyId).getSqlConnection().createStatement();
-			org.apache.log4j.Logger.getLogger(CompanyDAO.class)
-					.debug("Successfully connected to company db with companyId : " + rs.getInt("comp_id"));
+			try (Statement stmt = dch.companyConnectionMap.get(companyId).getSqlConnection().createStatement();) {
 
-			// find the number of questions closed
-			org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("Starting query to retrieve number of questions closed");
-			Date date = new Date(System.currentTimeMillis() - 24 * 60 * 60 * 1000);
-			ResultSet res = stmt.executeQuery("select count(que_id) as question_ended from question where end_date='" + date
-					+ "' and survey_batch_id=1;");
-			res.next();
-			int questionsClosed = res.getInt("question_ended");
+				org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug(
+						"Successfully connected to company db with companyId : " + rs.getInt("comp_id"));
 
-			// if there are questions closed, only then execute the jobs
-			if (questionsClosed > 0) {
-				org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("Started jobs for company: " + companyName);
-				try {
-					runRMethod("calculate_edge", companyId, companyName, jobStatusMap);
-					runRMethod("update_neo", companyId, companyName, jobStatusMap);
-					runRMethod("JobIndNwMetric", companyId, companyName, jobStatusMap);
-					runRMethod("JobCubeNwMetric", companyId, companyName, jobStatusMap);
-					runRMethod("JobDimensionNwMetric", companyId, companyName, jobStatusMap);
-					runRMethod("JobIndividualMetric", companyId, companyName, jobStatusMap);
-					runRMethod("JobTeamMetric", companyId, companyName, jobStatusMap);
-					runRMethod("JobDimensionMetric", companyId, companyName, jobStatusMap);
-					runRMethod("JobInitiativeMetric", companyId, companyName, jobStatusMap);
-					runRMethod("JobAlert", companyId, companyName, jobStatusMap);
-				} catch (Exception e) {
-					dch.releaseRcon();
-					org.apache.log4j.Logger.getLogger(CompanyDAO.class).error("Unable to execute Scheduler jobs ", e);
+				// find the number of questions closed
+				org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("Starting query to retrieve number of questions closed");
+				Date date = new Date(System.currentTimeMillis() - 24 * 60 * 60 * 1000);
+				try (ResultSet res = stmt.executeQuery("select count(que_id) as question_ended from question where end_date='" + date
+						+ "' and survey_batch_id=1;")) {
+					res.next();
+					int questionsClosed = res.getInt("question_ended");
+					if (questionsClosed > 0) {
+						org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug("Started jobs for company: " + companyName);
+						try {
+							runRMethod("calculate_edge", companyId, companyName, jobStatusMap);
+							runRMethod("update_neo", companyId, companyName, jobStatusMap);
+							runRMethod("JobIndNwMetric", companyId, companyName, jobStatusMap);
+							runRMethod("JobCubeNwMetric", companyId, companyName, jobStatusMap);
+							runRMethod("JobDimensionNwMetric", companyId, companyName, jobStatusMap);
+							runRMethod("JobIndividualMetric", companyId, companyName, jobStatusMap);
+							runRMethod("JobTeamMetric", companyId, companyName, jobStatusMap);
+							runRMethod("JobDimensionMetric", companyId, companyName, jobStatusMap);
+							runRMethod("JobInitiativeMetric", companyId, companyName, jobStatusMap);
+							runRMethod("JobAlert", companyId, companyName, jobStatusMap);
+						} catch (Exception e) {
+							dch.releaseRcon();
+							org.apache.log4j.Logger.getLogger(CompanyDAO.class).error("Unable to execute Scheduler jobs ", e);
+						}
+
+					} else {
+
+						// update the jobStatusMap
+						jobStatusMap.put("Company Metrics Job", "No questions were closed");
+						schedulerJobStatusMap.put(companyId, jobStatusMap);
+					}
+
 				}
-
-			} else {
-
-				// update the jobStatusMap
-				jobStatusMap.put("Company Metrics Job", "No questions were closed");
-				schedulerJobStatusMap.put(companyId, jobStatusMap);
 			}
 
-			stmt.close();
-			res.close();
+			// if there are questions closed, only then execute the jobs
+
 		} catch (Exception e) {
 			// add to map of status
 			org.apache.log4j.Logger.getLogger(CompanyDAO.class).error("Unable to execute Scheduler jobs ", e);
@@ -225,13 +222,11 @@ public class CompanyDAO extends TimerTask {
 	 */
 	public void runNewQuestionJob(int companyId, Map<String, String> jobStatusMap) throws SQLException {
 		ArrayList<String> addresses = new ArrayList<String>();
-		try {
-			Statement stmt = dch.companyConnectionMap.get(companyId).getSqlConnection().createStatement();
-			// check if new emails have to be sent for the specific company
+		try (Statement stmt = dch.companyConnectionMap.get(companyId).getSqlConnection().createStatement();
+		// check if new emails have to be sent for the specific company
 
-			ResultSet res = stmt
-					.executeQuery("select distinct(l.login_id) as email_id from (select Distinct(survey_batch_id) as survey_batch_id from question where date(start_date)=CURDATE()) as b join batch_target as bt on b.survey_batch_id=bt.survey_batch_id left join login_table as l on l.emp_id=bt.emp_id where l.status='active'");
-
+				ResultSet res = stmt
+						.executeQuery("select distinct(l.login_id) as email_id from (select Distinct(survey_batch_id) as survey_batch_id from question where date(start_date)=CURDATE()) as b join batch_target as bt on b.survey_batch_id=bt.survey_batch_id left join login_table as l on l.emp_id=bt.emp_id where l.status='active'")) {
 			while (res.next()) {
 				addresses.add(res.getString(1));
 				System.out.println(res.getString(1));
@@ -273,8 +268,6 @@ public class CompanyDAO extends TimerTask {
 				schedulerJobStatusMap.put(companyId, jobStatusMap);
 			}
 
-			stmt.close();
-			res.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(CompanyDAO.class).error("Error in executing runNewQuestionJob function", e);
 			jobStatus = false;

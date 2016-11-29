@@ -29,15 +29,12 @@ public class BatchList extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		org.apache.log4j.Logger.getLogger(BatchList.class).info("HashMap created!!!");
 		Map<Integer, String> getFrequencyLabelMap = new HashMap<>();
-		try {
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getFrequencyList()}");
+				ResultSet rs = cstmt.executeQuery()) {
 			dch.getCompanyConnection(companyId);
-			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getFrequencyList()}");
-			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
 				getFrequencyLabelMap.put(rs.getInt(1), rs.getString(2));
 			}
-			cstmt.close();
-			rs.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(BatchList.class).error("Exception while retrieving frequency label map", e);
 		}
@@ -56,41 +53,42 @@ public class BatchList extends TheBorg {
 
 		List<Batch> batchList = new ArrayList<Batch>();
 
-		try {
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getBatch(?)}")) {
 			dch.getCompanyConnection(companyId);
 			// TODO hardcoded with only one batch 1 since the UI doesn't have the functionality to display multiple batches
-			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getBatch(?)}");
+
 			cstmt.setInt(1, 1);
-			ResultSet rs = cstmt.executeQuery();
-			while (rs.next()) {
-				Batch b = new Batch();
-				b.setBatchFrequency(Frequency.get(rs.getInt("freq_id")));
-				b.setStartDate(rs.getDate("start_date"));
-				b.setEndDate(rs.getDate("end_date"));
-				b.setBatchId(rs.getInt("survey_batch_id"));
-				CallableStatement cstmt1 = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getBatchQuestionList(?)}");
-				cstmt1.setInt(1, rs.getInt("survey_batch_id"));
-				ResultSet rs1 = cstmt1.executeQuery();
-				List<Question> questionList = new ArrayList<Question>();
-				while (rs1.next()) {
-					Question q = new Question();
-					q.setEndDate(UtilHelper.getEndOfDay(rs1.getDate("end_date")));
-					q.setStartDate(UtilHelper.getStartOfDay(rs1.getDate("start_date")));
-					q.setQuestionText(rs1.getString("question"));
-					q.setQuestionId(rs1.getInt("que_id"));
-					q.setResponsePercentage(rs1.getDouble("resp"));
-					q.setQuestionType(QuestionType.values()[rs1.getInt("que_type")]);
-					q.setSurveyBatchId(rs1.getInt("survey_batch_id"));
-					q.setRelationshipTypeId(rs1.getInt("rel_id"));
-					questionList.add(q);
+			try (ResultSet rs = cstmt.executeQuery()) {
+				while (rs.next()) {
+					Batch b = new Batch();
+					b.setBatchFrequency(Frequency.get(rs.getInt("freq_id")));
+					b.setStartDate(rs.getDate("start_date"));
+					b.setEndDate(rs.getDate("end_date"));
+					b.setBatchId(rs.getInt("survey_batch_id"));
+					CallableStatement cstmt1 = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+							"{call getBatchQuestionList(?)}");
+					cstmt1.setInt(1, rs.getInt("survey_batch_id"));
+					ResultSet rs1 = cstmt1.executeQuery();
+					List<Question> questionList = new ArrayList<Question>();
+					while (rs1.next()) {
+						Question q = new Question();
+						q.setEndDate(UtilHelper.getEndOfDay(rs1.getDate("end_date")));
+						q.setStartDate(UtilHelper.getStartOfDay(rs1.getDate("start_date")));
+						q.setQuestionText(rs1.getString("question"));
+						q.setQuestionId(rs1.getInt("que_id"));
+						q.setResponsePercentage(rs1.getDouble("resp"));
+						q.setQuestionType(QuestionType.values()[rs1.getInt("que_type")]);
+						q.setSurveyBatchId(rs1.getInt("survey_batch_id"));
+						q.setRelationshipTypeId(rs1.getInt("rel_id"));
+						questionList.add(q);
+					}
+					rs1.close();
+					cstmt1.close();
+					b.setQuestionList(questionList);
+					batchList.add(b);
 				}
-				rs1.close();
-				cstmt1.close();
-				b.setQuestionList(questionList);
-				batchList.add(b);
 			}
-			rs.close();
-			cstmt.close();
+
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(BatchList.class).error("Exception while retrieving batch list", e);
 		}
@@ -134,16 +132,15 @@ public class BatchList extends TheBorg {
 
 				boolean isCurrent = q.getQuestionStatus(q.getStartDate(), q.getEndDate()).equalsIgnoreCase("current");
 				previousEndDate = updateQuestion(q, changedFrequency, isCurrent, previousEndDate);
-				try {
-					CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
-							"{call updateQuestionDate(?, ?, ?)}");
+				try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+						"{call updateQuestionDate(?, ?, ?)}")) {
+
 					cstmt.setInt(1, questionId);
 					cstmt.setDate(2, UtilHelper.convertJavaDateToSqlDate(q.getStartDate()));
 					cstmt.setDate(3, UtilHelper.convertJavaDateToSqlDate(q.getEndDate()));
 					cstmt.executeQuery();
 					org.apache.log4j.Logger.getLogger(BatchList.class).debug(
 							"Successfully changed frequency for question " + questionId + " in batch " + batch.getBatchId());
-					cstmt.close();
 				} catch (SQLException e) {
 					org.apache.log4j.Logger.getLogger(BatchList.class).error("Exception while updating question ID : " + questionId, e);
 				}
@@ -152,8 +149,8 @@ public class BatchList extends TheBorg {
 
 		}
 		// update the batch once all questions have been successfully updated
-		try {
-			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call updateBatch(?, ?, ?, ?)}");
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call updateBatch(?, ?, ?, ?)}")) {
+
 			cstmt.setInt(1, batch.getBatchId());
 			cstmt.setInt(2, changedFrequency.getValue());
 			cstmt.setDate(3, UtilHelper.convertJavaDateToSqlDate(UtilHelper.getStartOfDay(batch.getStartDate())));
@@ -161,7 +158,7 @@ public class BatchList extends TheBorg {
 			cstmt.executeQuery();
 			org.apache.log4j.Logger.getLogger(BatchList.class).debug("Successfully changed frequency for batch " + batch.getBatchId());
 			isChanged = true;
-			cstmt.close();
+
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(BatchList.class).error("Exception while updating batch ID : " + batch.getBatchId(), e);
 		}

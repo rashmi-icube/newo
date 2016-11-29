@@ -28,22 +28,20 @@ public class HrDashboardHelper extends TheBorg {
 		List<Metrics> dimensionMetricsList = new ArrayList<>();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
-		try {
-			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).debug(
-					"Entering getFilterMetrics using procedure getDimensionMetricValueAggregate");
-			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
-					"{call getDimensionMetricValueAggregate(?, ?)}");
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+				"{call getDimensionMetricValueAggregate(?, ?)}")) {
+			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class)
+			.debug("Entering getFilterMetrics using procedure getDimensionMetricValueAggregate");
 			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).debug(
 					"Filter Value ID : " + filter.getFilterValues().keySet().iterator().next().intValue());
 			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).debug("Filter ID : " + filter.getFilterId());
 			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).debug("Filter Name : " + filter.getFilterName());
 			cstmt.setInt("dimvalid", filter.getFilterValues().keySet().iterator().next().intValue());
 			cstmt.setInt("dimid", filter.getFilterId());
-			ResultSet rs = cstmt.executeQuery();
-			MetricsHelper mh = new MetricsHelper();
-			dimensionMetricsList = mh.fillMetricsData(companyId, rs, null, "Team");
-			rs.close();
-			cstmt.close();
+			try (ResultSet rs = cstmt.executeQuery()) {
+				MetricsHelper mh = new MetricsHelper();
+				dimensionMetricsList = mh.fillMetricsData(companyId, rs, null, "Team");
+			}
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).error("Exception while retrieving organization level metrics", e);
 		}
@@ -61,14 +59,11 @@ public class HrDashboardHelper extends TheBorg {
 		List<Metrics> orgMetricsList = new ArrayList<>();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
-		try {
-			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
-					"{call getOrganizationMetricValueAggregate()}");
-			ResultSet rs = cstmt.executeQuery();
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+				"{call getOrganizationMetricValueAggregate()}");
+				ResultSet rs = cstmt.executeQuery()) {
 			MetricsHelper mh = new MetricsHelper();
 			orgMetricsList = mh.fillMetricsData(companyId, rs, null, "Team");
-			rs.close();
-			cstmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).error("Exception while retrieving organization level metrics", e);
 		}
@@ -88,18 +83,17 @@ public class HrDashboardHelper extends TheBorg {
 		Map<Integer, List<Map<Date, Integer>>> result = new HashMap<>();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
-		try {
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+				"{call getDimensionMetricTimeSeries(?)}")) {
 			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).debug(
 					"Entering getTimeSeriesGraph using procedure getDimensionMetricTimeSeries");
-			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection()
-					.prepareCall("{call getDimensionMetricTimeSeries(?)}");
+
 			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).debug(
 					"Filter Value ID : " + filter.getFilterValues().keySet().iterator().next().intValue());
 			cstmt.setInt(1, filter.getFilterValues().keySet().iterator().next().intValue());
-			ResultSet rs = cstmt.executeQuery();
-			result = getTimeSeriesMap(rs);
-			cstmt.close();
-			rs.close();
+			try (ResultSet rs = cstmt.executeQuery();) {
+				result = getTimeSeriesMap(rs);
+			}
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).error("Exception while retrieving metrics", e);
 		}
@@ -148,13 +142,11 @@ public class HrDashboardHelper extends TheBorg {
 		Map<Integer, List<Map<Date, Integer>>> result = new HashMap<>();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
-		try {
-			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
-					"{call getOrganizationMetricTimeSeries()}");
-			ResultSet rs = cstmt.executeQuery();
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+				"{call getOrganizationMetricTimeSeries()}");
+				ResultSet rs = cstmt.executeQuery()) {
+
 			result = getTimeSeriesMap(rs);
-			rs.close();
-			cstmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).error("Exception while retrieving organization level metrics", e);
 		}
@@ -173,15 +165,12 @@ public class HrDashboardHelper extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
 		List<Alert> alertList = new ArrayList<>();
-		try {
-			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getAlertList()}");
-			ResultSet rs = cstmt.executeQuery();
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getAlertList()}");
+				ResultSet rs = cstmt.executeQuery()) {
 			while (rs.next()) {
 				Alert a = new Alert();
 				alertList.add(a.fillAlertDetails(companyId, rs));
 			}
-			rs.close();
-			cstmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(HrDashboardHelper.class).error("Exception while retrieving organization level metrics", e);
 		}
@@ -236,7 +225,7 @@ public class HrDashboardHelper extends TheBorg {
 		subResult.put("Banquets Team", ro);
 		return subResult;
 	}*/
-	
+
 	public Map<String, ReportObject> getReportData1(String group, String subGroup) {
 		Map<String, ReportObject> subResult = new HashMap<>();
 		ReportObject ro = new ReportObject();
@@ -260,7 +249,7 @@ public class HrDashboardHelper extends TheBorg {
 		ro2.setDisagree(10);
 		ro2.setStronglyDisagree(20);
 		subResult.put("Banquets", ro2);
-		
+
 		return subResult;
 	}
 

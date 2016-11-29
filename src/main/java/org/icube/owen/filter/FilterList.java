@@ -33,22 +33,21 @@ public class FilterList extends TheBorg {
 				f.setFilterId(filterId);
 			}
 		}
-		try {
-			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getDimensionValue(?)}");
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getDimensionValue(?)}")) {
 			cstmt.setInt(1, f.getFilterId());
-			ResultSet rs = cstmt.executeQuery();
-			org.apache.log4j.Logger.getLogger(FilterList.class).debug("getFilterValues method started");
-			org.apache.log4j.Logger.getLogger(FilterList.class).info("HashMap created!!!");
-			Map<Integer, String> filterValuesMap = new HashMap<>();
-			filterValuesMap.put(0, "All");
-			while (rs.next()) {
-				filterValuesMap.put(rs.getInt("dimension_val_id"), rs.getString("dimension_val_name"));
-				org.apache.log4j.Logger.getLogger(FilterList.class).debug("filterValuesMap : " + filterValuesMap.toString());
+			try (ResultSet rs = cstmt.executeQuery()) {
+
+				org.apache.log4j.Logger.getLogger(FilterList.class).debug("getFilterValues method started");
+				org.apache.log4j.Logger.getLogger(FilterList.class).info("HashMap created!!!");
+				Map<Integer, String> filterValuesMap = new HashMap<>();
+				filterValuesMap.put(0, "All");
+				while (rs.next()) {
+					filterValuesMap.put(rs.getInt("dimension_val_id"), rs.getString("dimension_val_name"));
+					org.apache.log4j.Logger.getLogger(FilterList.class).debug("filterValuesMap : " + filterValuesMap.toString());
+					f.setFilterValues(filterValuesMap);
+					org.apache.log4j.Logger.getLogger(FilterList.class).debug("Filter : " + f.toString());
+				}
 			}
-			rs.close();
-			cstmt.close();
-			f.setFilterValues(filterValuesMap);
-			org.apache.log4j.Logger.getLogger(FilterList.class).debug("Filter : " + f.toString());
 
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(FilterList.class).error("Exception in  getFilterValues for filter : " + filterName, e);
@@ -69,9 +68,9 @@ public class FilterList extends TheBorg {
 		List<Filter> allFiltersList = new ArrayList<>();
 
 		Map<Integer, String> filterLabelMap = getFilterLabelMap(companyId);
-		try {
-			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getDimensionValueList()}");
-			ResultSet rs = cstmt.executeQuery();
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getDimensionValueList()}");
+				ResultSet rs = cstmt.executeQuery()) {
+
 			for (int filterId : filterLabelMap.keySet()) {
 				Filter f = new Filter();
 				String filterName = filterLabelMap.get(filterId);
@@ -95,8 +94,7 @@ public class FilterList extends TheBorg {
 				rs.first();
 
 			}
-			rs.close();
-			cstmt.close();
+
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(FilterList.class).error("Exception while getting dimension value list : ", e);
 		}
@@ -113,14 +111,11 @@ public class FilterList extends TheBorg {
 		dch.getCompanyConnection(companyId);
 		org.apache.log4j.Logger.getLogger(FilterList.class).info("HashMap created!!!");
 		Map<Integer, String> filterLabelMap = new HashMap<>();
-		try {
-			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getDimensionList()}");
-			ResultSet rs = cstmt.executeQuery();
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getDimensionList()}");
+				ResultSet rs = cstmt.executeQuery()) {
 			while (rs.next()) {
 				filterLabelMap.put(rs.getInt("dimension_id"), rs.getString("dimension_name"));
 			}
-			rs.close();
-			cstmt.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}

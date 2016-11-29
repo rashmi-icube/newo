@@ -98,24 +98,22 @@ public class InitiativeHelper extends TheBorg {
 		masterMap.putAll(getEmptyInitiativeCountMap(companyId, "Individual"));
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
-		try {
+		try (Statement stmt = dch.companyConnectionMap.get(companyId).getNeoConnection().createStatement()) {
 			String query = "match (i:Init) where i.Status='Active' or i.Status='Completed' with  distinct(i.Status) as stat match (z:Init) "
 					+ "with distinct(z.Category) as cat,stat match (j:Init {Category:cat}) with distinct(j.Type) as TYP,stat,cat optional "
 					+ "match (a:Init) where a.Status=stat and a.Type=TYP return cat as category,TYP as initiativeType,stat as status ,count(a) as totalInitiatives";
-			Statement stmt = dch.companyConnectionMap.get(companyId).getNeoConnection().createStatement();
-			ResultSet res = stmt.executeQuery(query);
-			while (res.next()) {
-				String key = res.getString("initiativeType") + "_" + res.getString("status");
-				Map<String, Object> initiativeCountMap = masterMap.get(key);
-				initiativeCountMap.put("status", res.getString("status"));
-				initiativeCountMap.put("category", res.getString("category"));
-				initiativeCountMap.put("initiativeType", res.getInt("initiativeType"));
-				initiativeCountMap.put("totalInitiatives", res.getInt("totalInitiatives"));
-				masterMap.put(key, initiativeCountMap);
+			try (ResultSet res = stmt.executeQuery(query)) {
+				while (res.next()) {
+					String key = res.getString("initiativeType") + "_" + res.getString("status");
+					Map<String, Object> initiativeCountMap = masterMap.get(key);
+					initiativeCountMap.put("status", res.getString("status"));
+					initiativeCountMap.put("category", res.getString("category"));
+					initiativeCountMap.put("initiativeType", res.getInt("initiativeType"));
+					initiativeCountMap.put("totalInitiatives", res.getInt("totalInitiatives"));
+					masterMap.put(key, initiativeCountMap);
+				}
 			}
 			initiativeCountMapList.addAll(masterMap.values());
-			stmt.close();
-			res.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(InitiativeHelper.class).error("Exception while getting the initiative count list", e);
 		}
@@ -186,28 +184,32 @@ public class InitiativeHelper extends TheBorg {
 		try {
 			dch.getCompanyConnection(companyId);
 			if (i.getInitiativeCategory().equalsIgnoreCase("Individual")) {
-				CallableStatement cs = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
-						"{call getIndividualInitiativeMetricValueAggregate(?)}");
-				int empId = i.getPartOfEmployeeList().get(0).getEmployeeId();
-				cs.setInt(1, empId);
-				ResultSet rs = cs.executeQuery();
-				metricsList = mh.fillMetricsData(companyId, rs, mh.getPrimaryMetricMap(companyId, i.getInitiativeTypeId()), "Individual");
-				cs.close();
-				rs.close();
+				try (CallableStatement cs = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+						"{call getIndividualInitiativeMetricValueAggregate(?)}")) {
+					int empId = i.getPartOfEmployeeList().get(0).getEmployeeId();
+					cs.setInt(1, empId);
+					try (ResultSet rs = cs.executeQuery()) {
+						metricsList = mh.fillMetricsData(companyId, rs, mh.getPrimaryMetricMap(companyId, i.getInitiativeTypeId()), "Individual");
+					}
+				}
+
 			} else if (i.getInitiativeCategory().equalsIgnoreCase("Team")) {
 				org.apache.log4j.Logger.getLogger(InitiativeHelper.class).debug(
 						"setInitiativeMetrics for team  calling procedure getTeamInitiativeMetricValueAggregate for initiative ID: "
 								+ i.getInitiativeId());
-				CallableStatement cs = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
-						"{call getTeamInitiativeMetricValueAggregate(?)}");
-				int initId = i.getInitiativeId();
-				cs.setInt(1, initId);
-				ResultSet rs = cs.executeQuery();
-				org.apache.log4j.Logger.getLogger(InitiativeHelper.class).debug("fill metric map for initiative : " + i.getInitiativeId());
-				metricsList = mh.fillMetricsData(companyId, rs, mh.getPrimaryMetricMap(companyId, i.getInitiativeTypeId()), "Team");
-				org.apache.log4j.Logger.getLogger(InitiativeHelper.class).debug("finished fill metric map for initiative : " + i.getInitiativeId());
-				cs.close();
-				rs.close();
+				try (CallableStatement cs = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+						"{call getTeamInitiativeMetricValueAggregate(?)}")) {
+					int initId = i.getInitiativeId();
+					cs.setInt(1, initId);
+					try (ResultSet rs = cs.executeQuery()) {
+						org.apache.log4j.Logger.getLogger(InitiativeHelper.class).debug("fill metric map for initiative : " + i.getInitiativeId());
+						metricsList = mh.fillMetricsData(companyId, rs, mh.getPrimaryMetricMap(companyId, i.getInitiativeTypeId()), "Team");
+						org.apache.log4j.Logger.getLogger(InitiativeHelper.class).debug(
+								"finished fill metric map for initiative : " + i.getInitiativeId());
+					}
+
+				}
+
 			}
 
 		} catch (SQLException e) {

@@ -62,22 +62,22 @@ public class ResponseHelper extends TheBorg {
 	public boolean saveMeResponse(int companyId, int employeeId, int questionId, int responseValue) {
 		boolean responseSaved = false;
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		try {
-			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call insertMeResponse(?,?,?,?,?)}");
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call insertMeResponse(?,?,?,?,?)}")) {
 			cstmt.setInt("empid", employeeId);
 			cstmt.setInt("queid", questionId);
 			cstmt.setTimestamp("responsetime", UtilHelper.convertJavaDateToSqlTimestamp(Date.from(Instant.now())));
 			cstmt.setInt("score", responseValue);
 			cstmt.setString("feedbck", "");
 			org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug("SQL statement for question : " + questionId + " : " + cstmt.toString());
-			ResultSet rs = cstmt.executeQuery();
-			if (rs.next()) {
-				org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug("RS statement for question : " + questionId + " : " + rs.toString());
-				responseSaved = true;
-				org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug("Successfully saved the response for : " + questionId);
+			try (ResultSet rs = cstmt.executeQuery()) {
+				if (rs.next()) {
+					org.apache.log4j.Logger.getLogger(ResponseHelper.class)
+							.debug("RS statement for question : " + questionId + " : " + rs.toString());
+					responseSaved = true;
+					org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug("Successfully saved the response for : " + questionId);
+				}
 			}
-			rs.close();
-			cstmt.close();
+
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(ResponseHelper.class).error("Exception while saving the response for question : " + questionId, e);
 		}
@@ -99,26 +99,26 @@ public class ResponseHelper extends TheBorg {
 		org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug(
 				"Entering the saveWeResponse for companyId " + companyId + " employeeId " + employeeId);
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		try {
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call insertWeResponse(?,?,?,?,?)}")) {
 			dch.getCompanyConnection(companyId);
 			org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug(
 					"Saving the response in the db for questionId " + questionId + "target employee " + targetEmployee + " with the response "
 							+ responseValue);
 
-			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call insertWeResponse(?,?,?,?,?)}");
 			cstmt.setInt("empid", employeeId);
 			cstmt.setInt("queid", questionId);
 			cstmt.setTimestamp("responsetime", UtilHelper.convertJavaDateToSqlTimestamp(Date.from(Instant.now())));
 			cstmt.setInt("targetid", targetEmployee);
 			cstmt.setInt("wt", responseValue);
 			org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug("SQL statement for question : " + questionId + " : " + cstmt.toString());
-			ResultSet rs = cstmt.executeQuery();
-			if (rs.next()) {
-				org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug("RS statement for question : " + questionId + " : " + rs.toString());
-				responseSaved = true;
+			try (ResultSet rs = cstmt.executeQuery()) {
+				if (rs.next()) {
+					org.apache.log4j.Logger.getLogger(ResponseHelper.class)
+							.debug("RS statement for question : " + questionId + " : " + rs.toString());
+					responseSaved = true;
+				}
 			}
-			rs.close();
-			cstmt.close();
+
 			org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug(
 					"Successfully saved the response for questionId " + questionId + "target employee " + targetEmployee + " with the response "
 							+ responseValue);
@@ -146,48 +146,48 @@ public class ResponseHelper extends TheBorg {
 		int count = 0;
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 
-		try {
-			CallableStatement cstmt1 = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call isWeQuestionAnswered(?,?)}");
+		try (CallableStatement cstmt1 = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call isWeQuestionAnswered(?,?)}")) {
 			cstmt1.setInt("empid", employeeId);
 			cstmt1.setInt("queid", questionId);
-			ResultSet res = cstmt1.executeQuery();
-			res.next();
-			cstmt1.close();
-			if (!res.getBoolean("op")) {
-				dch.getCompanyConnection(companyId);
+			try (ResultSet res = cstmt1.executeQuery()) {
+				res.next();
+				if (!res.getBoolean("op")) {
+					dch.getCompanyConnection(companyId);
 
-				for (Employee e : employeeRating.keySet()) {
-					org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug(
-							"Saving the response in the db for questionId " + questionId + "target employee " + e.getEmployeeId()
-									+ " with the response " + employeeRating.get(e));
+					for (Employee e : employeeRating.keySet()) {
+						try (CallableStatement cstmt2 = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+								"{call insertWeResponse(?,?,?,?,?)}")) {
+							org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug(
+									"Saving the response in the db for questionId " + questionId + "target employee " + e.getEmployeeId()
+											+ " with the response " + employeeRating.get(e));
 
-					cstmt1 = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call insertWeResponse(?,?,?,?,?)}");
-					cstmt1.setInt("empid", employeeId);
-					cstmt1.setInt("queid", questionId);
-					cstmt1.setTimestamp("responsetime", UtilHelper.convertJavaDateToSqlTimestamp(Date.from(Instant.now())));
-					cstmt1.setInt("targetid", e.getEmployeeId());
-					cstmt1.setInt("wt", employeeRating.get(e));
-					org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug(
-							"SQL statement for question : " + questionId + " : " + cstmt1.toString());
-					ResultSet rs = cstmt1.executeQuery();
-					if (rs.next()) {
-						org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug(
-								"RS statement for question : " + questionId + " : " + rs.toString());
-						responseSaved = true;
-						count++;
+							cstmt2.setInt("empid", employeeId);
+							cstmt2.setInt("queid", questionId);
+							cstmt2.setTimestamp("responsetime", UtilHelper.convertJavaDateToSqlTimestamp(Date.from(Instant.now())));
+							cstmt2.setInt("targetid", e.getEmployeeId());
+							cstmt2.setInt("wt", employeeRating.get(e));
+							org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug(
+									"SQL statement for question : " + questionId + " : " + cstmt2.toString());
+							try (ResultSet rs = cstmt2.executeQuery()) {
+								if (rs.next()) {
+									org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug(
+											"RS statement for question : " + questionId + " : " + rs.toString());
+									responseSaved = true;
+									count++;
+								}
+							}
+						}
 					}
-					rs.close();
-					cstmt1.close();
-				}
-				if (employeeRating.size() == count) {
-					org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug("Successfully saved the response for : " + questionId);
-				}
+					if (employeeRating.size() == count) {
+						org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug("Successfully saved the response for : " + questionId);
+					}
 
-			} else {
-				org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug(
-						"Response is already stored for question ID :" + questionId + " for employee ID : " + employeeId);
+				} else {
+					org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug(
+							"Response is already stored for question ID :" + questionId + " for employee ID : " + employeeId);
+				}
 			}
-			res.close();
+
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(ResponseHelper.class).error("Exception while saving the response for question : " + questionId, e);
 		}

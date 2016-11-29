@@ -97,30 +97,28 @@ public class InitiativeList extends TheBorg {
 				org.apache.log4j.Logger.getLogger(InitiativeList.class).error("Incorrect criteria has been given " + viewByCriteria);
 				throw new Exception("Incorrect criteria has been given " + viewByCriteria);
 			}
-			Statement stmt = dch.companyConnectionMap.get(companyId).getNeoConnection().createStatement();
-			ResultSet res = stmt.executeQuery(initiativeListQuery);
-			org.apache.log4j.Logger.getLogger(InitiativeList.class).debug(
-					"Executed query for retrieving initiative list with " + viewByCriteria + " : " + viewByValue);
-			while (res.next()) {
-
-				int initiativeId = res.getInt("Id");
-				if (initiativeIdMap.containsKey(initiativeId)) {
-					Initiative i = initiativeIdMap.get(initiativeId);
-					if (i.getInitiativeCategory().equalsIgnoreCase("Team")) {
-						i.setFilterList(ih.setPartOfConnections(companyId, res, i));
-					} else if (i.getInitiativeCategory().equalsIgnoreCase("Individual")) {
-						i.setPartOfEmployeeList(ih.setPartOfEmployeeList(companyId, res, i));
+			try (Statement stmt = dch.companyConnectionMap.get(companyId).getNeoConnection().createStatement();
+					ResultSet res = stmt.executeQuery(initiativeListQuery)) {
+				org.apache.log4j.Logger.getLogger(InitiativeList.class).debug(
+						"Executed query for retrieving initiative list with " + viewByCriteria + " : " + viewByValue);
+				while (res.next()) {
+					int initiativeId = res.getInt("Id");
+					if (initiativeIdMap.containsKey(initiativeId)) {
+						Initiative i = initiativeIdMap.get(initiativeId);
+						if (i.getInitiativeCategory().equalsIgnoreCase("Team")) {
+							i.setFilterList(ih.setPartOfConnections(companyId, res, i));
+						} else if (i.getInitiativeCategory().equalsIgnoreCase("Individual")) {
+							i.setPartOfEmployeeList(ih.setPartOfEmployeeList(companyId, res, i));
+						}
+						initiativeIdMap.put(initiativeId, i);
+					} else {
+						Initiative i = new Initiative();
+						setInitiativeValues(companyId, res, i);
+						initiativeIdMap.put(initiativeId, i);
 					}
-					initiativeIdMap.put(initiativeId, i);
-				} else {
-					Initiative i = new Initiative();
-					setInitiativeValues(companyId, res, i);
-					initiativeIdMap.put(initiativeId, i);
+
 				}
-
 			}
-			res.close();
-
 			for (int initiativeId : initiativeIdMap.keySet()) {
 				initiativeList.add(initiativeIdMap.get(initiativeId));
 			}
@@ -130,7 +128,6 @@ public class InitiativeList extends TheBorg {
 
 			org.apache.log4j.Logger.getLogger(InitiativeList.class).debug(
 					"List of initiatives of " + viewByCriteria + viewByValue + ": " + initiativeList.toString());
-			stmt.close();
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(InitiativeList.class).error("Exception while getting the initiative list", e);
 		}
@@ -152,7 +149,7 @@ public class InitiativeList extends TheBorg {
 		List<Initiative> initiativeList = new ArrayList<Initiative>();
 		org.apache.log4j.Logger.getLogger(InitiativeList.class).info("HashMap created!!!");
 		Map<Integer, Initiative> initiativeIdMap = new HashMap<Integer, Initiative>();
-		try {
+		try (Statement stmt = dch.companyConnectionMap.get(companyId).getNeoConnection().createStatement()) {
 			String initiativeListQuery = "match (i:Init {Category:'"
 					+ category
 					+ "'})<-[r:part_of]-(a) where i.Status in ['Active','Pending'] WITH i,a optional "
@@ -162,24 +159,23 @@ public class InitiativeList extends TheBorg {
 					+ "collect(distinct (o.emp_id)) as OwnersOf,i.Comment as Comments,i.Type as Type,i.Category as Category,i.Status as Status";
 			org.apache.log4j.Logger.getLogger(InitiativeList.class).debug(
 					"Query for retrieving all initiatives for category " + category + " : " + initiativeListQuery);
-			Statement stmt = dch.companyConnectionMap.get(companyId).getNeoConnection().createStatement();
-			ResultSet res = stmt.executeQuery(initiativeListQuery);
-			org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Executed query for retrieving initiative list");
-			while (res.next()) {
+			try (ResultSet res = stmt.executeQuery(initiativeListQuery);) {
+				org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Executed query for retrieving initiative list");
+				while (res.next()) {
 
-				int initiativeId = res.getInt("Id");
-				if (initiativeIdMap.containsKey(initiativeId)) {
-					Initiative i = initiativeIdMap.get(initiativeId);
-					i.setFilterList(ih.setPartOfConnections(companyId, res, i));
-					initiativeIdMap.put(initiativeId, i);
-				} else {
-					Initiative i = new Initiative();
-					setInitiativeValues(companyId, res, i);
-					initiativeIdMap.put(initiativeId, i);
+					int initiativeId = res.getInt("Id");
+					if (initiativeIdMap.containsKey(initiativeId)) {
+						Initiative i = initiativeIdMap.get(initiativeId);
+						i.setFilterList(ih.setPartOfConnections(companyId, res, i));
+						initiativeIdMap.put(initiativeId, i);
+					} else {
+						Initiative i = new Initiative();
+						setInitiativeValues(companyId, res, i);
+						initiativeIdMap.put(initiativeId, i);
+					}
+
 				}
-
 			}
-			res.close();
 			for (int initiativeId : initiativeIdMap.keySet()) {
 				initiativeList.add(initiativeIdMap.get(initiativeId));
 			}

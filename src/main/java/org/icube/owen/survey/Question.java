@@ -111,24 +111,22 @@ public class Question extends TheBorg {
 	public Question getQuestion(int companyId, int questionId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Question q = new Question();
-		try {
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getQuestion(?)}")) {
 			dch.getCompanyConnection(companyId);
-
-			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getQuestion(?)}");
 			cstmt.setInt(1, questionId);
-			ResultSet rs = cstmt.executeQuery();
-			while (rs.next()) {
-				q.setEndDate(rs.getDate("end_date"));
-				q.setStartDate(rs.getDate("start_date"));
-				q.setQuestionText(rs.getString("question"));
-				q.setQuestionId(rs.getInt("que_id"));
-				q.setResponsePercentage(rs.getDouble("resp"));
-				q.setQuestionType(QuestionType.values()[rs.getInt("que_type")]);
-				q.setSurveyBatchId(rs.getInt("survey_batch_id"));
-				q.setRelationshipTypeId(rs.getInt("rel_id"));
+			try (ResultSet rs = cstmt.executeQuery()) {
+				while (rs.next()) {
+					q.setEndDate(rs.getDate("end_date"));
+					q.setStartDate(rs.getDate("start_date"));
+					q.setQuestionText(rs.getString("question"));
+					q.setQuestionId(rs.getInt("que_id"));
+					q.setResponsePercentage(rs.getDouble("resp"));
+					q.setQuestionType(QuestionType.values()[rs.getInt("que_type")]);
+					q.setSurveyBatchId(rs.getInt("survey_batch_id"));
+					q.setRelationshipTypeId(rs.getInt("rel_id"));
+				}
 			}
-			rs.close();
-			cstmt.close();
+
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(Question.class).error("Exception while retrieving Question with ID" + questionId, e);
 		}
@@ -164,27 +162,27 @@ public class Question extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		org.apache.log4j.Logger.getLogger(Question.class).info("HashMap created!!!");
 		Map<Date, Integer> responseMap = new HashMap<>();
-		try {
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getResponseData(?)}")) {
 			dch.getCompanyConnection(companyId);
-			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getResponseData(?)}");
 			cstmt.setInt(1, q.getQuestionId());
-			ResultSet rs = cstmt.executeQuery();
-			if (rs.next()) {
-				org.apache.log4j.Logger.getLogger(Question.class).debug("Response available for question : " + q.getQuestionId());
-				do {
-					Date utilDate = new Date(rs.getDate("date").getTime());
-					responseMap.put(utilDate, rs.getInt("responses"));
-				} while (rs.next());
-			} else {
-				// if no response is available for the question we return an empty map with the response count 0 from the date the question was
-				// started
-				org.apache.log4j.Logger.getLogger(Question.class).debug("No response available for question : " + q.getQuestionId());
-				for (Date d = q.getStartDate(); d.before(Date.from(Instant.now())); d = UtilHelper.convertJavaDateToSqlDate(DateUtils.addDays(d, 1))) {
-					responseMap.put(d, 0);
+			try (ResultSet rs = cstmt.executeQuery()) {
+
+				if (rs.next()) {
+					org.apache.log4j.Logger.getLogger(Question.class).debug("Response available for question : " + q.getQuestionId());
+					do {
+						Date utilDate = new Date(rs.getDate("date").getTime());
+						responseMap.put(utilDate, rs.getInt("responses"));
+					} while (rs.next());
+				} else {
+					// if no response is available for the question we return an empty map with the response count 0 from the date the question was
+					// started
+					org.apache.log4j.Logger.getLogger(Question.class).debug("No response available for question : " + q.getQuestionId());
+					for (Date d = q.getStartDate(); d.before(Date.from(Instant.now())); d = UtilHelper.convertJavaDateToSqlDate(DateUtils.addDays(d,
+							1))) {
+						responseMap.put(d, 0);
+					}
 				}
 			}
-			rs.close();
-			cstmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(Question.class).error("Exception while retrieving response data", e);
 		}
@@ -237,30 +235,29 @@ public class Question extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Question> questionList = new ArrayList<>();
 
-		try {
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getEmpQuestionList(?,?)}")) {
 			dch.getCompanyConnection(companyId);
-			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getEmpQuestionList(?,?)}");
 			cstmt.setInt(1, employeeId);
 			Date date = Date.from(Instant.now());
 			cstmt.setDate(2, UtilHelper.convertJavaDateToSqlDate(date));
-			ResultSet rs = cstmt.executeQuery();
-			while (rs.next()) {
-				Question q = new Question();
-				q.setQuestionId(rs.getInt("que_id"));
-				q.setQuestionText(rs.getString("question"));
-				q.setStartDate(rs.getDate("start_date"));
-				q.setEndDate(rs.getDate("end_date"));
-				q.setRelationshipTypeId(rs.getInt("rel_id"));
-				q.setSurveyBatchId(rs.getInt("survey_batch_id"));
-				q.setQuestionType(QuestionType.get(rs.getInt("que_type")));
-				q.setResponsePercentage(0);
-				org.apache.log4j.Logger.getLogger(Question.class).debug(
-						"Question for employee : " + q.getQuestionId() + " - " + q.getQuestionText() + " - " + q.getRelationshipTypeId());
+			try (ResultSet rs = cstmt.executeQuery()) {
+				while (rs.next()) {
+					Question q = new Question();
+					q.setQuestionId(rs.getInt("que_id"));
+					q.setQuestionText(rs.getString("question"));
+					q.setStartDate(rs.getDate("start_date"));
+					q.setEndDate(rs.getDate("end_date"));
+					q.setRelationshipTypeId(rs.getInt("rel_id"));
+					q.setSurveyBatchId(rs.getInt("survey_batch_id"));
+					q.setQuestionType(QuestionType.get(rs.getInt("que_type")));
+					q.setResponsePercentage(0);
+					org.apache.log4j.Logger.getLogger(Question.class).debug(
+							"Question for employee : " + q.getQuestionId() + " - " + q.getQuestionText() + " - " + q.getRelationshipTypeId());
 
-				questionList.add(q);
+					questionList.add(q);
+				}
 			}
-			rs.close();
-			cstmt.close();
+
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(Question.class).error("Exception while retrieving the questionList", e);
 		}
@@ -271,23 +268,21 @@ public class Question extends TheBorg {
 	public String getJsonEmployeeQuestionList(int companyId, int employeeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		JSONArray arr = new JSONArray();
-		try {
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getEmpQuestionList(?,?)}")) {
 			dch.getCompanyConnection(companyId);
-			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getEmpQuestionList(?,?)}");
 			cstmt.setInt(1, employeeId);
 			Date date = Date.from(Instant.now());
 			cstmt.setDate(2, UtilHelper.convertJavaDateToSqlDate(date));
-			ResultSet rs = cstmt.executeQuery();
-
-			while (rs.next()) {
-				JSONObject json = new JSONObject();
-				json.put("questionId", rs.getInt("que_id"));
-				json.put("questionText", rs.getString("question"));
-				json.put("questionType", QuestionType.get(rs.getInt("que_type")));
-				arr.put(json);
+			try (ResultSet rs = cstmt.executeQuery()) {
+				while (rs.next()) {
+					JSONObject json = new JSONObject();
+					json.put("questionId", rs.getInt("que_id"));
+					json.put("questionText", rs.getString("question"));
+					json.put("questionType", QuestionType.get(rs.getInt("que_type")));
+					arr.put(json);
+				}
 			}
-			rs.close();
-			cstmt.close();
+
 		} catch (SQLException | JSONException e) {
 			org.apache.log4j.Logger.getLogger(Question.class).error("Exception while retrieving the questionList", e);
 		}
@@ -312,21 +307,21 @@ public class Question extends TheBorg {
 				org.apache.log4j.Logger.getLogger(Question.class).debug("Calling getEmployeeMasterList");
 				employeeList.addAll(el.getEmployeeMasterList(companyId));
 			} else if (ccObj.getSmartList().equals("cube")) {
+				try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getListColleague(?)}")) {
+					cstmt.setString("array", String.valueOf(employeeId));
+					try (ResultSet rs = cstmt.executeQuery()) {
+						List<Integer> empIdList = new ArrayList<>();
+						while (rs.next()) {
+							empIdList.add(rs.getInt("emp_id"));
+						}
+						for (int i = 0; i < empIdList.size(); i++) {
+							Employee e = new Employee();
+							e = e.get(companyId, empIdList.get(i));
+							employeeList.add(e);
+						}
+					}
+				}
 
-				CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getListColleague(?)}");
-				cstmt.setString("array", String.valueOf(employeeId));
-				ResultSet rs = cstmt.executeQuery();
-				List<Integer> empIdList = new ArrayList<>();
-				while (rs.next()) {
-					empIdList.add(rs.getInt("emp_id"));
-				}
-				rs.close();
-				cstmt.close();
-				for (int i = 0; i < empIdList.size(); i++) {
-					Employee e = new Employee();
-					e = e.get(companyId, empIdList.get(i));
-					employeeList.add(e);
-				}
 			} else {
 				// Map<Integer, Employee> employeeRankMap = new TreeMap<>();
 				Question q = getQuestion(companyId, questionId);

@@ -28,7 +28,7 @@ public class MetricsList extends TheBorg {
 
 	public List<Metrics> getInitiativeMetricsForTeam(int companyId, int initiativeTypeId, List<Filter> filterList) {
 		org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Entering getInitiativeMetricsForTeam");
-	
+
 		List<Metrics> metricsList = new ArrayList<>();
 		MetricsHelper mh = new MetricsHelper();
 		Map<String, Object> parsedFilterListResult = UtilHelper.parseFilterList(filterList);
@@ -58,7 +58,7 @@ public class MetricsList extends TheBorg {
 	 * @param initiativeTypeId - ID of the kind of initiative
 	 * @return list of metrics objects
 	 */
-	
+
 	public List<Metrics> getInitiativeMetricsForIndividual(int companyId, int initiativeTypeId, List<Employee> partOfEmployeeList) {
 		org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Entering getInitiativeMetricsForIndividual");
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
@@ -79,18 +79,20 @@ public class MetricsList extends TheBorg {
 				empIdList.add(e.getEmployeeId());
 			}
 
-			try {
+			try (CallableStatement cs = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+					"{call getIndividualInitiativeMetricValueAggregate(?)}")) {
 				org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Calling getIndividualInitiativeMetricValueAggregate");
-				CallableStatement cs = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getIndividualInitiativeMetricValueAggregate(?)}");
+
 				int empId = empIdList.get(0);
 				cs.setInt(1, empId);
-				ResultSet rs = cs.executeQuery();
-				while (rs.next()) {
-					previousScoreMap.put(rs.getInt("metric_id"), rs.getInt("previous_score"));
-					currentScoreMap.put(rs.getInt("metric_id"), rs.getInt("current_score"));
+				try (ResultSet rs = cs.executeQuery()) {
+
+					while (rs.next()) {
+						previousScoreMap.put(rs.getInt("metric_id"), rs.getInt("previous_score"));
+						currentScoreMap.put(rs.getInt("metric_id"), rs.getInt("current_score"));
+					}
 				}
-				cs.close();
-				rs.close();
+
 			} catch (Exception e) {
 				org.apache.log4j.Logger.getLogger(MetricsList.class).error(
 						"Exception while trying to metrics list for category individual and type ID " + initiativeTypeId, e);
@@ -101,7 +103,7 @@ public class MetricsList extends TheBorg {
 			org.apache.log4j.Logger.getLogger(MetricsList.class).error(
 					"Exception while trying to retrieve metrics for category individual and type ID " + initiativeTypeId, e);
 		}
-		
+
 		Collections.sort(metricsList, (o1, o2) -> Integer.valueOf(o1.getId()).compareTo(Integer.valueOf(o2.getId())));
 		return metricsList;
 

@@ -23,10 +23,9 @@ public class QuestionList extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Question> questionList = new ArrayList<>();
 
-		try {
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getQuestionList()}");
+				ResultSet rs = cstmt.executeQuery()) {
 			dch.getCompanyConnection(companyId);
-			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getQuestionList()}");
-			ResultSet rs = cstmt.executeQuery();
 			while (rs.next()) {
 				Question q = new Question();
 				q.setQuestionId(rs.getInt("que_id"));
@@ -39,8 +38,6 @@ public class QuestionList extends TheBorg {
 				q.setRelationshipTypeId(rs.getInt("rel_id"));
 				questionList.add(q);
 			}
-			rs.close();
-			cstmt.close();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(QuestionList.class).error("Exception while retrieving the list of questions", e);
 		}
@@ -57,25 +54,24 @@ public class QuestionList extends TheBorg {
 	public List<Question> getQuestionListForBatch(int companyId, int batchId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Question> questionList = new ArrayList<Question>();
-		try {
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getBatchQuestionList(?)}")) {
 			dch.getCompanyConnection(companyId);
-			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getBatchQuestionList(?)}");
 			cstmt.setInt(1, batchId);
-			ResultSet rs = cstmt.executeQuery();
-			while (rs.next()) {
-				Question q = new Question();
-				q.setEndDate(rs.getDate("end_date"));
-				q.setStartDate(rs.getDate("start_date"));
-				q.setQuestionText(rs.getString("question"));
-				q.setQuestionId(rs.getInt("que_id"));
-				q.setResponsePercentage(rs.getDouble("resp"));
-				q.setQuestionType(QuestionType.values()[rs.getInt("que_type")]);
-				q.setSurveyBatchId(rs.getInt("survey_batch_id"));
-				q.setRelationshipTypeId(rs.getInt("rel_id"));
-				questionList.add(q);
+			try (ResultSet rs = cstmt.executeQuery()) {
+				while (rs.next()) {
+					Question q = new Question();
+					q.setEndDate(rs.getDate("end_date"));
+					q.setStartDate(rs.getDate("start_date"));
+					q.setQuestionText(rs.getString("question"));
+					q.setQuestionId(rs.getInt("que_id"));
+					q.setResponsePercentage(rs.getDouble("resp"));
+					q.setQuestionType(QuestionType.values()[rs.getInt("que_type")]);
+					q.setSurveyBatchId(rs.getInt("survey_batch_id"));
+					q.setRelationshipTypeId(rs.getInt("rel_id"));
+					questionList.add(q);
+				}
 			}
-			rs.close();
-			cstmt.close();
+
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(QuestionList.class).error("Exception while retrieving the list of questions for batch ID" + batchId, e);
 		}

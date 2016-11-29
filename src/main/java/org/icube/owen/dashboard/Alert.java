@@ -39,16 +39,16 @@ public class Alert extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
 		Alert a = null;
-		try {
-			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getAlert(?)}");
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getAlert(?)}")) {
 			cstmt.setInt(1, alertId);
-			ResultSet rs = cstmt.executeQuery();
-			while (rs.next()) {
-				a = fillAlertDetails(companyId, rs);
+			try (ResultSet rs = cstmt.executeQuery()) {
+				while (rs.next()) {
+					a = fillAlertDetails(companyId, rs);
+				}
 			}
-			cstmt.close();
-			rs.close();
-		} catch (SQLException e) {
+		}
+
+		catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(Alert.class).error("Exception while retrieving alert with ID : " + alertId, e);
 		}
 		return a;
@@ -102,22 +102,20 @@ public class Alert extends TheBorg {
 		a.setAlertMetric(m);
 		a.setDeltaScore(rs.getDouble("delta_score"));
 		a.setTeamSize(rs.getInt("team_size"));
-		CallableStatement cstmt1 = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getListOfPeopleForAlert(?)}");
-		cstmt1.setInt(1, rs.getInt("alert_id"));
-		ResultSet rs1 = cstmt1.executeQuery();
-		List<Integer> empIdList = new ArrayList<>();
-		while (rs1.next()) {
-			empIdList.add(rs1.getInt("emp_id"));
+		try (CallableStatement cstmt1 = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getListOfPeopleForAlert(?)}")) {
+			cstmt1.setInt(1, rs.getInt("alert_id"));
+			try (ResultSet rs1 = cstmt1.executeQuery()) {
+				List<Integer> empIdList = new ArrayList<>();
+				while (rs1.next()) {
+					empIdList.add(rs1.getInt("emp_id"));
+				}
+				EmployeeList el = new EmployeeList();
+				a.setEmployeeList(el.get(companyId, empIdList));
+				a.setAlertStatus(rs.getString("status"));
+				a.setInitiativeTypeId(rs.getInt("init_type_id"));
+			}
+		} catch (SQLException e) {
 		}
-		EmployeeList el = new EmployeeList();
-		a.setEmployeeList(el.get(companyId, empIdList));
-		a.setAlertStatus(rs.getString("status"));
-		a.setInitiativeTypeId(rs.getInt("init_type_id"));
-		
-		rs.close();
-		cstmt1.close();
-		rs1.close();
-		
 		return a;
 	}
 
@@ -133,11 +131,13 @@ public class Alert extends TheBorg {
 		dch.getCompanyConnection(companyId);
 		try {
 			org.apache.log4j.Logger.getLogger(Alert.class).debug("Calling the deleteAlert procedure");
-			CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call deleteAlert(?)}");
-			cstmt.setInt(1, alertId);
-			cstmt.executeQuery();
-			org.apache.log4j.Logger.getLogger(Alert.class).debug("Successfully deleted alert");
-			cstmt.close();
+			try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call deleteAlert(?)}")) {
+				cstmt.setInt(1, alertId);
+				try (ResultSet rs = cstmt.executeQuery()) {
+					org.apache.log4j.Logger.getLogger(Alert.class).debug("Successfully deleted alert");
+				}
+			}
+
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(Alert.class).error("Exception while deleting alert with ID : " + alertId, e);
 		}

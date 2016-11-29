@@ -34,44 +34,46 @@ public class Login extends TheBorg {
 		String companyDomain = emailId.substring(index + 1);
 		int companyId = 0;
 		String companyName = "";
-		try {
-			CallableStatement cstmt = dch.masterCon.prepareCall("{call getCompanyDb(?)}");
+		try (CallableStatement cstmt = dch.masterCon.prepareCall("{call getCompanyDb(?)}")) {
+
 			cstmt.setString(1, companyDomain);
-			ResultSet rs = cstmt.executeQuery();
-			while (rs.next()) {
-				companyId = rs.getInt("comp_id");
-				dch.getCompanyConnection(companyId);
-				companySqlCon = dch.companyConnectionMap.get(companyId).getSqlConnection();
-				companyName = rs.getString("comp_name");
-				org.apache.log4j.Logger.getLogger(Login.class).debug("Company Name : " + companyName);
-			}
-			org.apache.log4j.Logger.getLogger(Login.class).debug("Role ID for user : " + emailId + " is : " + roleId);
-			cstmt.close();
-			rs.close();
-			cstmt = companySqlCon.prepareCall("{call verifyLogin(?,?,?,?,?)}");
-			cstmt.setString("loginid", emailId);
-			cstmt.setString("pass", password);
-			cstmt.setTimestamp("curr_time", UtilHelper.convertJavaDateToSqlTimestamp(Date.from(Instant.now())));
-			cstmt.setString("ip", ipAddress);
-			cstmt.setInt("roleid", roleId);
-			rs = cstmt.executeQuery();
-			while (rs.next()) {
-				if (rs.getInt("emp_id") == 0) {
-					org.apache.log4j.Logger.getLogger(Login.class).error("Invalid username/password");
-					cstmt.close();
-					rs.close();
-					companySqlCon.close();
-					throw new Exception("Invalid credentials!!!");
-				} else {
-					e = e.get(companyId, rs.getInt("emp_id"));
-					e.setCompanyId(companyId);
-					e.setFirstTimeLogin(rs.getBoolean("first_time_login"));
-					e.setCompanyName(companyName);
-					org.apache.log4j.Logger.getLogger(Login.class).debug("Successfully validated user with userID : " + emailId);
+			try (ResultSet rs = cstmt.executeQuery()) {
+				while (rs.next()) {
+					companyId = rs.getInt("comp_id");
+					dch.getCompanyConnection(companyId);
+					companySqlCon = dch.companyConnectionMap.get(companyId).getSqlConnection();
+					companyName = rs.getString("comp_name");
+					org.apache.log4j.Logger.getLogger(Login.class).debug("Company Name : " + companyName);
 				}
+				org.apache.log4j.Logger.getLogger(Login.class).debug("Role ID for user : " + emailId + " is : " + roleId);
+				try (CallableStatement cstmt1 = companySqlCon.prepareCall("{call verifyLogin(?,?,?,?,?)}");) {
+
+					cstmt1.setString("loginid", emailId);
+					cstmt1.setString("pass", password);
+					cstmt1.setTimestamp("curr_time", UtilHelper.convertJavaDateToSqlTimestamp(Date.from(Instant.now())));
+					cstmt1.setString("ip", ipAddress);
+					cstmt1.setInt("roleid", roleId);
+					try (ResultSet rs1 = cstmt1.executeQuery()) {
+						while (rs1.next()) {
+							if (rs1.getInt("emp_id") == 0) {
+								org.apache.log4j.Logger.getLogger(Login.class).error("Invalid username/password");
+								cstmt1.close();
+								rs1.close();
+								companySqlCon.close();
+								throw new Exception("Invalid credentials!!!");
+							} else {
+								e = e.get(companyId, rs1.getInt("emp_id"));
+								e.setCompanyId(companyId);
+								e.setFirstTimeLogin(rs1.getBoolean("first_time_login"));
+								e.setCompanyName(companyName);
+								org.apache.log4j.Logger.getLogger(Login.class).debug("Successfully validated user with userID : " + emailId);
+							}
+						}
+					}
+				}
+
 			}
-			cstmt.close();
-			rs.close();
+
 		} catch (SQLException e1) {
 			org.apache.log4j.Logger.getLogger(Login.class).error("Exception while retrieving the company database", e1);
 		}
@@ -110,16 +112,14 @@ public class Login extends TheBorg {
 		boolean status = false;
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		dch.getCompanyConnection(companyId);
-		try {
-			CallableStatement cstmt2 = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call verifyLoginForIhcl(?)}");
+		try (CallableStatement cstmt2 = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call verifyLoginForIhcl(?)}")) {
 			cstmt2.setInt("emp_id", employeeId);
-			ResultSet res1 = cstmt2.executeQuery();
-			res1.next();
-			if (res1.getBoolean("status")) {
-				status = true;
+			try (ResultSet res1 = cstmt2.executeQuery();) {
+				res1.next();
+				if (res1.getBoolean("status")) {
+					status = true;
+				}
 			}
-			cstmt2.close();
-			res1.close();
 
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(Login.class).error("Exception while retrieving the company database", e);
