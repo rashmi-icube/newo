@@ -16,7 +16,7 @@ import org.junit.Test;
 
 public class QuestionTest {
 	Question q = (Question) ObjectFactory.getInstance("org.icube.owen.survey.Question");
-	int companyId = 2;
+	int companyId = 3;
 
 	@Ignore
 	public void testGetQuestion() {
@@ -26,7 +26,7 @@ public class QuestionTest {
 		assertTrue(q1.getSurveyBatchId() > 0);
 	}
 
-	@Ignore
+	@Test
 	public void testGetResponse() {
 		Map<Date, Integer> responseMap = q.getResponse(companyId, q.getQuestion(companyId, 17));
 		assertTrue(!responseMap.isEmpty());
@@ -57,7 +57,7 @@ public class QuestionTest {
 		assertNotNull(ql);
 	}
 
-	@Test
+	@Ignore
 	public void testGetSmartListForQuestion() {
 		// smart list test
 		List<Employee> result = q.getSmartListForQuestion(companyId, 1, 1);

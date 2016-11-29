@@ -29,9 +29,9 @@ public class BatchList extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		org.apache.log4j.Logger.getLogger(BatchList.class).info("HashMap created!!!");
 		Map<Integer, String> getFrequencyLabelMap = new HashMap<>();
+		dch.getCompanyConnection(companyId);
 		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getFrequencyList()}");
 				ResultSet rs = cstmt.executeQuery()) {
-			dch.getCompanyConnection(companyId);
 			while (rs.next()) {
 				getFrequencyLabelMap.put(rs.getInt(1), rs.getString(2));
 			}
@@ -52,9 +52,10 @@ public class BatchList extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 
 		List<Batch> batchList = new ArrayList<Batch>();
+		dch.getCompanyConnection(companyId);
 
 		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getBatch(?)}")) {
-			dch.getCompanyConnection(companyId);
+
 			// TODO hardcoded with only one batch 1 since the UI doesn't have the functionality to display multiple batches
 
 			cstmt.setInt(1, 1);
@@ -65,27 +66,29 @@ public class BatchList extends TheBorg {
 					b.setStartDate(rs.getDate("start_date"));
 					b.setEndDate(rs.getDate("end_date"));
 					b.setBatchId(rs.getInt("survey_batch_id"));
-					CallableStatement cstmt1 = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
-							"{call getBatchQuestionList(?)}");
-					cstmt1.setInt(1, rs.getInt("survey_batch_id"));
-					ResultSet rs1 = cstmt1.executeQuery();
-					List<Question> questionList = new ArrayList<Question>();
-					while (rs1.next()) {
-						Question q = new Question();
-						q.setEndDate(UtilHelper.getEndOfDay(rs1.getDate("end_date")));
-						q.setStartDate(UtilHelper.getStartOfDay(rs1.getDate("start_date")));
-						q.setQuestionText(rs1.getString("question"));
-						q.setQuestionId(rs1.getInt("que_id"));
-						q.setResponsePercentage(rs1.getDouble("resp"));
-						q.setQuestionType(QuestionType.values()[rs1.getInt("que_type")]);
-						q.setSurveyBatchId(rs1.getInt("survey_batch_id"));
-						q.setRelationshipTypeId(rs1.getInt("rel_id"));
-						questionList.add(q);
+					try (CallableStatement cstmt1 = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+							"{call getBatchQuestionList(?)}")) {
+						cstmt1.setInt(1, rs.getInt("survey_batch_id"));
+						try (ResultSet rs1 = cstmt1.executeQuery();) {
+							List<Question> questionList = new ArrayList<Question>();
+							while (rs1.next()) {
+								Question q = new Question();
+								q.setEndDate(UtilHelper.getEndOfDay(rs1.getDate("end_date")));
+								q.setStartDate(UtilHelper.getStartOfDay(rs1.getDate("start_date")));
+								q.setQuestionText(rs1.getString("question"));
+								q.setQuestionId(rs1.getInt("que_id"));
+								q.setResponsePercentage(rs1.getDouble("resp"));
+								q.setQuestionType(QuestionType.values()[rs1.getInt("que_type")]);
+								q.setSurveyBatchId(rs1.getInt("survey_batch_id"));
+								q.setRelationshipTypeId(rs1.getInt("rel_id"));
+								questionList.add(q);
+							}
+							b.setQuestionList(questionList);
+							batchList.add(b);
+						}
+
 					}
-					rs1.close();
-					cstmt1.close();
-					b.setQuestionList(questionList);
-					batchList.add(b);
+
 				}
 			}
 

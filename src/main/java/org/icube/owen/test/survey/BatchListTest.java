@@ -9,11 +9,12 @@ import org.icube.owen.ObjectFactory;
 import org.icube.owen.survey.Batch;
 import org.icube.owen.survey.BatchList;
 import org.icube.owen.survey.Frequency;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class BatchListTest {
 	BatchList bl = (BatchList) ObjectFactory.getInstance("org.icube.owen.survey.BatchList");
-	int companyId = 1;
+	int companyId = 3;
 
 	@Test
 	public void testGetFrequencyLabelMap() {
@@ -27,7 +28,7 @@ public class BatchListTest {
 		assertTrue(!b.isEmpty());
 	}
 
-	@Test
+	@Ignore
 	public void testChangeFrequency() {
 		assertTrue(bl.changeFrequency(companyId, bl.getBatchList(companyId).get(0), Frequency.WEEKLY));
 	}

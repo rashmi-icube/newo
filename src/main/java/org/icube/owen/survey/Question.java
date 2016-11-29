@@ -111,8 +111,8 @@ public class Question extends TheBorg {
 	public Question getQuestion(int companyId, int questionId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Question q = new Question();
+		dch.getCompanyConnection(companyId);
 		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getQuestion(?)}")) {
-			dch.getCompanyConnection(companyId);
 			cstmt.setInt(1, questionId);
 			try (ResultSet rs = cstmt.executeQuery()) {
 				while (rs.next()) {
@@ -162,8 +162,8 @@ public class Question extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		org.apache.log4j.Logger.getLogger(Question.class).info("HashMap created!!!");
 		Map<Date, Integer> responseMap = new HashMap<>();
+		dch.getCompanyConnection(companyId);
 		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getResponseData(?)}")) {
-			dch.getCompanyConnection(companyId);
 			cstmt.setInt(1, q.getQuestionId());
 			try (ResultSet rs = cstmt.executeQuery()) {
 
@@ -234,9 +234,8 @@ public class Question extends TheBorg {
 	public List<Question> getEmployeeQuestionList(int companyId, int employeeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Question> questionList = new ArrayList<>();
-
+		dch.getCompanyConnection(companyId);
 		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getEmpQuestionList(?,?)}")) {
-			dch.getCompanyConnection(companyId);
 			cstmt.setInt(1, employeeId);
 			Date date = Date.from(Instant.now());
 			cstmt.setDate(2, UtilHelper.convertJavaDateToSqlDate(date));
@@ -268,8 +267,9 @@ public class Question extends TheBorg {
 	public String getJsonEmployeeQuestionList(int companyId, int employeeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		JSONArray arr = new JSONArray();
+		dch.getCompanyConnection(companyId);
 		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getEmpQuestionList(?,?)}")) {
-			dch.getCompanyConnection(companyId);
+
 			cstmt.setInt(1, employeeId);
 			Date date = Date.from(Instant.now());
 			cstmt.setDate(2, UtilHelper.convertJavaDateToSqlDate(date));
@@ -300,8 +300,9 @@ public class Question extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Employee> employeeList = new ArrayList<>();
 		EmployeeList el = new EmployeeList();
+		dch.getCompanyConnection(companyId);
 		try {
-			dch.getCompanyConnection(companyId);
+
 			CompanyConfig ccObj = dch.companyConfigMap.get(companyId);
 			if (ccObj.getSmartList().equals("all_employee")) {
 				org.apache.log4j.Logger.getLogger(Question.class).debug("Calling getEmployeeMasterList");
