@@ -102,29 +102,4 @@ public class Login extends TheBorg {
 		return userRoleMap;
 	}*/
 
-	/**
-	 * Validates the employee ID for login page
-	 * @param companyId - Company ID
-	 * @param employeeId - Employee ID to be validated
-	 * @return true if employee is validated and false if employee is not validated
-	 */
-	public boolean loginIhcl(int companyId, int employeeId) {
-		boolean status = false;
-		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
-		try (CallableStatement cstmt2 = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call verifyLoginForIhcl(?)}")) {
-			cstmt2.setInt("emp_id", employeeId);
-			try (ResultSet res1 = cstmt2.executeQuery();) {
-				res1.next();
-				if (res1.getBoolean("status")) {
-					status = true;
-				}
-			}
-
-		} catch (Exception e) {
-			org.apache.log4j.Logger.getLogger(Login.class).error("Exception while retrieving the company database", e);
-		}
-		return status;
-	}
-
 }

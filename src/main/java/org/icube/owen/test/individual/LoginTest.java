@@ -43,9 +43,9 @@ public class LoginTest {
 		}
 	}
 
-	@Test
+	@Ignore
 	public void testloginIhcl() {
-		int companyId = 1;
+		int companyId = 3;
 		int employeeId = 1;
 		try {
 			boolean status = l.loginIhcl(companyId, employeeId);
