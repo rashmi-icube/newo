@@ -58,7 +58,7 @@ public class ExploreHelper extends TheBorg {
 	public Map<String, Map<Integer, List<Map<Date, Integer>>>> getTeamTimeSeriesGraph(int companyId, Map<String, List<Filter>> teamListMap) {
 
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		org.apache.log4j.Logger.getLogger(ExploreHelper.class).info("HashMap created!!!");
 		Map<String, Map<Integer, List<Map<Date, Integer>>>> result = new HashMap<>();
 
@@ -70,7 +70,7 @@ public class ExploreHelper extends TheBorg {
 			try {
 				if ((int) parsedFilterListResult.get("countAll") == 3) {
 					// if all selections are ALL then it is a organizational team metric
-					try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+					try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
 							"{call getOrganizationMetricTimeSeries()}");
 							ResultSet rs = cstmt.executeQuery()) {
 						timeSeriesMap = getTimeSeriesMap(rs);
@@ -78,7 +78,7 @@ public class ExploreHelper extends TheBorg {
 
 				} else if ((int) parsedFilterListResult.get("countAll") == 2) {
 					// if two of the filters are ALL then it is a dimension metric
-					try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+					try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
 							"{call getDimensionMetricTimeSeries(?)}")) {
 						cstmt.setInt(1, (int) parsedFilterListResult.get("dimensionValueId"));
 						try (ResultSet rs = cstmt.executeQuery()) {
@@ -88,7 +88,7 @@ public class ExploreHelper extends TheBorg {
 
 				} else if ((int) parsedFilterListResult.get("countAll") == 0) {
 					// if none of the filters is ALL then it is a cube metric
-					try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+					try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
 							"{call getTeamMetricTimeSeries(?,?,?)}")) {
 						cstmt.setInt(1, (int) parsedFilterListResult.get("funcId"));
 						cstmt.setInt(2, (int) parsedFilterListResult.get("posId"));
@@ -127,10 +127,10 @@ public class ExploreHelper extends TheBorg {
 		org.apache.log4j.Logger.getLogger(ExploreHelper.class).info("HashMap created!!!");
 		Map<Employee, List<Metrics>> result = new HashMap<>();
 		try {
-			dch.getCompanyConnection(companyId);
+			dch.refreshCompanyConnection(companyId);
 			for (Employee e : employeeList) {
 				List<Metrics> metricsList = new ArrayList<>();
-				try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+				try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
 						"{call getIndividualMetricValue(?)}")) {
 					cstmt.setInt(1, e.getEmployeeId());
 					try (ResultSet rs = cstmt.executeQuery()) {
@@ -161,11 +161,11 @@ public class ExploreHelper extends TheBorg {
 		Map<Employee, Map<Integer, List<Map<Date, Integer>>>> result = new HashMap<>();
 
 		try {
-			dch.getCompanyConnection(companyId);
+			dch.refreshCompanyConnection(companyId);
 			for (Employee e : employeeList) {
 				org.apache.log4j.Logger.getLogger(ExploreHelper.class).info("HashMap created!!!");
 				Map<Integer, List<Map<Date, Integer>>> metricsList = new HashMap<>();
-				try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+				try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
 						"{call getIndividualMetricTimeSeries(?)}")) {
 					cstmt.setInt(1, e.getEmployeeId());
 					try (ResultSet rs = cstmt.executeQuery()) {
@@ -225,7 +225,7 @@ public class ExploreHelper extends TheBorg {
 		org.apache.log4j.Logger.getLogger(ExploreHelper.class).info("HashMap created!!!");
 		Map<String, List<?>> result = new HashMap<>();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		String query = "";
 		List<Node> nodeList = new ArrayList<>();
 		List<Edge> edgeList = new ArrayList<>();
@@ -320,7 +320,7 @@ public class ExploreHelper extends TheBorg {
 	public Map<String, List<?>> getIndividualNetworkDiagram(int companyId, List<Employee> employeeList, Map<Integer, String> relationshipTypeMap) {
 		org.apache.log4j.Logger.getLogger(ExploreHelper.class).debug("Entering getIndividualNetworkDiagram method");
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		org.apache.log4j.Logger.getLogger(ExploreHelper.class).info("HashMap created!!!");
 		Map<String, List<?>> result = new HashMap<>();
 		List<Node> nodeList = new ArrayList<>();
@@ -405,7 +405,7 @@ public class ExploreHelper extends TheBorg {
 	 */
 	public List<Edge> getEdges(int companyId, List<Integer> employeeIdList, Map<Integer, String> relationshipTypeMap) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		List<Edge> result = new ArrayList<>();
 		String relationshipType = "";
 
@@ -444,8 +444,9 @@ public class ExploreHelper extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		org.apache.log4j.Logger.getLogger(ExploreHelper.class).info("HashMap created!!!");
 		Map<Integer, String> relationshipTypeMap = new HashMap<>();
-		dch.getCompanyConnection(companyId);
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getRelationTypeList()}");
+		dch.refreshCompanyConnection(companyId);
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
+				"{call getRelationTypeList()}");
 				ResultSet rs = cstmt.executeQuery()) {
 			while (rs.next()) {
 				relationshipTypeMap.put(rs.getInt("rel_id"), rs.getString("rel_name"));
@@ -482,9 +483,9 @@ public class ExploreHelper extends TheBorg {
 	public List<MeResponseAnalysis> getMeResponseAnalysisForOrg(int companyId, int relationshipTypeId) {
 		List<MeResponseAnalysis> result = new ArrayList<>();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
 				"{call getMeResponseAnalysisForOrg(?,?)}")) {
-			dch.getCompanyConnection(companyId);
+			dch.refreshCompanyConnection(companyId);
 			cstmt.setTimestamp(1, UtilHelper.convertJavaDateToSqlTimestamp(Date.from(Instant.now())));
 			cstmt.setInt(2, relationshipTypeId);
 			try (ResultSet rs = cstmt.executeQuery()) {
@@ -548,7 +549,7 @@ public class ExploreHelper extends TheBorg {
 		List<Integer> questionIdList = new ArrayList<>();
 		int totalEmployees = 0;
 		try {
-			try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+			try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
 					"{call getCompletedMeQuestionList(?,?)}")) {
 				cstmt.setTimestamp(1, UtilHelper.convertJavaDateToSqlTimestamp(Date.from(Instant.now())));
 				cstmt.setInt(2, relationshipTypeId);
@@ -568,7 +569,7 @@ public class ExploreHelper extends TheBorg {
 						questionMap.put(rs.getInt("que_id"), q);
 					}
 
-					dch.getCompanyConnection(companyId);
+					dch.refreshCompanyConnection(companyId);
 
 					// fill the MeResponse object for team
 					org.apache.log4j.Logger.getLogger(ExploreHelper.class).info("HashMap created!!!");
@@ -578,7 +579,7 @@ public class ExploreHelper extends TheBorg {
 						List<Filter> filterList = teamListMap.get(teamName);
 						Map<String, Object> parsedFilterMap = UtilHelper.parseFilterList(filterList);
 						System.out.println(parsedFilterMap.get("posId"));
-						try (CallableStatement cstmt1 = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+						try (CallableStatement cstmt1 = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
 								"{call getMeResponseAnalysisForTeam(?,?,?,?)}")) {
 							cstmt1.setString("que_list", questionIdList.toString().substring(1, questionIdList.toString().length() - 1).replaceAll(
 									" ", ""));

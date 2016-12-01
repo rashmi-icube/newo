@@ -34,14 +34,14 @@ public class Login extends TheBorg {
 		String companyDomain = emailId.substring(index + 1);
 		int companyId = 0;
 		String companyName = "";
-		try (CallableStatement cstmt = dch.masterCon.prepareCall("{call getCompanyDb(?)}")) {
+		try (CallableStatement cstmt = dch.masterDS.getConnection().prepareCall("{call getCompanyDb(?)}")) {
 
 			cstmt.setString(1, companyDomain);
 			try (ResultSet rs = cstmt.executeQuery()) {
 				while (rs.next()) {
 					companyId = rs.getInt("comp_id");
-					dch.getCompanyConnection(companyId);
-					companySqlCon = dch.companyConnectionMap.get(companyId).getSqlConnection();
+					dch.refreshCompanyConnection(companyId);
+					companySqlCon = dch.companyConnectionMap.get(companyId).getDataSource().getConnection();
 					companyName = rs.getString("comp_name");
 					org.apache.log4j.Logger.getLogger(Login.class).debug("Company Name : " + companyName);
 				}

@@ -10,6 +10,8 @@ import java.io.OutputStream;
 import java.sql.CallableStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 
@@ -155,10 +157,11 @@ public class Employee extends TheBorg {
 	 */
 	public Employee get(int companyId, int employeeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		EmployeeList el = new EmployeeList();
 		Employee e = new Employee();
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getEmployeeDetails(?)}")) {
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
+				"{call getEmployeeDetails(?)}")) {
 			org.apache.log4j.Logger.getLogger(Employee.class).debug("get method started");
 			cstmt.setInt(1, employeeId);
 			try (ResultSet res = cstmt.executeQuery()) {
@@ -176,6 +179,29 @@ public class Employee extends TheBorg {
 		return e;
 	}
 
+	public List<Employee> get(int companyId, List<Integer> employeeIdList) {
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.refreshCompanyConnection(companyId);
+		EmployeeList el = new EmployeeList();
+		List<Employee> empList = new ArrayList<>();
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
+				"{call getEmployeeDetails(?)}")) {
+			String empIdListStr = employeeIdList.toString();
+			org.apache.log4j.Logger.getLogger(Employee.class).debug("get method started");
+			cstmt.setString("empid", (empIdListStr.substring(1, empIdListStr.length() - 2)).replace(" ", ""));
+			try (ResultSet res = cstmt.executeQuery()) {
+				org.apache.log4j.Logger.getLogger(Employee.class).debug("query : " + cstmt);
+				while (res.next()) {
+					empList.add(el.setEmployeeDetails(companyId, res));
+				}
+			}
+		} catch (SQLException e1) {
+			org.apache.log4j.Logger.getLogger(Employee.class).error("Exception while retrieving employee object with employeeId : " + employeeId, e1);
+
+		}
+		return empList;
+	}
+
 	/**
 	 * Get the image of an employee
 	 * @param companyId - companyId
@@ -184,7 +210,7 @@ public class Employee extends TheBorg {
 	 */
 	public Image getImage(int companyId, int employeeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		String imagePath = dch.companyConfigMap.get(companyId).getImagePath();
 		Image image = null;
 
@@ -214,7 +240,7 @@ public class Employee extends TheBorg {
 
 		boolean imageSaved = false;
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		String imagePath = dch.companyConfigMap.get(companyId).getImagePath();
 
 		OutputStream out = null;

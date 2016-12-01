@@ -52,7 +52,7 @@ public class CompanyDAO extends TimerTask {
 	 */
 	public void runSchedulerJob() {
 
-		try (Statement stmt = dch.masterCon.createStatement();
+		try (Statement stmt = dch.masterDS.getConnection().createStatement();
 				ResultSet companyDetails = stmt
 						.executeQuery("Select comp_name, comp_id, comp_sql_dbname, sql_server, sql_user_id, sql_password from company_master where comp_status='Active'")) {
 			// get company connections
@@ -64,7 +64,7 @@ public class CompanyDAO extends TimerTask {
 			while (companyDetails.next()) {
 
 				int companyId = companyDetails.getInt("comp_id");
-				dch.getCompanyConnection(companyId);
+				dch.refreshCompanyConnection(companyId);
 				CompanyConfig compConfig = dch.companyConfigMap.get(companyId);
 
 				// check if run jobs is enabled for the company or not
@@ -127,8 +127,8 @@ public class CompanyDAO extends TimerTask {
 			// get the company connection details and connect to the company database
 			int companyId = rs.getInt("comp_id");
 			String companyName = rs.getString("comp_name");
-			dch.getCompanyConnection(companyId);
-			try (Statement stmt = dch.companyConnectionMap.get(companyId).getSqlConnection().createStatement();) {
+			dch.refreshCompanyConnection(companyId);
+			try (Statement stmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().createStatement();) {
 
 				org.apache.log4j.Logger.getLogger(CompanyDAO.class).debug(
 						"Successfully connected to company db with companyId : " + rs.getInt("comp_id"));
@@ -222,7 +222,7 @@ public class CompanyDAO extends TimerTask {
 	 */
 	public void runNewQuestionJob(int companyId, Map<String, String> jobStatusMap) throws SQLException {
 		ArrayList<String> addresses = new ArrayList<String>();
-		try (Statement stmt = dch.companyConnectionMap.get(companyId).getSqlConnection().createStatement();
+		try (Statement stmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().createStatement();
 		// check if new emails have to be sent for the specific company
 
 				ResultSet res = stmt

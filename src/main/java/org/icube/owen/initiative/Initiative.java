@@ -80,7 +80,7 @@ public class Initiative extends TheBorg {
 
 	public int create(int companyId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		int initiativeId = 0;
 		int teamSize = 0;
 		try (Statement stmt = dch.companyConnectionMap.get(companyId).getNeoConnection().createStatement()) {
@@ -160,7 +160,7 @@ public class Initiative extends TheBorg {
 						org.apache.log4j.Logger.getLogger(Initiative.class).debug(
 								"Successfully calculated metrics for initiative" + metricsList.size());
 						for (Metrics m : metricsList) {
-							try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+							try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
 									"{call insertInitiativeMetricValue(?,?,?,?,?)}")) {
 								org.apache.log4j.Logger.getLogger(Initiative.class).debug(
 										"Storing the metric for initiative ID " + initiativeId + "; metric ID : " + m.getId());
@@ -216,7 +216,7 @@ public class Initiative extends TheBorg {
 	@SuppressWarnings("unchecked")
 	private boolean setPartOf(int companyId, int initiativeId, List<Filter> filterList) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		try (Statement stmt = dch.companyConnectionMap.get(companyId).getNeoConnection().createStatement()) {
 			org.apache.log4j.Logger.getLogger(Initiative.class).debug("Create Initiative Connections for initiativeId " + initiativeId);
 			org.apache.log4j.Logger.getLogger(Initiative.class).info("HashMap created!!!");
@@ -279,7 +279,7 @@ public class Initiative extends TheBorg {
 
 	private boolean setEmployeesPartOf(int companyId, int initiativeId, List<Employee> employeeList) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		try (Statement stmt = dch.companyConnectionMap.get(companyId).getNeoConnection().createStatement()) {
 			ArrayList<Integer> empIdList = new ArrayList<>();
 			for (Employee e : employeeList) {
@@ -321,7 +321,7 @@ public class Initiative extends TheBorg {
 
 	private boolean setOwner(int companyId, int initiativeId, List<Employee> employeeList) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		try (Statement stmt = dch.companyConnectionMap.get(companyId).getNeoConnection().createStatement()) {
 			ArrayList<Integer> empIdList = new ArrayList<>();
 			for (Employee e : employeeList) {
@@ -350,7 +350,7 @@ public class Initiative extends TheBorg {
 		org.apache.log4j.Logger.getLogger(Initiative.class).debug("Retrieving the initiative with initiative ID " + initiativeId);
 
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		Initiative i = new Initiative();
 		InitiativeList il = new InitiativeList();
 		i.setInitiativeId(initiativeId);
@@ -383,10 +383,11 @@ public class Initiative extends TheBorg {
 
 	public Map<Integer, String> getInitiativeTypeMap(int companyId, String category) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		org.apache.log4j.Logger.getLogger(Initiative.class).info("HashMap created!!!");
 		Map<Integer, String> initiativeTypeMap = new HashMap<>();
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getInitiativeTypeList(?)}")) {
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
+				"{call getInitiativeTypeList(?)}")) {
 			cstmt.setString(1, category);
 			try (ResultSet rs = cstmt.executeQuery()) {
 				while (rs.next()) {
@@ -409,7 +410,7 @@ public class Initiative extends TheBorg {
 	public boolean delete(int companyId, int initiativeId) {
 		org.apache.log4j.Logger.getLogger(Initiative.class).debug("Starting to delete the initiative ID " + initiativeId);
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		boolean status = false;
 
 		try (Statement stmt = dch.companyConnectionMap.get(companyId).getNeoConnection().createStatement()) {
@@ -434,7 +435,7 @@ public class Initiative extends TheBorg {
 
 	public boolean updateInitiative(int companyId, Initiative updatedInitiative) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		SimpleDateFormat sdf = new SimpleDateFormat(UtilHelper.dateTimeFormat);
 		boolean status = false;
 		int updatedInitiativeId = updatedInitiative.getInitiativeId();
@@ -488,7 +489,7 @@ public class Initiative extends TheBorg {
 	public boolean complete(int companyId, int initiativeId) {
 		org.apache.log4j.Logger.getLogger(Initiative.class).debug("Starting to change status of initiatve with ID " + initiativeId + " to Completed");
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		boolean status = false;
 		try (Statement stmt = dch.companyConnectionMap.get(companyId).getNeoConnection().createStatement()) {
 			String query = "match(a:Init {Id:" + initiativeId + "}) set a.Status = 'Completed'";

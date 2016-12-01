@@ -62,7 +62,8 @@ public class ResponseHelper extends TheBorg {
 	public boolean saveMeResponse(int companyId, int employeeId, int questionId, int responseValue) {
 		boolean responseSaved = false;
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call insertMeResponse(?,?,?,?,?)}")) {
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
+				"{call insertMeResponse(?,?,?,?,?)}")) {
 			cstmt.setInt("empid", employeeId);
 			cstmt.setInt("queid", questionId);
 			cstmt.setTimestamp("responsetime", UtilHelper.convertJavaDateToSqlTimestamp(Date.from(Instant.now())));
@@ -99,9 +100,10 @@ public class ResponseHelper extends TheBorg {
 		org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug(
 				"Entering the saveWeResponse for companyId " + companyId + " employeeId " + employeeId);
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call insertWeResponse(?,?,?,?,?)}")) {
-			
+		dch.refreshCompanyConnection(companyId);
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
+				"{call insertWeResponse(?,?,?,?,?)}")) {
+
 			org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug(
 					"Saving the response in the db for questionId " + questionId + "target employee " + targetEmployee + " with the response "
 							+ responseValue);
@@ -146,16 +148,17 @@ public class ResponseHelper extends TheBorg {
 		boolean responseSaved = false;
 		int count = 0;
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
-		try (CallableStatement cstmt1 = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call isWeQuestionAnswered(?,?)}")) {
+		dch.refreshCompanyConnection(companyId);
+		try (CallableStatement cstmt1 = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
+				"{call isWeQuestionAnswered(?,?)}")) {
 			cstmt1.setInt("empid", employeeId);
 			cstmt1.setInt("queid", questionId);
 			try (ResultSet res = cstmt1.executeQuery()) {
 				res.next();
 				if (!res.getBoolean("op")) {
-			
+
 					for (Employee e : employeeRating.keySet()) {
-						try (CallableStatement cstmt2 = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+						try (CallableStatement cstmt2 = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
 								"{call insertWeResponse(?,?,?,?,?)}")) {
 							org.apache.log4j.Logger.getLogger(ResponseHelper.class).debug(
 									"Saving the response in the db for questionId " + questionId + "target employee " + e.getEmployeeId()

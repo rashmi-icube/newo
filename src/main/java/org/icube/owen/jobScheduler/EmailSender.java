@@ -28,7 +28,7 @@ public class EmailSender {
 	DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 
 	public static final int MAX_EMAILS_TO_BE_SENT = 50;
-	//List<String> toAddresses = Arrays.asList("hpatel@i-cube.in", "rashmi@i-cube.in", "ssrivastava@i-cube.in", "adoshi@i-cube.in");
+	// List<String> toAddresses = Arrays.asList("hpatel@i-cube.in", "rashmi@i-cube.in", "ssrivastava@i-cube.in", "adoshi@i-cube.in");
 	List<String> toAddresses = Arrays.asList("ssrivastava@i-cube.in");
 
 	/**
@@ -81,7 +81,7 @@ public class EmailSender {
 		sb.append("</tr>");
 		for (int companyId : schedulerJobStatusMap.keySet()) {
 			Map<String, String> companyStatusMap = schedulerJobStatusMap.get(companyId);
-			for(String jobName : companyStatusMap.keySet()){
+			for (String jobName : companyStatusMap.keySet()) {
 				sb.append("<tr>");
 				sb.append("<td>");
 				sb.append(companyId);

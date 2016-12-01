@@ -22,10 +22,11 @@ public class QuestionList extends TheBorg {
 	public List<Question> getQuestionList(int companyId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Question> questionList = new ArrayList<>();
-		dch.getCompanyConnection(companyId);
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getQuestionList()}");
+		dch.refreshCompanyConnection(companyId);
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection()
+				.prepareCall("{call getQuestionList()}");
 				ResultSet rs = cstmt.executeQuery()) {
-			
+
 			while (rs.next()) {
 				Question q = new Question();
 				q.setQuestionId(rs.getInt("que_id"));
@@ -54,9 +55,10 @@ public class QuestionList extends TheBorg {
 	public List<Question> getQuestionListForBatch(int companyId, int batchId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Question> questionList = new ArrayList<Question>();
-		dch.getCompanyConnection(companyId);
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getBatchQuestionList(?)}")) {
-			
+		dch.refreshCompanyConnection(companyId);
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
+				"{call getBatchQuestionList(?)}")) {
+
 			cstmt.setInt(1, batchId);
 			try (ResultSet rs = cstmt.executeQuery()) {
 				while (rs.next()) {

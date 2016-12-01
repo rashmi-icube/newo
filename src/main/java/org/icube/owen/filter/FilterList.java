@@ -22,7 +22,7 @@ public class FilterList extends TheBorg {
 	 */
 	public Filter getFilterValues(int companyId, String filterName) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 
 		org.apache.log4j.Logger.getLogger(FilterList.class).debug("filterName : " + filterName);
 		Filter f = new Filter();
@@ -33,7 +33,8 @@ public class FilterList extends TheBorg {
 				f.setFilterId(filterId);
 			}
 		}
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getDimensionValue(?)}")) {
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
+				"{call getDimensionValue(?)}")) {
 			cstmt.setInt(1, f.getFilterId());
 			try (ResultSet rs = cstmt.executeQuery()) {
 
@@ -63,12 +64,13 @@ public class FilterList extends TheBorg {
 	 */
 	public List<Filter> getFilterValues(int companyId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 
 		List<Filter> allFiltersList = new ArrayList<>();
 
 		Map<Integer, String> filterLabelMap = getFilterLabelMap(companyId);
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getDimensionValueList()}");
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
+				"{call getDimensionValueList()}");
 				ResultSet rs = cstmt.executeQuery()) {
 
 			for (int filterId : filterLabelMap.keySet()) {
@@ -108,10 +110,11 @@ public class FilterList extends TheBorg {
 	 */
 	public Map<Integer, String> getFilterLabelMap(int companyId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		org.apache.log4j.Logger.getLogger(FilterList.class).info("HashMap created!!!");
 		Map<Integer, String> filterLabelMap = new HashMap<>();
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getDimensionList()}");
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
+				"{call getDimensionList()}");
 				ResultSet rs = cstmt.executeQuery()) {
 			while (rs.next()) {
 				filterLabelMap.put(rs.getInt("dimension_id"), rs.getString("dimension_name"));

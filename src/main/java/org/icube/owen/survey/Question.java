@@ -111,8 +111,8 @@ public class Question extends TheBorg {
 	public Question getQuestion(int companyId, int questionId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		Question q = new Question();
-		dch.getCompanyConnection(companyId);
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getQuestion(?)}")) {
+		dch.refreshCompanyConnection(companyId);
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall("{call getQuestion(?)}")) {
 			cstmt.setInt(1, questionId);
 			try (ResultSet rs = cstmt.executeQuery()) {
 				while (rs.next()) {
@@ -162,8 +162,9 @@ public class Question extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		org.apache.log4j.Logger.getLogger(Question.class).info("HashMap created!!!");
 		Map<Date, Integer> responseMap = new HashMap<>();
-		dch.getCompanyConnection(companyId);
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getResponseData(?)}")) {
+		dch.refreshCompanyConnection(companyId);
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
+				"{call getResponseData(?)}")) {
 			cstmt.setInt(1, q.getQuestionId());
 			try (ResultSet rs = cstmt.executeQuery()) {
 
@@ -234,8 +235,9 @@ public class Question extends TheBorg {
 	public List<Question> getEmployeeQuestionList(int companyId, int employeeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Question> questionList = new ArrayList<>();
-		dch.getCompanyConnection(companyId);
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getEmpQuestionList(?,?)}")) {
+		dch.refreshCompanyConnection(companyId);
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
+				"{call getEmpQuestionList(?,?)}")) {
 			cstmt.setInt(1, employeeId);
 			Date date = Date.from(Instant.now());
 			cstmt.setDate(2, UtilHelper.convertJavaDateToSqlDate(date));
@@ -267,8 +269,9 @@ public class Question extends TheBorg {
 	public String getJsonEmployeeQuestionList(int companyId, int employeeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		JSONArray arr = new JSONArray();
-		dch.getCompanyConnection(companyId);
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getEmpQuestionList(?,?)}")) {
+		dch.refreshCompanyConnection(companyId);
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
+				"{call getEmpQuestionList(?,?)}")) {
 
 			cstmt.setInt(1, employeeId);
 			Date date = Date.from(Instant.now());
@@ -300,7 +303,7 @@ public class Question extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<Employee> employeeList = new ArrayList<>();
 		EmployeeList el = new EmployeeList();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		try {
 
 			CompanyConfig ccObj = dch.companyConfigMap.get(companyId);
@@ -308,18 +311,22 @@ public class Question extends TheBorg {
 				org.apache.log4j.Logger.getLogger(Question.class).debug("Calling getEmployeeMasterList");
 				employeeList.addAll(el.getEmployeeMasterList(companyId));
 			} else if (ccObj.getSmartList().equals("cube")) {
-				try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getListColleague(?)}")) {
+				try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
+						"{call getListColleague(?)}")) {
 					cstmt.setString("array", String.valueOf(employeeId));
 					try (ResultSet rs = cstmt.executeQuery()) {
 						List<Integer> empIdList = new ArrayList<>();
 						while (rs.next()) {
 							empIdList.add(rs.getInt("emp_id"));
 						}
-						for (int i = 0; i < empIdList.size(); i++) {
+						Employee e = new Employee();
+						employeeList = e.get(companyId, empIdList);
+
+						/*for (int i = 0; i < empIdList.size(); i++) {
 							Employee e = new Employee();
 							e = e.get(companyId, empIdList.get(i));
 							employeeList.add(e);
-						}
+						}*/
 					}
 				}
 
@@ -350,18 +357,23 @@ public class Question extends TheBorg {
 				// keep here for testing the order of the rank
 				/*REXPInteger rankResult = (REXPInteger) (result.get("Rank"));
 				int[] rankArray = rankResult.asIntegers();*/
+				List<Integer> empIdList = new ArrayList<Integer>();
+				for (int index = 0; index < empIdArray.length; index++) {
+					empIdList.add(empIdArray[index]);
+				}
+				Employee e = new Employee();
+				employeeList = e.get(companyId, empIdList);
 
-				for (int i = 0; i < empIdArray.length; i++) {
+				/*for (int i = 0; i < empIdArray.length; i++) {
 					Employee e = new Employee();
 					employeeList.add(e.get(companyId, empIdArray[i]));
-				}
+				}*/
 			}
 
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(Question.class).error("Error while trying to retrieve the smart list for employee from question", e);
 		} finally {
 			dch.releaseRcon();
-			employeeList = null;
 		}
 		return employeeList;
 	}

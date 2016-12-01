@@ -57,7 +57,7 @@ public class InitiativeList extends TheBorg {
 				"entering getInitiativeList with category : " + category + " ; viewByCriteria : " + viewByCriteria + " viewByValue : " + viewByValue);
 
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		InitiativeHelper ih = new InitiativeHelper();
 		org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Get initiative list");
 		List<Initiative> initiativeList = new ArrayList<Initiative>();
@@ -143,7 +143,7 @@ public class InitiativeList extends TheBorg {
 	 */
 	public List<Initiative> getInitiativeList(int companyId, String category) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		InitiativeHelper ih = new InitiativeHelper();
 		org.apache.log4j.Logger.getLogger(InitiativeList.class).debug("Get initiative list");
 		List<Initiative> initiativeList = new ArrayList<Initiative>();

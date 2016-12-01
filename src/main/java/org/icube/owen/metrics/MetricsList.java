@@ -62,7 +62,7 @@ public class MetricsList extends TheBorg {
 	public List<Metrics> getInitiativeMetricsForIndividual(int companyId, int initiativeTypeId, List<Employee> partOfEmployeeList) {
 		org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Entering getInitiativeMetricsForIndividual");
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		MetricsHelper mh = new MetricsHelper();
 		List<Metrics> metricsList = new ArrayList<>();
 		org.apache.log4j.Logger.getLogger(MetricsList.class).info("HashMap created!!!");
@@ -79,7 +79,7 @@ public class MetricsList extends TheBorg {
 				empIdList.add(e.getEmployeeId());
 			}
 
-			try (CallableStatement cs = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+			try (CallableStatement cs = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
 					"{call getIndividualInitiativeMetricValueAggregate(?)}")) {
 				org.apache.log4j.Logger.getLogger(MetricsList.class).debug("Calling getIndividualInitiativeMetricValueAggregate");
 

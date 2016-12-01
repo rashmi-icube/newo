@@ -39,7 +39,7 @@ public class SlackIntegration extends TheBorg {
 	private void sendPost(int companyId, JSONObject jsonObj) {
 		try {
 			DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-			dch.getCompanyConnection(companyId);
+			dch.refreshCompanyConnection(companyId);
 			String url = dch.companyConfigMap.get(companyId).getSlackUrl();
 			if (!url.isEmpty()) {
 				URL obj = new URL(url);

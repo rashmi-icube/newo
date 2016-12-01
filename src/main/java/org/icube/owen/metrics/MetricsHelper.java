@@ -37,7 +37,7 @@ public class MetricsHelper extends TheBorg {
 	public List<Metrics> getTeamMetricsList(int companyId, int initiativeTypeId, Map<String, Object> parsedFilterListResult,
 			boolean previousScoreNeeded) throws SQLException {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		List<Metrics> metricList = new ArrayList<>();
 		org.apache.log4j.Logger.getLogger(MetricsHelper.class).info("HashMap created!!!");
 		Map<Integer, String> primaryMetricMap = new HashMap<>();
@@ -49,7 +49,7 @@ public class MetricsHelper extends TheBorg {
 			// if all selections are ALL then it is a organizational team metric
 
 			if (previousScoreNeeded) {
-				try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+				try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
 						"{call getOrganizationMetricValueAggregate()}");
 						ResultSet rs = cstmt.executeQuery();) {
 					org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Calling the getOrganizationMetricValueAggregate");
@@ -57,7 +57,7 @@ public class MetricsHelper extends TheBorg {
 				}
 
 			} else {
-				try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+				try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
 						"{call getOrganizationMetricValue()}");
 						ResultSet rs = cstmt.executeQuery();) {
 					org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Calling the getOrganizationMetricValue");
@@ -69,7 +69,7 @@ public class MetricsHelper extends TheBorg {
 		} else if ((int) parsedFilterListResult.get("countAll") == 2) {
 			// if two of the filters are ALL then it is a dimension metric
 			if (previousScoreNeeded) {
-				try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+				try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
 						"{call getDimensionMetricValueAggregate(?,?)}")) {
 					org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Calling the getDimensionMetricValueAggregate");
 					org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug(
@@ -84,7 +84,7 @@ public class MetricsHelper extends TheBorg {
 				}
 
 			} else {
-				try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+				try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
 						"{call getDimensionMetricValue(?)}")) {
 					org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Calling the getDimensionMetricValueAggregate");
 					org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug(
@@ -102,7 +102,7 @@ public class MetricsHelper extends TheBorg {
 		} else if ((int) parsedFilterListResult.get("countAll") == 0) {
 			// if none of the filters is ALL then it is a cube metric
 			if (previousScoreNeeded) {
-				try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+				try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
 						"{call getTeamMetricValueAggregate(?, ?, ?)}")) {
 					org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Calling the getTeamMetricValueAggregate");
 					cstmt.setInt(1, (int) parsedFilterListResult.get("funcId"));
@@ -115,7 +115,7 @@ public class MetricsHelper extends TheBorg {
 
 			} else {
 				org.apache.log4j.Logger.getLogger(MetricsHelper.class).debug("Calling the getTeamMetricValue");
-				try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+				try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
 						"{call getTeamMetricValue(?, ?, ?)}")) {
 					cstmt.setInt(1, (int) parsedFilterListResult.get("funcId"));
 					cstmt.setInt(2, (int) parsedFilterListResult.get("posId"));
@@ -193,7 +193,7 @@ public class MetricsHelper extends TheBorg {
 	@SuppressWarnings("unchecked")
 	public List<Metrics> getDynamicTeamMetrics(int companyId, int initiativeTypeId, Map<String, Object> parsedFilterListResult) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		List<Metrics> metricsList = new ArrayList<>();
 		Map<Integer, String> metricListForCategory = getMetricListForCategory(companyId, "Team");
 		org.apache.log4j.Logger.getLogger(MetricsHelper.class).info("HashMap created!!!");
@@ -274,10 +274,11 @@ public class MetricsHelper extends TheBorg {
 
 	public Map<Integer, String> getPrimaryMetricMap(int companyId, int initiativeTypeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		org.apache.log4j.Logger.getLogger(MetricsHelper.class).info("HashMap created!!!");
 		Map<Integer, String> primaryMetricMap = new HashMap<>();
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getInitiativePrimaryMetric(?)}")) {
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
+				"{call getInitiativePrimaryMetric(?)}")) {
 			cstmt.setInt(1, initiativeTypeId);
 			try (ResultSet rs = cstmt.executeQuery()) {
 				while (rs.next()) {
@@ -300,10 +301,11 @@ public class MetricsHelper extends TheBorg {
 
 	public Map<Integer, String> getMetricListForCategory(int companyId, String category) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		org.apache.log4j.Logger.getLogger(MetricsHelper.class).info("HashMap created!!!");
 		Map<Integer, String> metricListForCategory = new HashMap<>();
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getMetricListForCategory(?)}")) {
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
+				"{call getMetricListForCategory(?)}")) {
 			cstmt.setString(1, category);
 			try (ResultSet rs = cstmt.executeQuery()) {
 				while (rs.next()) {

@@ -31,7 +31,7 @@ public class TheWallHelper extends TheBorg {
 			int pageSize, List<Filter> filterList) {
 		org.apache.log4j.Logger.getLogger(TheWallHelper.class).debug("Entering getIndividualWallFeed");
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		List<Map<String, Object>> result = new ArrayList<>();
 		org.apache.log4j.Logger.getLogger(TheWallHelper.class).info("HashMap created!!!");
 		Map<String, Object> parsedFilterMap = new HashMap<>();
@@ -45,7 +45,7 @@ public class TheWallHelper extends TheBorg {
 		org.apache.log4j.Logger.getLogger(TheWallHelper.class).debug("Function : " + parsedFilterMap.get("funcId"));
 		org.apache.log4j.Logger.getLogger(TheWallHelper.class).debug("Position : " + parsedFilterMap.get("posId"));
 		org.apache.log4j.Logger.getLogger(TheWallHelper.class).debug("Zone : " + parsedFilterMap.get("zoneId"));
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
 				"{call getWallFeedIndividual(?,?,?,?,?,?,?,?)}")) {
 
 			cstmt.setInt("fun", (int) parsedFilterMap.get("funcId"));
@@ -103,7 +103,7 @@ public class TheWallHelper extends TheBorg {
 			List<Filter> filterList) {
 		org.apache.log4j.Logger.getLogger(TheWallHelper.class).debug("Entering getTeamWallFeed");
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		List<Map<String, Object>> result = new ArrayList<>();
 		org.apache.log4j.Logger.getLogger(TheWallHelper.class).info("HashMap created!!!");
 		Map<String, Object> parsedFilterMap = new HashMap<>();
@@ -117,7 +117,7 @@ public class TheWallHelper extends TheBorg {
 		org.apache.log4j.Logger.getLogger(TheWallHelper.class).debug("Function : " + parsedFilterMap.get("funcId"));
 		org.apache.log4j.Logger.getLogger(TheWallHelper.class).debug("Position : " + parsedFilterMap.get("posId"));
 		org.apache.log4j.Logger.getLogger(TheWallHelper.class).debug("Zone : " + parsedFilterMap.get("zoneId"));
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
 				"{call getWallFeedTeam(?,?,?,?,?,?,?,?)}")) {
 			cstmt.setInt("fun", (int) parsedFilterMap.get("funcId"));
 			cstmt.setInt("pos", (int) parsedFilterMap.get("posId"));

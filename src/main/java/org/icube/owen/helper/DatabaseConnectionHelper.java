@@ -1,7 +1,6 @@
 package org.icube.owen.helper;
 
 import java.sql.CallableStatement;
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Calendar;
@@ -21,10 +20,12 @@ import org.rosuda.REngine.Rserve.RserveException;
 
 public class DatabaseConnectionHelper extends TheBorg {
 
-	public Connection masterCon;
+	// public Connection masterCon;
+	public DataSource masterDS;
 	private RConnection rCon;
 	public Map<Integer, CompanyConfig> companyConfigMap;
 	public Map<Integer, CompanyConnection> companyConnectionMap;
+	// public Map<Integer, DataSource> companyDatasourceMap;
 
 	private boolean rConInUse = false;
 	Timer timer = new Timer();
@@ -53,7 +54,7 @@ public class DatabaseConnectionHelper extends TheBorg {
 		p.setUsername(MASTER_USER);
 		p.setPassword(MASTER_PASSWORD);
 		p.setJmxEnabled(true);
-		p.setTestWhileIdle(false);
+		p.setTestWhileIdle(true); // this was false : RM
 		p.setTestOnBorrow(true);
 		p.setValidationQuery("SELECT 1");
 		p.setTestOnReturn(false);
@@ -67,16 +68,19 @@ public class DatabaseConnectionHelper extends TheBorg {
 		p.setMinIdle(10);
 		p.setLogAbandoned(true);
 		p.setRemoveAbandoned(true);
+		p.setConnectionProperties("connectionTimeout=\"300000\"");
 		p.setJdbcInterceptors("org.apache.tomcat.jdbc.pool.interceptor.ConnectionState;"
-				+ "org.apache.tomcat.jdbc.pool.interceptor.StatementFinalizer");
-		DataSource datasource = new DataSource();
-		datasource.setPoolProperties(p);
-		try {
-			masterCon = datasource.getConnection();
+		// + "org.apache.tomcat.jdbc.pool.interceptor.StatementFinalizer;"
+				+ "org.apache.tomcat.jdbc.pool.interceptor.ResetAbandonedTimer");
+		// p.setLogAbandoned(true);
+		masterDS = new DataSource();
+		masterDS.setPoolProperties(p);
+		/*try {
+			masterCon = masterDS.getConnection();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error(
 					"An error occurred while connecting to the master database on : " + MASTER_URL + " with user name : " + MASTER_USER, e);
-		}
+		}*/
 
 		// R connection
 		try {
@@ -102,6 +106,7 @@ public class DatabaseConnectionHelper extends TheBorg {
 			companyConfigMap = new HashMap<>();
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).info("HashMap created!!!");
 			companyConnectionMap = new HashMap<>();
+			// companyDatasourceMap = new HashMap<>();
 		} catch (RserveException | REXPMismatchException e) {
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("An error occurred while trying to connect to R", e);
 		}
@@ -129,9 +134,10 @@ public class DatabaseConnectionHelper extends TheBorg {
 	public void finalize() {
 		org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Shutting down databases ...");
 		try {
-			if (!masterCon.isClosed()) {
+			if (!masterDS.getConnection().isClosed()) {
 				try {
-					masterCon.close();
+					masterDS.getConnection().close();
+					masterDS.close();
 					org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Connection to master database closed!!!!");
 				} catch (SQLException e) {
 					org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class)
@@ -145,7 +151,8 @@ public class DatabaseConnectionHelper extends TheBorg {
 			}
 
 			for (int companyId : companyConnectionMap.keySet()) {
-				companyConnectionMap.get(companyId).getSqlConnection().close();
+				companyConnectionMap.get(companyId).getDataSource().getConnection().close();
+				companyConnectionMap.get(companyId).getDataSource().close();
 				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug(
 						"Connection to company sql for companyId : " + companyId + " is " + "closed!!!!");
 
@@ -164,15 +171,14 @@ public class DatabaseConnectionHelper extends TheBorg {
 	 * Retrieves the company database connections
 	 * @param companyId - The ID of the company for which the connections are required
 	 */
-	public void getCompanyConnection(int companyId) {
+	public void refreshCompanyConnection(int companyId) {
 		try {
 			CompanyConfig compConfig = null;
 			CompanyConnection compConnection = new CompanyConnection();
-			boolean compConnectionChanged = false;
 			if (!companyConnectionMap.containsKey(companyId)) {
 
 				// get company details
-				try (CallableStatement cstmt = masterCon.prepareCall("{call getCompanyConfig(?)}")) {
+				try (CallableStatement cstmt = masterDS.getConnection().prepareCall("{call getCompanyConfig(?)}")) {
 					cstmt.setInt(1, companyId);
 					try (ResultSet rs = cstmt.executeQuery()) {
 						while (rs.next()) {
@@ -183,21 +189,18 @@ public class DatabaseConnectionHelper extends TheBorg {
 				}
 
 				// company sql connection
-				compConnection.setSqlConnection(createSqlConnection(companyId, compConfig));
+				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug(
+						"Creating a brand new Connection to company sql for companyId : " + companyId);
+				DataSource ds = createDataSource(compConfig);
+				compConnection.setDataSource(ds);
+				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug(
+						"Created new Connection to company sql for companyId : " + companyId);
+				companyConnectionMap.put(companyId, compConnection);
 
 				// TODO:remove comment once a final solution to R and neo is found
-
 				// company neo connection
 				// compConnection.setNeoConnection(createNeoConnection(companyId, compConfig));
-
-				compConnectionChanged = true;
 			} else {
-				// check if SQL connection is valid; if not refresh the connection
-				if (!companyConnectionMap.get(companyId).getSqlConnection().isValid(0)) {
-					compConnection.setSqlConnection(createSqlConnection(companyId, companyConfigMap.get(companyId)));
-					compConnectionChanged = true;
-				}
-
 				// TODO:remove comment once a final solution to R and neo is found
 				// check if Neo connection is valid; if not refresh the connection
 				/*if (!companyConnectionMap.get(companyId).getNeoConnection().isValid(0)) {
@@ -206,9 +209,8 @@ public class DatabaseConnectionHelper extends TheBorg {
 				}*/
 			}
 
-			if (compConnectionChanged) {
-				companyConnectionMap.put(companyId, compConnection);
-			}
+			// companyConnectionMap.put(companyId, compConnection);
+
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error(
 					"An error occurred while retrieving connection details for companyId : " + companyId, e);
@@ -238,47 +240,48 @@ public class DatabaseConnectionHelper extends TheBorg {
 		return conn;
 	}
 	*/
-	private Connection createSqlConnection(int companyId, CompanyConfig compConfig) {
+
+	/*private Connection createSqlConnection(int companyId, CompanyConfig compConfig) {
 		Connection conn = null;
 		try {
-			// String sqlUrl = compConfig.getSqlUrl();
-			// String sqlUserName = compConfig.getSqlUserName();
-			// String sqlPassword = compConfig.getSqlPassword();
-			// Class.forName("com.mysql.jdbc.Driver");
-			// conn = DriverManager.getConnection(sqlUrl, sqlUserName, sqlPassword);
-
-			PoolProperties p = new PoolProperties();
-			p.setUrl(compConfig.getSqlUrl());
-			p.setDriverClassName("com.mysql.jdbc.Driver");
-			p.setUsername(compConfig.getSqlUserName());
-			p.setPassword(compConfig.getSqlPassword());
-			p.setJmxEnabled(true);
-			p.setTestWhileIdle(false);
-			p.setTestOnBorrow(true);
-			p.setValidationQuery("SELECT 1");
-			p.setTestOnReturn(false);
-			p.setValidationInterval(Integer.valueOf(UtilHelper.getConfigProperty("validationInterval")));
-			p.setTimeBetweenEvictionRunsMillis(Integer.valueOf(UtilHelper.getConfigProperty("timeBetweenEvictionRunsMillis")));
-			p.setMaxActive(Integer.valueOf(UtilHelper.getConfigProperty("maxActive")));
-			p.setInitialSize(Integer.valueOf(UtilHelper.getConfigProperty("initialSize")));
-			p.setMaxWait(Integer.valueOf(UtilHelper.getConfigProperty("maxWait")));
-			p.setRemoveAbandonedTimeout(Integer.valueOf(UtilHelper.getConfigProperty("removeAbandonedTimeout")));
-			p.setMinEvictableIdleTimeMillis(Integer.valueOf(UtilHelper.getConfigProperty("minEvictableIdleTimeMillis")));
-			p.setMinIdle(Integer.valueOf(UtilHelper.getConfigProperty("minIdle")));
-			p.setLogAbandoned(true);
-			p.setRemoveAbandoned(true);
-			p.setJdbcInterceptors("org.apache.tomcat.jdbc.pool.interceptor.ConnectionState;"
-					+ "org.apache.tomcat.jdbc.pool.interceptor.StatementFinalizer");
-			DataSource datasource = new DataSource();
-			datasource.setPoolProperties(p);
-
-			conn = datasource.getConnection();
-
+			DataSource datasource = createDataSource(compConfig);
+			conn = company.getConnection();
 		} catch (SQLException e) {
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error(
 					"An error occurred while connecting to the sql db for companyId : " + companyId, e);
 		}
 		return conn;
+	}*/
+
+	private DataSource createDataSource(CompanyConfig compConfig) {
+		PoolProperties p = new PoolProperties();
+		p.setUrl(compConfig.getSqlUrl());
+		p.setDriverClassName("com.mysql.jdbc.Driver");
+		p.setUsername(compConfig.getSqlUserName());
+		p.setPassword(compConfig.getSqlPassword());
+		p.setJmxEnabled(true);
+		p.setTestWhileIdle(false);
+		p.setTestOnBorrow(true);
+		p.setValidationQuery("SELECT 1");
+		p.setTestOnReturn(false);
+		p.setValidationInterval(Integer.valueOf(UtilHelper.getConfigProperty("validationInterval")));
+		p.setTimeBetweenEvictionRunsMillis(Integer.valueOf(UtilHelper.getConfigProperty("timeBetweenEvictionRunsMillis")));
+		p.setMaxActive(Integer.valueOf(UtilHelper.getConfigProperty("maxActive")));
+		p.setInitialSize(Integer.valueOf(UtilHelper.getConfigProperty("initialSize")));
+		p.setMaxWait(Integer.valueOf(UtilHelper.getConfigProperty("maxWait")));
+		p.setRemoveAbandonedTimeout(Integer.valueOf(UtilHelper.getConfigProperty("removeAbandonedTimeout")));
+		p.setMinEvictableIdleTimeMillis(Integer.valueOf(UtilHelper.getConfigProperty("minEvictableIdleTimeMillis")));
+		p.setMinIdle(Integer.valueOf(UtilHelper.getConfigProperty("minIdle")));
+		p.setLogAbandoned(true);
+		p.setConnectionProperties("connectionTimeout=\"300000\"");
+		p.setRemoveAbandoned(true);
+		p.setMaxIdle(Integer.valueOf(UtilHelper.getConfigProperty("maxIdle")));
+		p.setJdbcInterceptors("org.apache.tomcat.jdbc.pool.interceptor.ConnectionState;"
+				+ "org.apache.tomcat.jdbc.pool.interceptor.ResetAbandonedTimer");
+		// p.setLogAbandoned(true);
+		DataSource datasource = new DataSource();
+		datasource.setPoolProperties(p);
+		return datasource;
 	}
 
 	/**

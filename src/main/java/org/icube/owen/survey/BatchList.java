@@ -29,8 +29,9 @@ public class BatchList extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		org.apache.log4j.Logger.getLogger(BatchList.class).info("HashMap created!!!");
 		Map<Integer, String> getFrequencyLabelMap = new HashMap<>();
-		dch.getCompanyConnection(companyId);
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getFrequencyList()}");
+		dch.refreshCompanyConnection(companyId);
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
+				"{call getFrequencyList()}");
 				ResultSet rs = cstmt.executeQuery()) {
 			while (rs.next()) {
 				getFrequencyLabelMap.put(rs.getInt(1), rs.getString(2));
@@ -52,9 +53,9 @@ public class BatchList extends TheBorg {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 
 		List<Batch> batchList = new ArrayList<Batch>();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getBatch(?)}")) {
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall("{call getBatch(?)}")) {
 
 			// TODO hardcoded with only one batch 1 since the UI doesn't have the functionality to display multiple batches
 
@@ -66,7 +67,7 @@ public class BatchList extends TheBorg {
 					b.setStartDate(rs.getDate("start_date"));
 					b.setEndDate(rs.getDate("end_date"));
 					b.setBatchId(rs.getInt("survey_batch_id"));
-					try (CallableStatement cstmt1 = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+					try (CallableStatement cstmt1 = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
 							"{call getBatchQuestionList(?)}")) {
 						cstmt1.setInt(1, rs.getInt("survey_batch_id"));
 						try (ResultSet rs1 = cstmt1.executeQuery();) {
@@ -135,7 +136,7 @@ public class BatchList extends TheBorg {
 
 				boolean isCurrent = q.getQuestionStatus(q.getStartDate(), q.getEndDate()).equalsIgnoreCase("current");
 				previousEndDate = updateQuestion(q, changedFrequency, isCurrent, previousEndDate);
-				try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+				try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
 						"{call updateQuestionDate(?, ?, ?)}")) {
 
 					cstmt.setInt(1, questionId);
@@ -152,7 +153,8 @@ public class BatchList extends TheBorg {
 
 		}
 		// update the batch once all questions have been successfully updated
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call updateBatch(?, ?, ?, ?)}")) {
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
+				"{call updateBatch(?, ?, ?, ?)}")) {
 
 			cstmt.setInt(1, batch.getBatchId());
 			cstmt.setInt(2, changedFrequency.getValue());

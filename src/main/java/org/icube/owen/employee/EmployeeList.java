@@ -33,7 +33,7 @@ public class EmployeeList extends TheBorg {
 
 	public List<Employee> getEmployeeSmartListForTeam(int companyId, List<Filter> filterList, int initiativeType) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		List<Employee> employeeSmartList = new ArrayList<Employee>();
 		try {
 			RConnection rCon = dch.getRConn();
@@ -112,7 +112,7 @@ public class EmployeeList extends TheBorg {
 
 	public List<Employee> getEmployeeSmartListForIndividual(int companyId, List<Employee> partOfEmployeeList, int initiativeType) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		List<Employee> individualSmartList = new ArrayList<Employee>();
 		List<Integer> partOfEmployeeIdList = new ArrayList<>();
 		for (Employee e : partOfEmployeeList) {
@@ -172,9 +172,10 @@ public class EmployeeList extends TheBorg {
 
 	public List<Employee> getEmployeeMasterList(int companyId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		List<Employee> employeeList = new ArrayList<>();
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getEmployeeList()}");
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection()
+				.prepareCall("{call getEmployeeList()}");
 				ResultSet res = cstmt.executeQuery()) {
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("getEmployeeMasterList method started");
 			org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("query : " + cstmt);
@@ -234,9 +235,10 @@ public class EmployeeList extends TheBorg {
 		org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("Company ID " + companyId);
 
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		List<Employee> employeeList = new ArrayList<>();
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getEmpFromDimension(?,?,?)}")) {
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
+				"{call getEmpFromDimension(?,?,?)}")) {
 			int funcId = 0, posId = 0, zoneId = 0;
 			for (Filter filter : filterList) {
 				if (filter.getFilterName().equalsIgnoreCase("Function")) {
@@ -276,7 +278,7 @@ public class EmployeeList extends TheBorg {
 	 */
 	public List<Employee> get(int companyId, List<Integer> employeeIdList) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		List<Employee> empList = new ArrayList<>();
 
 		// sub listing the employee ID list for every 100 employees due to db constraints
@@ -292,7 +294,8 @@ public class EmployeeList extends TheBorg {
 				empSubList = employeeIdList.subList(listIndex, listIndex + subListSize);
 			}
 
-			try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getEmployeeDetails(?)}")) {
+			try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
+					"{call getEmployeeDetails(?)}")) {
 				org.apache.log4j.Logger.getLogger(EmployeeList.class).debug("get method started");
 				cstmt.setString(1, empSubList.toString().substring(1, empSubList.toString().length() - 1).replaceAll(" ", ""));
 				try (ResultSet res = cstmt.executeQuery()) {

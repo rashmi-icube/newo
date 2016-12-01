@@ -37,9 +37,9 @@ public class Alert extends TheBorg {
 	 */
 	public Alert get(int companyId, int alertId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		Alert a = null;
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getAlert(?)}")) {
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall("{call getAlert(?)}")) {
 			cstmt.setInt(1, alertId);
 			try (ResultSet rs = cstmt.executeQuery()) {
 				while (rs.next()) {
@@ -63,7 +63,7 @@ public class Alert extends TheBorg {
 	 */
 	public Alert fillAlertDetails(int companyId, ResultSet rs) throws SQLException {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 
 		String zone = "", function = "", position = "";
 		List<Filter> filterList = new ArrayList<>();
@@ -102,7 +102,8 @@ public class Alert extends TheBorg {
 		a.setAlertMetric(m);
 		a.setDeltaScore(rs.getDouble("delta_score"));
 		a.setTeamSize(rs.getInt("team_size"));
-		try (CallableStatement cstmt1 = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getListOfPeopleForAlert(?)}")) {
+		try (CallableStatement cstmt1 = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
+				"{call getListOfPeopleForAlert(?)}")) {
 			cstmt1.setInt(1, rs.getInt("alert_id"));
 			try (ResultSet rs1 = cstmt1.executeQuery()) {
 				List<Integer> empIdList = new ArrayList<>();
@@ -128,10 +129,11 @@ public class Alert extends TheBorg {
 	public boolean delete(int companyId, int alertId) {
 		org.apache.log4j.Logger.getLogger(Alert.class).debug("Entering the delete alert function");
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		try {
 			org.apache.log4j.Logger.getLogger(Alert.class).debug("Calling the deleteAlert procedure");
-			try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call deleteAlert(?)}")) {
+			try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
+					"{call deleteAlert(?)}")) {
 				cstmt.setInt(1, alertId);
 				try (ResultSet rs = cstmt.executeQuery()) {
 					org.apache.log4j.Logger.getLogger(Alert.class).debug("Successfully deleted alert");

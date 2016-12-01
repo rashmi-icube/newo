@@ -30,9 +30,10 @@ public class EmployeeHelper extends TheBorg {
 	public BasicEmployeeDetails getBasicEmployeeDetails(int companyId, int employeeId) {
 		BasicEmployeeDetails bed = new BasicEmployeeDetails();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getEmployeeBasicDetails(?)}")) {
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
+				"{call getEmployeeBasicDetails(?)}")) {
 
 			cstmt.setInt(1, employeeId);
 			try (ResultSet rs = cstmt.executeQuery()) {
@@ -70,9 +71,10 @@ public class EmployeeHelper extends TheBorg {
 		List<WorkExperience> workExList = new ArrayList<>();
 
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getEmployeeWorkExperience(?)}")) {
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
+				"{call getEmployeeWorkExperience(?)}")) {
 
 			cstmt.setInt(1, employeeId);
 			try (ResultSet rs = cstmt.executeQuery()) {
@@ -137,9 +139,10 @@ public class EmployeeHelper extends TheBorg {
 		List<EducationDetails> educationDetailsList = new ArrayList<>();
 
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getEmployeeEducation(?)}")) {
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
+				"{call getEmployeeEducation(?)}")) {
 
 			cstmt.setInt(1, employeeId);
 			try (ResultSet rs = cstmt.executeQuery()) {
@@ -182,9 +185,10 @@ public class EmployeeHelper extends TheBorg {
 	public List<LanguageDetails> getEmployeeLanguageDetails(int companyId, int employeeId) {
 		List<LanguageDetails> languageDetailsList = new ArrayList<>();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getEmployeeLanguage(?)}")) {
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
+				"{call getEmployeeLanguage(?)}")) {
 
 			cstmt.setInt(1, employeeId);
 			try (ResultSet rs = cstmt.executeQuery()) {
@@ -215,8 +219,8 @@ public class EmployeeHelper extends TheBorg {
 		org.apache.log4j.Logger.getLogger(EmployeeHelper.class).info("HashMap created!!!");
 		Map<Integer, String> languageMasterMap = new HashMap<>();
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getLanguageList}");
+		dch.refreshCompanyConnection(companyId);
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall("{call getLanguageList}");
 
 		ResultSet rs = cstmt.executeQuery()) {
 			while (rs.next()) {
@@ -238,9 +242,10 @@ public class EmployeeHelper extends TheBorg {
 	 */
 	public boolean removeWorkExperience(int companyId, int workExperienceId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		boolean status = false;
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call removeWorkExperience(?)}")) {
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
+				"{call removeWorkExperience(?)}")) {
 			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).debug("Removing work experience details with Id" + workExperienceId);
 			cstmt.setInt(1, workExperienceId);
 			try (ResultSet rs = cstmt.executeQuery()) {
@@ -268,9 +273,10 @@ public class EmployeeHelper extends TheBorg {
 	 */
 	public boolean removeEducation(int companyId, int educationId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		boolean status = false;
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call removeEducation(?)}")) {
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
+				"{call removeEducation(?)}")) {
 			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).debug("Removing Education details with Id" + educationId);
 			cstmt.setInt(1, educationId);
 			try (ResultSet rs = cstmt.executeQuery()) {
@@ -297,9 +303,10 @@ public class EmployeeHelper extends TheBorg {
 	 */
 	public boolean removeLanguage(int companyId, int languageId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		boolean status = false;
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call removeLanguage(?)}")) {
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection()
+				.prepareCall("{call removeLanguage(?)}")) {
 			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).debug("Removing Language details with Id" + languageId);
 			cstmt.setInt(1, languageId);
 			try (ResultSet rs = cstmt.executeQuery()) {
@@ -326,8 +333,8 @@ public class EmployeeHelper extends TheBorg {
 	public boolean updateBasicDetails(int companyId, BasicEmployeeDetails bed) {
 		boolean status = false;
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+		dch.refreshCompanyConnection(companyId);
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
 				"{call updateEmployeeBasicDetails(?, ?)}")) {
 			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).debug("Updating employee basic details" + bed.getEmployeeId());
 			cstmt.setInt("empid", bed.getEmployeeId());
@@ -358,8 +365,8 @@ public class EmployeeHelper extends TheBorg {
 	public boolean addWorkExperience(int companyId, WorkExperience wek) {
 		boolean status = false;
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+		dch.refreshCompanyConnection(companyId);
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
 				"{call insertWorkExperience(?, ?, ?, ?, ?, ?)}")) {
 			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).debug("Adding new work experience for employee" + wek.getEmployeeId());
 			cstmt.setInt("emp_id_ip", wek.getEmployeeId());
@@ -394,8 +401,8 @@ public class EmployeeHelper extends TheBorg {
 	public boolean addEducation(int companyId, EducationDetails ed) {
 		boolean status = false;
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+		dch.refreshCompanyConnection(companyId);
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
 				"{call insertEducation(?, ?, ?, ?, ?, ?)}")) {
 			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).debug("Adding new education for employee" + ed.getEmployeeId());
 			cstmt.setInt("emp_id_ip", ed.getEmployeeId());
@@ -431,8 +438,9 @@ public class EmployeeHelper extends TheBorg {
 	public boolean addLanguage(int companyId, LanguageDetails ld) {
 		boolean status = false;
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call insertLanguage(?, ?)}")) {
+		dch.refreshCompanyConnection(companyId);
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
+				"{call insertLanguage(?, ?)}")) {
 			org.apache.log4j.Logger.getLogger(EmployeeHelper.class).debug("Adding new language for employee" + ld.getEmployeeId());
 			cstmt.setInt("emp_id_ip", ld.getEmployeeId());
 			cstmt.setInt("language_id_ip", ld.getLanguageId());

@@ -97,7 +97,7 @@ public class InitiativeHelper extends TheBorg {
 		Map<String, Map<String, Object>> masterMap = getEmptyInitiativeCountMap(companyId, "Team");
 		masterMap.putAll(getEmptyInitiativeCountMap(companyId, "Individual"));
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		try (Statement stmt = dch.companyConnectionMap.get(companyId).getNeoConnection().createStatement()) {
 			String query = "match (i:Init) where i.Status='Active' or i.Status='Completed' with  distinct(i.Status) as stat match (z:Init) "
 					+ "with distinct(z.Category) as cat,stat match (j:Init {Category:cat}) with distinct(j.Type) as TYP,stat,cat optional "
@@ -182,9 +182,9 @@ public class InitiativeHelper extends TheBorg {
 		List<Metrics> metricsList = new ArrayList<>();
 		MetricsHelper mh = new MetricsHelper();
 		try {
-			dch.getCompanyConnection(companyId);
+			dch.refreshCompanyConnection(companyId);
 			if (i.getInitiativeCategory().equalsIgnoreCase("Individual")) {
-				try (CallableStatement cs = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+				try (CallableStatement cs = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
 						"{call getIndividualInitiativeMetricValueAggregate(?)}")) {
 					int empId = i.getPartOfEmployeeList().get(0).getEmployeeId();
 					cs.setInt(1, empId);
@@ -197,7 +197,7 @@ public class InitiativeHelper extends TheBorg {
 				org.apache.log4j.Logger.getLogger(InitiativeHelper.class).debug(
 						"setInitiativeMetrics for team  calling procedure getTeamInitiativeMetricValueAggregate for initiative ID: "
 								+ i.getInitiativeId());
-				try (CallableStatement cs = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+				try (CallableStatement cs = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
 						"{call getTeamInitiativeMetricValueAggregate(?)}")) {
 					int initId = i.getInitiativeId();
 					cs.setInt(1, initId);

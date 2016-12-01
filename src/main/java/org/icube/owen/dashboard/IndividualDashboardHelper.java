@@ -57,10 +57,10 @@ public class IndividualDashboardHelper extends TheBorg {
 
 	public List<Metrics> getIndividualMetrics(int companyId, int employeeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		MetricsHelper mh = new MetricsHelper();
 		List<Metrics> metricsList = new ArrayList<>();
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
 				"{call getIndividualMetricValueForIndividual(?)}")) {
 
 			cstmt.setInt(1, employeeId);
@@ -90,11 +90,11 @@ public class IndividualDashboardHelper extends TheBorg {
 	public Map<Integer, List<Map<Date, Integer>>> getIndividualMetricsTimeSeries(int companyId, int employeeId) {
 		Map<Integer, List<Map<Date, Integer>>> metricsTimeSeriesMasterMap = getEmptyTimeSeriesMap(companyId, "Individual");
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		ExploreHelper eh = new ExploreHelper();
 		org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).info("HashMap created!!!");
 		Map<Integer, List<Map<Date, Integer>>> metricsListMap = new HashMap<>();
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
 				"{call getIndividualMetricTimeSeriesForIndividual(?)}")) {
 			cstmt.setInt(1, employeeId);
 			try (ResultSet rs = cstmt.executeQuery()) {
@@ -144,7 +144,7 @@ public class IndividualDashboardHelper extends TheBorg {
 
 	public List<Initiative> getIndividualInitiativeList(int companyId, int employeeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		InitiativeHelper ih = new InitiativeHelper();
 		InitiativeList il = new InitiativeList();
 		List<Initiative> initiativeList = new ArrayList<>();
@@ -203,11 +203,12 @@ public class IndividualDashboardHelper extends TheBorg {
 		org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("************Company id: " + companyId);
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
 		List<ActivityFeed> afList = new ArrayList<>();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		Map<Date, List<ActivityFeed>> result = new TreeMap<>(Collections.reverseOrder());
 		SimpleDateFormat parserSDF = new SimpleDateFormat(UtilHelper.dateTimeFormat);
 		org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).debug("Get ActivityFeed list");
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getAppreciationActivity(?)}")) {
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
+				"{call getAppreciationActivity(?)}")) {
 			cstmt.setInt(1, employeeId);
 			try (ResultSet rs = cstmt.executeQuery()) {
 				while (rs.next()) {
@@ -290,10 +291,11 @@ public class IndividualDashboardHelper extends TheBorg {
 	 */
 	private Map<Integer, Integer> getMetricRelationshipTypeMapping(int companyId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).info("HashMap created!!!");
 		Map<Integer, Integer> result = new HashMap<>();
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call getMetricRelationshipType()}");
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
+				"{call getMetricRelationshipType()}");
 				ResultSet rs = cstmt.executeQuery()) {
 
 			while (rs.next()) {
@@ -318,7 +320,7 @@ public class IndividualDashboardHelper extends TheBorg {
 
 	public List<Employee> getSmartList(int companyId, int employeeId, int metricId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		List<Employee> employeeList = new ArrayList<>();
 		Map<Integer, Integer> metricRelationshipTypeMap = getMetricRelationshipTypeMapping(companyId);
 		try {
@@ -380,11 +382,11 @@ public class IndividualDashboardHelper extends TheBorg {
 	public boolean saveAppreciation(int companyId, int employeeId, int metricId, Map<Employee, Integer> appreciationResponseMap) {
 		boolean responseSaved = false;
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		Map<Integer, Integer> metricRelationshipTypeMap = getMetricRelationshipTypeMapping(companyId);
 		try {
 			for (Employee e : appreciationResponseMap.keySet()) {
-				try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+				try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
 						"{call insertAppreciation(?,?,?,?,?)}")) {
 					cstmt.setInt(1, employeeId);
 					cstmt.setTimestamp(2, Timestamp.from(Instant.now()));
@@ -420,10 +422,11 @@ public class IndividualDashboardHelper extends TheBorg {
 	 */
 	public boolean changePassword(int companyId, int employeeId, String currentPassword, String newPassword) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		String emailId = null;
 		boolean passwordChanged = false;
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call updateEmployeePassword(?,?,?)}")) {
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
+				"{call updateEmployeePassword(?,?,?)}")) {
 			cstmt.setInt(1, employeeId);
 			cstmt.setString(2, currentPassword);
 			cstmt.setString(3, newPassword);
@@ -438,7 +441,7 @@ public class IndividualDashboardHelper extends TheBorg {
 					throw new Exception("Current password is incorrect");
 				}
 			}
-			try (Statement stmt = dch.companyConnectionMap.get(companyId).getSqlConnection().createStatement();
+			try (Statement stmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().createStatement();
 			// check if new e mails have to be sent for the specific company
 
 					ResultSet res = stmt
@@ -449,7 +452,11 @@ public class IndividualDashboardHelper extends TheBorg {
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while validating password ", e);
 		}
-		sendChangedPasswordMail(dch.companyConnectionMap.get(companyId).getSqlConnection(), emailId, newPassword);
+		try {
+			sendChangedPasswordMail(dch.companyConnectionMap.get(companyId).getDataSource().getConnection(), emailId, newPassword);
+		} catch (SQLException e) {
+			org.apache.log4j.Logger.getLogger(IndividualDashboardHelper.class).error("Exception while sending changed password email", e);
+		}
 		return passwordChanged;
 	}
 
@@ -476,14 +483,14 @@ public class IndividualDashboardHelper extends TheBorg {
 		int index = emailId.indexOf('@');
 		String companyDomain = emailId.substring(index + 1);
 		int companyId = 0;
-		try (CallableStatement cstmt = dch.masterCon.prepareCall("{call getCompanyDb(?)}")) {
+		try (CallableStatement cstmt = dch.masterDS.getConnection().prepareCall("{call getCompanyDb(?)}")) {
 
 			cstmt.setString(1, companyDomain);
 			try (ResultSet rs = cstmt.executeQuery()) {
 				while (rs.next()) {
 					companyId = rs.getInt("comp_id");
-					dch.getCompanyConnection(companyId);
-					companySqlCon = dch.companyConnectionMap.get(companyId).getSqlConnection();
+					dch.refreshCompanyConnection(companyId);
+					companySqlCon = dch.companyConnectionMap.get(companyId).getDataSource().getConnection();
 				}
 			}
 
@@ -593,9 +600,10 @@ public class IndividualDashboardHelper extends TheBorg {
 
 	public boolean updateNotificationTimestamp(int companyId, int employeeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		boolean timestampUpdated = false;
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall("{call updateNotificationTime(?,?)}")) {
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
+				"{call updateNotificationTime(?,?)}")) {
 			cstmt.setInt("empid", employeeId);
 			cstmt.setTimestamp("noti_time", UtilHelper.convertJavaDateToSqlTimestamp(Date.from(Instant.now())));
 			try (ResultSet rs = cstmt.executeQuery()) {
@@ -618,10 +626,10 @@ public class IndividualDashboardHelper extends TheBorg {
 	 */
 	public Integer getNotificationsCount(int companyId, int employeeId) {
 		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
-		dch.getCompanyConnection(companyId);
+		dch.refreshCompanyConnection(companyId);
 		int notificationCount = 0;
 		Date lastNotificationDate = null;
-		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getSqlConnection().prepareCall(
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
 				"{call getAppreciationActivityLatestCount(?)}")) {
 
 			cstmt.setInt("empid", employeeId);
