@@ -1,11 +1,13 @@
 package org.icube.owen.helper;
 
 import java.sql.CallableStatement;
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Timer;
 import java.util.concurrent.TimeUnit;
 
@@ -13,6 +15,7 @@ import org.apache.tomcat.jdbc.pool.DataSource;
 import org.apache.tomcat.jdbc.pool.PoolProperties;
 import org.icube.owen.TheBorg;
 import org.icube.owen.jobScheduler.CompanyDAO;
+import org.neo4j.jdbc.Driver;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RConnection;
@@ -25,7 +28,6 @@ public class DatabaseConnectionHelper extends TheBorg {
 	private RConnection rCon;
 	public Map<Integer, CompanyConfig> companyConfigMap;
 	public Map<Integer, CompanyConnection> companyConnectionMap;
-	// public Map<Integer, DataSource> companyDatasourceMap;
 
 	private boolean rConInUse = false;
 	Timer timer = new Timer();
@@ -35,18 +37,6 @@ public class DatabaseConnectionHelper extends TheBorg {
 	private final static String MASTER_PASSWORD = UtilHelper.getConfigProperty("master_sql_password");
 
 	public DatabaseConnectionHelper() {
-
-		// master sql connection
-		// try {
-		// Class.forName("com.mysql.jdbc.Driver");
-		// masterCon = (masterCon != null && !masterCon.isValid(0)) ? masterCon : DriverManager.getConnection(MASTER_URL, MASTER_USER,
-		// MASTER_PASSWORD);
-		// org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug("Successfully connected to MySql with master database");
-		//
-		// } catch (SQLException | ClassNotFoundException e) {
-		// org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error(
-		// "An error occurred while connecting to the master database on : " + MASTER_URL + " with user name : " + MASTER_USER, e);
-		// }
 
 		PoolProperties p = new PoolProperties();
 		p.setUrl(MASTER_URL);
@@ -70,17 +60,9 @@ public class DatabaseConnectionHelper extends TheBorg {
 		p.setRemoveAbandoned(true);
 		p.setConnectionProperties("connectionTimeout=\"300000\"");
 		p.setJdbcInterceptors("org.apache.tomcat.jdbc.pool.interceptor.ConnectionState;"
-		// + "org.apache.tomcat.jdbc.pool.interceptor.StatementFinalizer;"
 				+ "org.apache.tomcat.jdbc.pool.interceptor.ResetAbandonedTimer");
-		// p.setLogAbandoned(true);
 		masterDS = new DataSource();
 		masterDS.setPoolProperties(p);
-		/*try {
-			masterCon = masterDS.getConnection();
-		} catch (SQLException e) {
-			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error(
-					"An error occurred while connecting to the master database on : " + MASTER_URL + " with user name : " + MASTER_USER, e);
-		}*/
 
 		// R connection
 		try {
@@ -106,7 +88,6 @@ public class DatabaseConnectionHelper extends TheBorg {
 			companyConfigMap = new HashMap<>();
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).info("HashMap created!!!");
 			companyConnectionMap = new HashMap<>();
-			// companyDatasourceMap = new HashMap<>();
 		} catch (RserveException | REXPMismatchException e) {
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error("An error occurred while trying to connect to R", e);
 		}
@@ -156,10 +137,9 @@ public class DatabaseConnectionHelper extends TheBorg {
 				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug(
 						"Connection to company sql for companyId : " + companyId + " is " + "closed!!!!");
 
-				// TODO:remove comment once a final solution to R and neo is found
-				/*companyConnectionMap.get(companyId).getNeoConnection().close();
+				companyConnectionMap.get(companyId).getNeoConnection().close();
 				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug(
-						"Connection to company neo4j for companyId : " + companyId + " is closed!!!!");*/
+						"Connection to company neo4j for companyId : " + companyId + " is closed!!!!");
 			}
 
 		} catch (SQLException e) {
@@ -176,7 +156,6 @@ public class DatabaseConnectionHelper extends TheBorg {
 			CompanyConfig compConfig = null;
 			CompanyConnection compConnection = new CompanyConnection();
 			if (!companyConnectionMap.containsKey(companyId)) {
-
 				// get company details
 				try (CallableStatement cstmt = masterDS.getConnection().prepareCall("{call getCompanyConfig(?)}")) {
 					cstmt.setInt(1, companyId);
@@ -195,31 +174,25 @@ public class DatabaseConnectionHelper extends TheBorg {
 				compConnection.setDataSource(ds);
 				org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).debug(
 						"Created new Connection to company sql for companyId : " + companyId);
-				companyConnectionMap.put(companyId, compConnection);
 
-				// TODO:remove comment once a final solution to R and neo is found
 				// company neo connection
-				// compConnection.setNeoConnection(createNeoConnection(companyId, compConfig));
+				compConnection.setNeoConnection(createNeoConnection(companyId, compConfig));
+				companyConnectionMap.put(companyId, compConnection);
 			} else {
-				// TODO:remove comment once a final solution to R and neo is found
 				// check if Neo connection is valid; if not refresh the connection
-				/*if (!companyConnectionMap.get(companyId).getNeoConnection().isValid(0)) {
+				if (!companyConnectionMap.get(companyId).getNeoConnection().isValid(0)) {
+					compConnection = companyConnectionMap.get(companyId);
 					compConnection.setNeoConnection(createNeoConnection(companyId, companyConfigMap.get(companyId)));
-					compConnectionChanged = true;
-				}*/
+					companyConnectionMap.put(companyId, compConnection);
+				}
 			}
-
-			// companyConnectionMap.put(companyId, compConnection);
-
 		} catch (Exception e) {
 			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error(
 					"An error occurred while retrieving connection details for companyId : " + companyId, e);
 		}
-
 	}
 
-	// TODO:remove comment once a final solution to R and neo is found
-	/*private Connection createNeoConnection(int companyId, CompanyConfig compConfig) {
+	private Connection createNeoConnection(int companyId, CompanyConfig compConfig) {
 		Connection conn = null;
 		try {
 			String neoUrl = compConfig.getNeoUrl();
@@ -239,19 +212,6 @@ public class DatabaseConnectionHelper extends TheBorg {
 		}
 		return conn;
 	}
-	*/
-
-	/*private Connection createSqlConnection(int companyId, CompanyConfig compConfig) {
-		Connection conn = null;
-		try {
-			DataSource datasource = createDataSource(compConfig);
-			conn = company.getConnection();
-		} catch (SQLException e) {
-			org.apache.log4j.Logger.getLogger(DatabaseConnectionHelper.class).error(
-					"An error occurred while connecting to the sql db for companyId : " + companyId, e);
-		}
-		return conn;
-	}*/
 
 	private DataSource createDataSource(CompanyConfig compConfig) {
 		PoolProperties p = new PoolProperties();
@@ -278,7 +238,6 @@ public class DatabaseConnectionHelper extends TheBorg {
 		p.setMaxIdle(Integer.valueOf(UtilHelper.getConfigProperty("maxIdle")));
 		p.setJdbcInterceptors("org.apache.tomcat.jdbc.pool.interceptor.ConnectionState;"
 				+ "org.apache.tomcat.jdbc.pool.interceptor.ResetAbandonedTimer");
-		// p.setLogAbandoned(true);
 		DataSource datasource = new DataSource();
 		datasource.setPoolProperties(p);
 		return datasource;

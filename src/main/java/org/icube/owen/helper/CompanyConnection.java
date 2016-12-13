@@ -6,17 +6,8 @@ import org.apache.tomcat.jdbc.pool.DataSource;
 
 public class CompanyConnection {
 
-	// private Connection sqlConnection;
 	private Connection neoConnection;
 	private DataSource sqlDataSource;
-
-	/*public Connection getSqlConnection() {
-		return sqlConnection;
-	}
-
-	public void setSqlConnection(Connection sqlConnection) {
-		this.sqlConnection = sqlConnection;
-	}*/
 
 	public Connection getNeoConnection() {
 		return neoConnection;
