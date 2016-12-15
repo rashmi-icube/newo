@@ -3,10 +3,15 @@ package org.icube.owen.survey;
 import java.sql.CallableStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -21,10 +26,6 @@ import org.icube.owen.helper.UtilHelper;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.rosuda.REngine.REXP;
-import org.rosuda.REngine.REXPInteger;
-import org.rosuda.REngine.RList;
-import org.rosuda.REngine.Rserve.RConnection;
 
 public class Question extends TheBorg {
 
@@ -321,53 +322,12 @@ public class Question extends TheBorg {
 						}
 						Employee e = new Employee();
 						employeeList = e.get(companyId, empIdList);
-
-						/*for (int i = 0; i < empIdList.size(); i++) {
-							Employee e = new Employee();
-							e = e.get(companyId, empIdList.get(i));
-							employeeList.add(e);
-						}*/
 					}
 				}
 
 			} else {
-				// Map<Integer, Employee> employeeRankMap = new TreeMap<>();
-				Question q = getQuestion(companyId, questionId);
-				RConnection rCon = dch.getRConn();
-				org.apache.log4j.Logger.getLogger(Question.class).debug("R Connection Available : " + rCon.isConnected());
-				org.apache.log4j.Logger.getLogger(Question.class).debug("Filling up parameters for rscript function");
-				rCon.assign("company_id", new int[] { companyId });
-				rCon.assign("emp_id", new int[] { employeeId });
-				rCon.assign("rel_id", new int[] { q.getRelationshipTypeId() });
-				org.apache.log4j.Logger.getLogger(Question.class).debug("Calling the actual function in RScript SmartListResponse");
-				REXP employeeSmartList = rCon.parseAndEval("try(eval(SmartListResponse(company_id, emp_id, rel_id)))");
-				if (employeeSmartList.inherits("try-error")) {
-					org.apache.log4j.Logger.getLogger(Question.class).error("Error: " + employeeSmartList.asString());
-					dch.releaseRcon();
-					throw new Exception("Error: " + employeeSmartList.asString());
-				} else {
-					org.apache.log4j.Logger.getLogger(Question.class).debug(
-							"Retrieval of the employee smart list completed " + employeeSmartList.asList());
-				}
-
-				RList result = employeeSmartList.asList();
-				REXPInteger empIdResult = (REXPInteger) result.get("emp_id");
-				int[] empIdArray = empIdResult.asIntegers();
-
-				// keep here for testing the order of the rank
-				/*REXPInteger rankResult = (REXPInteger) (result.get("Rank"));
-				int[] rankArray = rankResult.asIntegers();*/
-				List<Integer> empIdList = new ArrayList<Integer>();
-				for (int index = 0; index < empIdArray.length; index++) {
-					empIdList.add(empIdArray[index]);
-				}
 				Employee e = new Employee();
-				employeeList = e.get(companyId, empIdList);
-
-				/*for (int i = 0; i < empIdArray.length; i++) {
-					Employee e = new Employee();
-					employeeList.add(e.get(companyId, empIdArray[i]));
-				}*/
+				employeeList = e.get(companyId, getDynamicSmartList(companyId, employeeId, questionId));
 			}
 
 		} catch (Exception e) {
@@ -376,6 +336,113 @@ public class Question extends TheBorg {
 			dch.releaseRcon();
 		}
 		return employeeList;
+	}
+
+	public List<Integer> getDynamicSmartList(int companyId, int employeeId, int questionId) {
+		DatabaseConnectionHelper dch = ObjectFactory.getDBHelper();
+		dch.refreshCompanyConnection(companyId);
+		Question q = getQuestion(companyId, questionId);
+		List<Integer> empIdList = new ArrayList<>();
+
+		// get relationship name
+		try (CallableStatement cstmt = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
+				"{call getRelationNameFromId(?)}")) {
+			cstmt.setInt("relid", q.getRelationshipTypeId());
+			String relationName = "";
+			try (ResultSet rs = cstmt.executeQuery()) {
+				while (rs.next()) {
+					relationName = rs.getString("rel_name");
+				}
+			}
+
+			// get first connections
+			String firstConnectionQuery = "match (a:Employee {emp_id:" + employeeId + "})-[r:" + relationName
+					+ "]->(b:Employee) return b.emp_id as emp_id,r.weight as weight";
+			Map<Integer, Double> connectionsMap = new HashMap<>();
+			try (Statement stmt = dch.companyConnectionMap.get(companyId).getNeoConnection().createStatement();
+					ResultSet res = stmt.executeQuery(firstConnectionQuery)) {
+				while (res.next()) {
+					connectionsMap.put(res.getInt("emp_id"), res.getDouble("weight"));
+				}
+			}
+
+			// if first connections aren't empty fetch the second connections
+			if (!connectionsMap.isEmpty()) {
+				String secondConnectionQuery = "match (a:Employee {emp_id:" + employeeId + "})-[r:" + relationName + "]->(b:Employee)-[:"
+						+ relationName + "]->(c:Employee) return b.emp_id,c.emp_id as emp_id,r.weight as weight";
+
+				try (Statement stmt = dch.companyConnectionMap.get(companyId).getNeoConnection().createStatement();
+						ResultSet res = stmt.executeQuery(secondConnectionQuery)) {
+					while (res.next()) {
+						int empId = res.getInt("emp_id");
+						double weight = res.getDouble("weight");
+						if (!connectionsMap.containsKey(empId)) {
+							connectionsMap.put(empId, weight);
+						} else {
+							if (connectionsMap.get(empId) < weight) {
+								connectionsMap.put(empId, weight);
+							}
+						}
+					}
+				}
+			}
+
+			// get inactive employee list
+			List<Integer> inactiveEmpList = new ArrayList<>();
+			try (CallableStatement cstmt1 = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
+					"{call getInactiveEmp()}");
+					ResultSet rs1 = cstmt1.executeQuery()) {
+				while (rs1.next()) {
+					inactiveEmpList.add(rs1.getInt("empid"));
+				}
+			}
+
+			// remove inactive employee & signed in employee ID from connections
+			connectionsMap.keySet().removeAll(inactiveEmpList);
+			connectionsMap.keySet().remove(employeeId);
+
+			// get cube employees
+			List<Integer> cubeEmpIdList = new ArrayList<>();
+			try (CallableStatement cstmt1 = dch.companyConnectionMap.get(companyId).getDataSource().getConnection().prepareCall(
+					"{call getListColleague(?)}")) {
+				cstmt1.setString("array", String.valueOf(employeeId));
+				try (ResultSet rs = cstmt1.executeQuery()) {
+
+					while (rs.next()) {
+						cubeEmpIdList.add(rs.getInt("emp_id"));
+					}
+					cubeEmpIdList.removeAll(connectionsMap.keySet());
+					cubeEmpIdList.remove(Integer.valueOf(employeeId));
+				}
+			}
+
+			// sort map by weight
+			Map<Integer, Double> sortedConnectionsMap = sortByValue(connectionsMap);
+
+			// build final empId list
+			empIdList.addAll(sortedConnectionsMap.keySet());
+			empIdList.addAll(cubeEmpIdList);
+
+		} catch (Exception e) {
+			org.apache.log4j.Logger.getLogger(Question.class).error("Error while trying to retrieve the smart list for employee", e);
+		}
+		return empIdList;
+	}
+
+	private Map<Integer, Double> sortByValue(Map<Integer, Double> map) {
+		List<Map.Entry<Integer, Double>> list = new LinkedList<>(map.entrySet());
+		Collections.sort(list, new Comparator<Map.Entry<Integer, Double>>() {
+			@Override
+			public int compare(Map.Entry<Integer, Double> o1, Map.Entry<Integer, Double> o2) {
+				return (o2.getValue()).compareTo(o1.getValue());
+			}
+		});
+
+		Map<Integer, Double> result = new LinkedHashMap<>();
+		for (Map.Entry<Integer, Double> entry : list) {
+			result.put(entry.getKey(), entry.getValue());
+		}
+		return result;
 	}
 
 }
