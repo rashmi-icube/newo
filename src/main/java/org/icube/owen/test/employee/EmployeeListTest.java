@@ -12,15 +12,14 @@ import org.icube.owen.employee.Employee;
 import org.icube.owen.employee.EmployeeList;
 import org.icube.owen.filter.Filter;
 import org.icube.owen.test.TestHelper;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class EmployeeListTest {
 	EmployeeList el = (EmployeeList) ObjectFactory.getInstance("org.icube.owen.employee.EmployeeList");
 	Employee e = (Employee) ObjectFactory.getInstance("org.icube.owen.employee.Employee");
-	int companyId = 2;
+	int companyId = 3;
 
-	@Ignore
+	@Test
 	public void testGetEmployeeMasterList() {
 		List<Employee> empList = new ArrayList<Employee>();
 		empList = el.getEmployeeMasterList(companyId);
@@ -33,7 +32,7 @@ public class EmployeeListTest {
 
 	}
 
-	@Ignore
+	@Test
 	public void testGetEmployeeSmartListForTeam() {
 		List<Employee> empList = new ArrayList<Employee>();
 		List<Filter> filterList = new ArrayList<Filter>();
@@ -73,7 +72,7 @@ public class EmployeeListTest {
 
 	}
 
-	@Ignore
+	@Test
 	public void testGetEmployeeSmartListForIndividual() {
 		List<Employee> empList = new ArrayList<Employee>();
 		List<Employee> partOfEmployeeList = new ArrayList<>();

@@ -12,13 +12,14 @@ import org.icube.owen.ObjectFactory;
 import org.icube.owen.employee.Employee;
 import org.icube.owen.initiative.Initiative;
 import org.icube.owen.test.TestHelper;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class InitiativeTest {
 	Initiative initiative = (Initiative) ObjectFactory.getInstance("org.icube.owen.initiative.Initiative");
 	int companyId = 2;
 
-	@Test
+	@Ignore
 	public void testSetInitiativeProperties() {
 		List<Employee> ownerOfList = new ArrayList<>();
 		List<Employee> partOfEmployeeList = new ArrayList<>();
@@ -71,7 +72,8 @@ public class InitiativeTest {
 	@Test
 	public void testGet() {
 		Initiative i = new Initiative();
-		i = initiative.get(companyId, 18);
+		i = initiative.get(companyId, 1);
+		System.out.println(i.getInitiativeName());
 		assertNotNull(i.getInitiativeName());
 		assertNotNull(i.getInitiativeStartDate());
 		assertNotNull(i.getInitiativeMetrics());
@@ -85,13 +87,13 @@ public class InitiativeTest {
 
 	@Test
 	public void testDelete() {
-		boolean status = initiative.delete(companyId, 17);
+		boolean status = initiative.delete(companyId, 2);
 		assertTrue(status);
 	}
 
 	@Test
 	public void testUpdateInitiative() {
-		Initiative updatedinitiative = initiative.get(companyId, 18);
+		Initiative updatedinitiative = initiative.get(companyId, 1);
 		List<Employee> ownerOfList = new ArrayList<>();
 		Employee e = new Employee();
 		ownerOfList.add(e.get(companyId, 7));
@@ -106,7 +108,7 @@ public class InitiativeTest {
 
 	@Test
 	public void testComplete() {
-		boolean status = initiative.complete(companyId, 16);
+		boolean status = initiative.complete(companyId, 5);
 		assertTrue(status);
 	}
 

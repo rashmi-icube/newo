@@ -13,7 +13,13 @@ import org.junit.Test;
 public class ResponseHelperTest {
 
 	ResponseHelper r = (ResponseHelper) ObjectFactory.getInstance("org.icube.owen.survey.Response");
-	int companyId = 5;
+	int companyId = 3;
+	
+	
+    @Test
+    public void testSaveAllResponses(){
+    	
+    }
 
 	@Test
 	public void testSaveMeResponse() {

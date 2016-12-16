@@ -17,11 +17,12 @@ import javax.imageio.ImageIO;
 import org.icube.owen.ObjectFactory;
 import org.icube.owen.employee.Employee;
 import org.icube.owen.helper.UtilHelper;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class EmployeeTest {
 	Employee e = (Employee) ObjectFactory.getInstance("org.icube.owen.employee.Employee");
-	int companyId = 1;
+	int companyId = 3;
 
 	@Test
 	public void testGet() {
@@ -38,7 +39,7 @@ public class EmployeeTest {
 
 	@Test
 	public void testGetImage() throws IOException, SQLException {
-		Image image = e.getImage(1, 1);
+		Image image = e.getImage(companyId, 1);
 		assertTrue(image instanceof Image);
 		OutputStream out = null;
 		int size = 0;
@@ -61,7 +62,7 @@ public class EmployeeTest {
 
 	}
 
-	@Test
+	@Ignore
 	public void testSaveImage() throws IOException {
 		File sourceimage = new File(UtilHelper.getConfigProperty("test_image_save_path"));
 		Image image = ImageIO.read(sourceimage);
